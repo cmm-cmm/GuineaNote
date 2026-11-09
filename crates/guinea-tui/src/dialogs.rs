@@ -151,7 +151,9 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             {
                 let entry = &manager.entries[index];
                 let chosen = manager.top + offset == manager.selected;
-                let state = if entry.review {
+                let state = if entry.ai {
+                    tr(locale, "AI · READ ONLY", "AI · CHỈ ĐỌC")
+                } else if entry.review {
                     "REVIEW"
                 } else if entry.readonly {
                     tr(locale, "READ ONLY", "CHỈ ĐỌC")

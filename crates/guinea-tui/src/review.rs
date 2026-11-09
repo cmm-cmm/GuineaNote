@@ -384,7 +384,7 @@ fn render_content(
                     .enumerate()
                     .filter(|(_, line)| !line.trim().is_empty())
                 {
-                    let value: serde_json::Value = serde_json::from_str(line)
+                    let value: serde_json::Value = guinea_service::analysis::parse_json(line)
                         .map_err(|e| format!("JSON record {}: {e}", index + 1))?;
                     if !writer.full() {
                         writer.push(
@@ -409,7 +409,7 @@ fn render_content(
                 }
             } else {
                 let value: serde_json::Value =
-                    serde_json::from_str(text).map_err(|e| format!("JSON: {e}"))?;
+                    guinea_service::analysis::parse_json(text).map_err(|e| format!("JSON: {e}"))?;
                 writer.push(&writer.locale.tr("JSON · formatted view\n\n"), title);
                 code(
                     &mut writer,

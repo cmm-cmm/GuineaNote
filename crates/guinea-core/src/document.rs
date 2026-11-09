@@ -10,6 +10,13 @@ use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+#[derive(Debug, Clone)]
+pub struct TextEdit {
+    pub start: usize,
+    pub end: usize,
+    pub text: String,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LineEnding {
     Lf,
@@ -308,6 +315,72 @@ impl Document {
         self.replace_range(self.selection.range(), text)
     }
 
+    /// Validate every scalar/grapheme range before changing anything. All edits
+    /// refer to the original snapshot; one call creates one undo transaction.
+    pub fn apply_edits(&mut self, edits: &[TextEdit]) -> Result<(), EditError> {
+        if self.readonly {
+            return Err(EditError::ReadOnly);
+        }
+        let mut ordered = edits.iter().collect::<Vec<_>>();
+        ordered.sort_by_key(|e| (e.start, e.end));
+        for (index, edit) in ordered.iter().enumerate() {
+            if edit.start > edit.end || edit.end > self.buffer.len_chars() {
+                return Err(EditError::OutOfBounds);
+            }
+            if !self.is_grapheme_boundary(edit.start) || !self.is_grapheme_boundary(edit.end) {
+                return Err(EditError::GraphemeBoundary);
+            }
+            if index > 0
+                && (ordered[index - 1].end > edit.start || ordered[index - 1].start == edit.start)
+            {
+                return Err(EditError::OutOfBounds);
+            }
+        }
+        if edits.is_empty() {
+            return Ok(());
+        }
+        let mut prepared = self.review_snapshot();
+        for edit in ordered.into_iter().rev() {
+            prepared.buffer.delete(edit.start..edit.end)?;
+            prepared.buffer.insert(edit.start, &edit.text)?;
+        }
+        prepared.selection = Selection::default();
+        self.accept_prepared(&prepared, self.revision)
+    }
+
+    /// Commit an off-thread prepared snapshot in O(1) shared-buffer work while
+    /// retaining this document's history, identity, path and save metadata.
+    pub fn accept_prepared(
+        &mut self,
+        prepared: &Self,
+        expected_revision: u64,
+    ) -> Result<(), EditError> {
+        if self.readonly {
+            return Err(EditError::ReadOnly);
+        }
+        if self.revision != expected_revision || self.id != prepared.id {
+            return Err(EditError::RevisionConflict);
+        }
+        let before = self.snapshot();
+        let removed = self.buffer.len_chars();
+        self.buffer = prepared.buffer.clone();
+        self.selection = prepared.selection;
+        self.content_state = self.next_content_state;
+        self.next_content_state += 1;
+        self.revision += 1;
+        self.preferred_column = None;
+        *self.layout_cache.borrow_mut() = None;
+        self.redo.clear();
+        self.undo.push(Transaction {
+            before,
+            after: self.snapshot(),
+            start: 0,
+            removed,
+            inserted: self.buffer.len_chars(),
+        });
+        Ok(())
+    }
+
     pub fn newline(&mut self) -> Result<(), EditError> {
         self.insert(self.newline_policy.newline())
     }
@@ -543,6 +616,49 @@ fn byte_is_grapheme_boundary(text: &str, byte: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn agent_edits_are_atomic_one_undo_and_revision_checked() {
+        let original = "a\u{301}👩‍💻\r\nxyz";
+        let mut d = Document::from_text(original);
+        let revision = d.revision();
+        assert!(
+            d.apply_edits(&[TextEdit {
+                start: 2,
+                end: 4,
+                text: "bad".into()
+            }])
+            .is_err()
+        );
+        assert_eq!(d.text(), original);
+        assert_eq!(d.revision(), revision);
+        assert!(!d.is_dirty());
+        d.apply_edits(&[
+            TextEdit {
+                start: 2,
+                end: 5,
+                text: "B".into(),
+            },
+            TextEdit {
+                start: 7,
+                end: 10,
+                text: "tail".into(),
+            },
+        ])
+        .unwrap();
+        assert_eq!(d.text(), "a\u{301}B\r\ntail");
+        assert!(d.undo().unwrap());
+        assert_eq!(d.text(), original);
+        assert!(!d.is_dirty());
+        assert!(d.redo().unwrap());
+        assert_eq!(d.text(), "a\u{301}B\r\ntail");
+        let prepared = d.review_snapshot();
+        let old = d.revision();
+        d.insert("user").unwrap();
+        assert_eq!(
+            d.accept_prepared(&prepared, old),
+            Err(EditError::RevisionConflict)
+        );
+    }
     use proptest::prelude::*;
     use unicode_segmentation::UnicodeSegmentation;
 

@@ -12,6 +12,9 @@ impl Input {
     pub fn new() -> Self {
         Self
     }
+    pub fn waker(&self) -> Option<std::sync::Arc<dyn Fn() + Send + Sync>> {
+        None
+    }
     pub fn read(&mut self, timeout: Duration) -> io::Result<Option<Event>> {
         if crossterm::event::poll(timeout)? {
             crossterm::event::read().map(Some)
@@ -24,6 +27,7 @@ impl Input {
 #[cfg(windows)]
 pub struct Input {
     receiver: std::sync::mpsc::Receiver<io::Result<Event>>,
+    sender: std::sync::mpsc::SyncSender<io::Result<Event>>,
 }
 
 #[cfg(windows)]
@@ -32,6 +36,7 @@ impl Input {
         use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
         use crossterm_winapi::{Console, EventFlags, Handle, InputRecord};
         let (sender, receiver) = std::sync::mpsc::sync_channel(1024);
+        let wake_sender = sender.clone();
         std::thread::spawn(move || {
             let run = || -> io::Result<()> {
                 let console = Console::from(Handle::current_in_handle()?);
@@ -105,7 +110,16 @@ impl Input {
                 let _ = sender.send(Err(error));
             }
         });
-        Self { receiver }
+        Self {
+            receiver,
+            sender: wake_sender,
+        }
+    }
+    pub fn waker(&self) -> Option<std::sync::Arc<dyn Fn() + Send + Sync>> {
+        let sender = self.sender.clone();
+        Some(std::sync::Arc::new(move || {
+            let _ = sender.try_send(Ok(Event::FocusGained));
+        }))
     }
 
     pub fn read(&mut self, timeout: Duration) -> io::Result<Option<Event>> {

@@ -20,15 +20,29 @@ struct Args {
     /// Interface language: Vietnamese or English (F8 opens Settings).
     #[arg(long, value_parser = ["vi", "en"])]
     language: Option<String>,
+    /// Enable local Agent access to this workspace and unsaved buffers.
+    #[arg(long)]
+    agent: bool,
+    /// Grant Agent patch/save/new/close capabilities for this session.
+    #[arg(long, requires = "agent", conflicts_with = "readonly")]
+    agent_write: bool,
+    /// Explicitly allow Agent reads of sensitive paths such as .env.
+    #[arg(long, requires = "agent")]
+    agent_secrets: bool,
 }
 
 fn main() -> std::process::ExitCode {
     let args = Args::parse();
-    match guinea_tui::run(
+    match guinea_tui::run_with_agent(
         args.files,
         args.readonly,
         args.config,
         args.language.as_deref(),
+        guinea_tui::AgentOptions {
+            enabled: args.agent,
+            write: args.agent_write,
+            secrets: args.agent_secrets,
+        },
     ) {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(error) => {

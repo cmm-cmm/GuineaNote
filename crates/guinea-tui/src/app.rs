@@ -14,6 +14,8 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::config::Config;
 use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
+#[path = "agent.rs"]
+mod agent;
 use crate::{
     file_info::FileInfo,
     file_picker::{Action as PickerAction, FilePicker},
@@ -66,6 +68,9 @@ pub struct HitRegions {
 pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
+    pub id: u64,
+    pub ai_action: Option<String>,
+    pub title_override: Option<String>,
     pub document: Document,
     pub untitled: usize,
     pub review_source: Option<u64>,
@@ -76,7 +81,11 @@ pub struct Tab {
 
 impl Tab {
     fn new(document: Document) -> Self {
+        static NEXT_TAB: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
         Self {
+            id: NEXT_TAB.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
+            ai_action: None,
+            title_override: None,
             document,
             untitled: 1,
             review_source: None,
@@ -86,6 +95,9 @@ impl Tab {
         }
     }
     pub fn title(&self, locale: Locale) -> String {
+        if let Some(title) = &self.title_override {
+            return title.clone();
+        }
         let name = self
             .document
             .path
@@ -168,6 +180,8 @@ struct Completed {
 }
 
 pub struct App {
+    pub agent: Option<guinea_service::ipc::Bridge>,
+    agent_leases: std::collections::HashMap<u64, agent::LeaseState>,
     pub tabs: Vec<Tab>,
     pub active: usize,
     pub config: Config,
@@ -219,6 +233,8 @@ impl App {
         let mut document = Document::default();
         document.readonly = readonly;
         Self {
+            agent: None,
+            agent_leases: std::collections::HashMap::new(),
             tabs: vec![Tab::new(document)],
             active: 0,
             config,
@@ -249,7 +265,9 @@ impl App {
     }
 
     pub fn background_work(&self) -> bool {
-        self.busy()
+        !self.agent_leases.is_empty()
+            || (cfg!(not(windows)) && self.agent.is_some())
+            || self.busy()
             || self.preferences.busy()
             || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
@@ -284,6 +302,10 @@ impl App {
     }
 
     fn edit(&mut self, command: impl FnOnce(&mut Document) -> Result<(), guinea_core::EditError>) {
+        if self.tabs[self.active].ai_action.is_some() {
+            self.message = "AI is working in this tab; read-only until it finishes".into();
+            return;
+        }
         if self.tabs[self.active].review.mode == ViewMode::Review {
             self.message = "Review is read-only; F7 or Esc returns to source".into();
             return;
@@ -370,6 +392,7 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        self.poll_agent();
         let mut documents_changed = false;
         if let Some(result) = self.preferences.poll() {
             self.redraw = true;
@@ -1291,6 +1314,10 @@ impl App {
         if index >= self.tabs.len() {
             return;
         }
+        if self.tabs[index].ai_action.is_some() {
+            self.message = "AI is working in this tab; read-only until it finishes".into();
+            return;
+        }
         if self.busy() {
             self.message = "Background operation in progress; retry when complete".into();
         } else if self.tabs[index].review_source.is_none() && self.tabs[index].document.is_dirty() {
@@ -1385,6 +1412,7 @@ impl App {
             self.active = index;
         } else {
             let mut tab = Tab::new(self.document().review_snapshot());
+            tab.ai_action = self.tabs[self.active].ai_action.clone();
             tab.untitled = self.tabs[self.active].untitled;
             tab.review_source = Some(id);
             tab.review.outline_visible = true;
@@ -1415,6 +1443,27 @@ impl App {
     }
 
     pub fn command(&mut self, command: &str) {
+        if (command == "quit" && !self.agent_leases.is_empty())
+            || (self.tabs[self.active].ai_action.is_some()
+                && matches!(
+                    command,
+                    "save"
+                        | "save-as"
+                        | "close"
+                        | "reload"
+                        | "undo"
+                        | "redo"
+                        | "cut"
+                        | "paste"
+                        | "replace"
+                        | "find"
+                        | "find-next"
+                ))
+        {
+            self.message = "AI is working in this tab; read-only until it finishes".into();
+            self.redraw = true;
+            return;
+        }
         if self.tabs[self.active].review_source.is_some()
             && matches!(
                 command,

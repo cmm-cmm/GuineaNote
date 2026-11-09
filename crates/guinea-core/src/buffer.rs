@@ -17,6 +17,8 @@ pub enum EditError {
     ReadOnly,
     #[error("edit would split a grapheme cluster")]
     GraphemeBoundary,
+    #[error("document revision changed")]
+    RevisionConflict,
 }
 
 /// All indices are Unicode scalar indices, never byte offsets or screen cells.

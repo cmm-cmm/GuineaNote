@@ -9,6 +9,7 @@ rust-version.workspace = true
 guinea-core.workspace = true
 guinea-io.workspace = true
 guinea-syntax.workspace = true
+guinea-service.workspace = true
 ratatui = { version = "0.30", default-features = false, features = ["crossterm"] }
 crossterm = "0.29"
 serde = { version = "1", features = ["derive"] }

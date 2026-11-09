@@ -1,0 +1,29 @@
+[package]
+name = "guinea-service"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+guinea-core.workspace = true
+guinea-io.workspace = true
+guinea-syntax.workspace = true
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order", "arbitrary_precision"] }
+schemars = "1"
+sha2 = "0.10"
+uuid = { version = "1", features = ["v4"] }
+interprocess = { version = "2.4.8", features = ["tokio"] }
+tokio = { version = "1", features = ["macros", "rt", "time", "sync", "io-util", "net"] }
+pulldown-cmark = { version = "0.13", default-features = false }
+quick-xml = "0.42"
+csv = "1.4"
+tempfile.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-permissions = "0.2.4"
+widestring = "1"
+
+[lints]
+workspace = true

@@ -289,7 +289,12 @@ fn tab_label(tab: &crate::app::Tab, welcome: bool, locale: Locale) -> String {
         }
     };
     format!(
-        " {} {} ",
+        " {}{} {} ",
+        if tab.ai_action.is_some() {
+            "AI · "
+        } else {
+            ""
+        },
         clipped(&name, 25),
         if tab.document.is_dirty() { "●" } else { " " },
     )
@@ -355,13 +360,21 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         app.hits.actions.push((rect, action));
         x += width + 1;
     }
-    let dirty = app
-        .tabs
-        .iter()
-        .filter(|t| t.review_source.is_none() && t.document.is_dirty())
-        .count();
-    if dirty > 0 && area.right().saturating_sub(x) > 8 {
-        let hint = format!("● {dirty} {}", locale.tr("unsaved"));
+    let (dirty, ai) = app.tabs.iter().filter(|t| t.review_source.is_none()).fold(
+        (0usize, 0usize),
+        |(dirty, ai), tab| {
+            (
+                dirty + usize::from(tab.document.is_dirty()),
+                ai + usize::from(tab.ai_action.is_some()),
+            )
+        },
+    );
+    if (dirty > 0 || ai > 0) && area.right().saturating_sub(x) > 8 {
+        let hint = if ai > 0 {
+            format!("AI {ai} · ● {dirty} {}", locale.tr("unsaved"))
+        } else {
+            format!("● {dirty} {}", locale.tr("unsaved"))
+        };
         frame.render_widget(
             Paragraph::new(clipped(&hint, (area.right() - x) as usize))
                 .style(text_style(theme.warm)),
@@ -398,7 +411,13 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Paragraph::new(clipped(&label, width.saturating_sub(3) as usize)).style(
                 Style::default()
                     .bg(if selected { theme.raised } else { theme.panel })
-                    .fg(if selected { theme.text } else { theme.muted }),
+                    .fg(if app.tabs[index].ai_action.is_some() {
+                        theme.accent
+                    } else if selected {
+                        theme.text
+                    } else {
+                        theme.muted
+                    }),
             ),
             rect,
         );
@@ -865,6 +884,8 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     let (line, column) = document.position();
     let mode = if app.tabs[app.active].review_source.is_some() {
         " REVIEW "
+    } else if app.tabs[app.active].ai_action.is_some() {
+        " AI · READ ONLY "
     } else if document.readonly {
         " READ ONLY "
     } else if app.tabs[app.active].review.mode == ViewMode::Review {

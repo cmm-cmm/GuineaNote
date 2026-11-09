@@ -10,6 +10,7 @@ pub struct Entry {
     pub dirty: bool,
     pub review: bool,
     pub readonly: bool,
+    pub ai: bool,
     folded: String,
 }
 pub struct TabManager {
@@ -42,6 +43,7 @@ impl TabManager {
                     dirty: tab.document.is_dirty(),
                     review: tab.review_source.is_some(),
                     readonly: tab.document.readonly,
+                    ai: tab.ai_action.is_some(),
                 }
             })
             .collect::<Vec<_>>();

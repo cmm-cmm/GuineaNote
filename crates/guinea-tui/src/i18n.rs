@@ -26,6 +26,10 @@ impl Locale {
             "REVIEW · F7" => "XEM TRƯỚC · F7",
             "Welcome" => "Chào bạn",
             "Untitled" => "Chưa đặt tên",
+            " AI · READ ONLY " => " AI · CHỈ ĐỌC ",
+            "AI is working in this tab; read-only until it finishes" => {
+                "AI đang thao tác thẻ này; chỉ đọc cho đến khi hoàn tất"
+            }
             "Tabs" => "Thẻ",
             "unsaved" => "chưa lưu",
             " + New " => " + Mới ",

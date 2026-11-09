@@ -65,6 +65,21 @@ pub fn run(
     config: Option<PathBuf>,
     language: Option<&str>,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    run_with_agent(files, readonly, config, language, AgentOptions::default())
+}
+#[derive(Default)]
+pub struct AgentOptions {
+    pub enabled: bool,
+    pub write: bool,
+    pub secrets: bool,
+}
+pub fn run_with_agent(
+    files: Vec<PathBuf>,
+    readonly: bool,
+    config: Option<PathBuf>,
+    language: Option<&str>,
+    agent: AgentOptions,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut config = config::Config::load(config.as_deref())?;
     if let Some(language) = language {
         config.language = match language {
@@ -84,6 +99,9 @@ pub fn run(
     let mut app = app::App::new(files, readonly, config);
     app.preferences.path = preferences::path();
     let mut input = input::Input::new();
+    if agent.enabled {
+        app.enable_agent(agent.write, agent.secrets, input.waker())?;
+    }
     while !app.exit {
         app.poll_jobs();
         if app.redraw {
