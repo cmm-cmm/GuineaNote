@@ -49,3 +49,26 @@ fetched RustSec snapshot: exit 0, advisories/bans/licenses/sources all pass;
 the existing Syn duplicate warning remains. No license allowance, advisory
 ignore or source-policy exception was added. These are parsers, not runtimes
 for executing source, HTML, XML external entities or links.
+
+## Additional text-format parsers
+
+Final dependencies: json5 1.3.7 and serde-saphyr 2.1.1, with serialization and
+deserialization enabled and optional comment/property extensions disabled.
+An initial serde_yaml_ng attempt was rejected by cargo-deny because its
+unsafe-libyaml dependency triggers RUSTSEC-2024-0449 (unmaintained). Both were
+removed from Cargo.lock; no advisory was ignored or severity reduced. The
+replacement passes the existing advisory/bans/source gates.
+
+serde-saphyr's encoding_rs adapter requires `(Apache-2.0 OR MIT) AND BSD-3-Clause`
+for WHATWG encoding tables. Reviewed encoding_rs 0.8.44's LICENSE-WHATWG and
+LICENSE-MIT, and added a BSD-3-Clause allowance scoped to that crate in
+deny.toml. Global allowances remain unchanged. Distribution must retain the
+required third-party notices; the application has not been packaged/published.
+
+Final workspace offline check against the recorded RustSec snapshot: exit 0,
+advisories/bans/licenses/sources pass, with only the existing Syn duplicate
+warning. Parser depth/node/alias budgets remain enabled; no include/property
+resolver is installed. Unknown YAML tags are rejected, and JSON5 input has a
+string/comment-aware nesting limit. An ordered project-owned Serde value keeps
+non-finite numbers/complex keys without libyaml. Project code forbids unsafe
+Rust; no source, notebook, config directive or environment value is executed.

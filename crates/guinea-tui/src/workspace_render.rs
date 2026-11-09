@@ -508,7 +508,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let busy = app.busy();
     let tab = &mut app.tabs[app.active];
     let document = &tab.document;
-    let language = Language::detect(document.path.as_deref());
+    let language = crate::app::document_language(document);
     let (cursor_line, _) = document.position();
     let cursor_cell = document.cursor_cell(app.config.tab_width);
     let gutter = if body.width > 14 {
@@ -669,7 +669,7 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     } else {
         " EDIT "
     };
-    let language = Language::detect(document.path.as_deref());
+    let language = crate::app::document_language(document);
     let badge = Span::styled(
         locale.tr(mode).into_owned(),
         Style::default()

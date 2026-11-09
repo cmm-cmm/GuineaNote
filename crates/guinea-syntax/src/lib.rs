@@ -4,6 +4,13 @@ use std::{ops::Range, path::Path};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Language {
     Plain,
+    Generic,
+    Other(&'static str),
+    Json5,
+    Notebook,
+    Env,
+    Config,
+    Properties,
     Rust,
     Python,
     JavaScript,
@@ -54,9 +61,69 @@ impl Language {
             return Self::Makefile;
         }
         if name == ".env" || name.starts_with(".env.") {
-            return Self::Ini;
+            return Self::Env;
+        }
+        if matches!(
+            name.as_str(),
+            ".editorconfig"
+                | ".gitconfig"
+                | ".npmrc"
+                | ".yarnrc"
+                | ".eslintrc"
+                | ".babelrc"
+                | ".prettierrc"
+                | "config"
+                | "configure"
+                | "settings"
+        ) {
+            return Self::Config;
+        }
+        if matches!(name.as_str(), "cmakelists.txt" | "cmakecache.txt") {
+            return Self::Other("CMake");
+        }
+        if name == "justfile" {
+            return Self::Other("Just");
+        }
+        if name == "rakefile" || name == "gemfile" {
+            return Self::Ruby;
         }
         Self::from_alias(path.extension().and_then(|s| s.to_str()).unwrap_or(""))
+    }
+    pub fn detect_content(path: Option<&Path>, prefix: &str) -> Self {
+        let detected = Self::detect(path);
+        if let Some(line) = prefix
+            .lines()
+            .next()
+            .and_then(|line| line.strip_prefix("#!"))
+        {
+            for token in line.split_whitespace() {
+                let name = token
+                    .rsplit('/')
+                    .next()
+                    .unwrap_or(token)
+                    .to_ascii_lowercase();
+                if name.starts_with("python") {
+                    return Self::Python;
+                }
+                if matches!(name.as_str(), "node" | "nodejs" | "deno" | "bun") {
+                    return Self::JavaScript;
+                }
+                if matches!(name.as_str(), "sh" | "bash" | "zsh" | "fish") {
+                    return Self::Shell;
+                }
+                if name == "ruby" {
+                    return Self::Ruby;
+                }
+                if name == "perl" {
+                    return Self::Other("Perl");
+                }
+                if name == "pwsh" {
+                    return Self::PowerShell;
+                }
+            }
+            return Self::Generic;
+        }
+        detected
     }
     /// Shared by filename detection and Markdown fenced code blocks.
     pub fn from_alias(alias: &str) -> Self {
@@ -78,7 +145,9 @@ impl Language {
             "sh" | "bash" | "zsh" | "fish" | "shell" => Self::Shell,
             "ps1" | "psm1" | "psd1" | "powershell" => Self::PowerShell,
             "sql" => Self::Sql,
-            "json" | "jsonc" | "jsonl" | "ndjson" => Self::Json,
+            "json" | "jsonl" | "ndjson" => Self::Json,
+            "json5" | "jsonc" => Self::Json5,
+            "ipynb" | "jupyter" => Self::Notebook,
             "toml" => Self::Toml,
             "yaml" | "yml" => Self::Yaml,
             "xml" | "svg" | "xsd" | "xsl" => Self::Xml,
@@ -86,18 +155,64 @@ impl Language {
             "css" | "scss" | "sass" | "less" => Self::Css,
             "csv" => Self::Csv,
             "tsv" => Self::Tsv,
-            "ini" | "cfg" | "conf" | "env" | "properties" => Self::Ini,
+            "ini" => Self::Ini,
+            "env" => Self::Env,
+            "config" | "cfg" | "conf" | "rc" => Self::Config,
+            "properties" => Self::Properties,
+            "dart" => Self::Other("Dart"),
+            "zig" => Self::Other("Zig"),
+            "nim" | "nims" => Self::Other("Nim"),
+            "r" | "rmd" => Self::Other("R"),
+            "jl" | "julia" => Self::Other("Julia"),
+            "scala" | "sc" => Self::Other("Scala"),
+            "hs" | "lhs" | "haskell" => Self::Other("Haskell"),
+            "clj" | "cljs" | "cljc" | "edn" | "clojure" => Self::Other("Clojure"),
+            "ex" | "exs" | "elixir" => Self::Other("Elixir"),
+            "erl" | "hrl" | "erlang" => Self::Other("Erlang"),
+            "fs" | "fsx" | "fsi" | "fsharp" => Self::Other("F#"),
+            "ml" | "mli" | "ocaml" => Self::Other("OCaml"),
+            "pl" | "pm" | "perl" => Self::Other("Perl"),
+            "raku" | "rakumod" => Self::Other("Raku"),
+            "lisp" | "lsp" | "el" | "scm" | "ss" | "rkt" => Self::Other("Lisp/Scheme"),
+            "m" | "mm" => Self::Other("Objective-C/MATLAB"),
+            "matlab" => Self::Other("MATLAB"),
+            "f" | "for" | "f90" | "f95" | "f03" | "fortran" => Self::Other("Fortran"),
+            "asm" | "s" | "inc" => Self::Other("Assembly"),
+            "pas" | "pp" | "dpr" => Self::Other("Pascal"),
+            "v" | "sv" | "svh" | "vh" => Self::Other("Verilog"),
+            "vhd" | "vhdl" => Self::Other("VHDL"),
+            "bat" | "cmd" => Self::Other("Batch"),
+            "cmake" => Self::Other("CMake"),
+            "nix" => Self::Other("Nix"),
+            "tf" | "tfvars" | "hcl" => Self::Other("HCL/Terraform"),
+            "proto" => Self::Other("Protocol Buffers"),
+            "sol" => Self::Other("Solidity"),
+            "vue" => Self::Other("Vue"),
+            "svelte" => Self::Other("Svelte"),
+            "astro" => Self::Other("Astro"),
+            "tex" | "sty" | "cls" => Self::Other("LaTeX"),
+            "typ" => Self::Other("Typst"),
+            "pug" | "jade" | "ejs" | "hbs" | "mustache" => Self::Other("Template"),
+            "txt" | "text" | "" => Self::Plain,
+            "log" => Self::Other("Log"),
             "dockerfile" => Self::Dockerfile,
             "mk" | "makefile" => Self::Makefile,
             "diff" | "patch" => Self::Diff,
             "graphql" | "gql" => Self::Graphql,
             "md" | "markdown" | "mdown" => Self::Markdown,
-            _ => Self::Plain,
+            _ => Self::Generic,
         }
     }
     pub fn label(self) -> &'static str {
         match self {
             Self::Plain => "Text",
+            Self::Generic => "Generic code",
+            Self::Other(label) => label,
+            Self::Json5 => "JSON5/JSONC",
+            Self::Notebook => "Notebook",
+            Self::Env => "ENV",
+            Self::Config => "Config",
+            Self::Properties => "Properties",
             Self::Rust => "Rust",
             Self::Python => "Python",
             Self::JavaScript => "JavaScript",
@@ -121,7 +236,7 @@ impl Language {
             Self::Css => "CSS",
             Self::Csv => "CSV",
             Self::Tsv => "TSV",
-            Self::Ini => "INI/ENV",
+            Self::Ini => "INI",
             Self::Dockerfile => "Dockerfile",
             Self::Makefile => "Makefile",
             Self::Diff => "Diff",
@@ -153,6 +268,7 @@ pub struct HighlightSpan {
 #[derive(Debug, Clone)]
 pub struct Highlights {
     pub revision: u64,
+    /// Ordered by scalar start, without overlapping spans.
     pub spans: Vec<HighlightSpan>,
 }
 
@@ -197,7 +313,11 @@ impl SyntaxProvider for BasicSyntax {
             Language::JavaScript | Language::TypeScript => {
                 "const let var function class import export from if else for while return async await new true false null undefined throw try catch"
             }
-            Language::Json | Language::Toml | Language::Yaml => "true false null yes no on off",
+            Language::Json
+            | Language::Json5
+            | Language::Notebook
+            | Language::Toml
+            | Language::Yaml => "true false null yes no on off",
             Language::Go => {
                 "package import func var const type struct interface map chan go defer select range if else for return nil true false"
             }
@@ -237,6 +357,9 @@ impl SyntaxProvider for BasicSyntax {
                 "query mutation subscription fragment on type input interface enum scalar union schema extend implements true false null"
             }
 
+            Language::Generic | Language::Other(_) => {
+                "fn def function func fun let var val const static pub public private class struct type trait interface enum module namespace package import export from use include define extends implements return yield if then else elif elseif end for foreach while do loop match case switch break continue try catch except finally throw throws new async await true false null nil none self this super and or not in is lambda local begin select where void int string bool float double record sealed override with when unless until print println echo"
+            }
             _ => "",
         };
         let mut idx = 0;
@@ -245,6 +368,11 @@ impl SyntaxProvider for BasicSyntax {
             let hash_comment = matches!(
                 language,
                 Language::Python
+                    | Language::Generic
+                    | Language::Other(_)
+                    | Language::Env
+                    | Language::Config
+                    | Language::Properties
                     | Language::Toml
                     | Language::Yaml
                     | Language::Ruby
@@ -258,6 +386,10 @@ impl SyntaxProvider for BasicSyntax {
             let slash_comment = matches!(
                 language,
                 Language::Rust
+                    | Language::Generic
+                    | Language::Other(_)
+                    | Language::Json5
+                    | Language::Notebook
                     | Language::JavaScript
                     | Language::TypeScript
                     | Language::Go
@@ -275,7 +407,10 @@ impl SyntaxProvider for BasicSyntax {
             let dash_comment = matches!(language, Language::Sql | Language::Lua)
                 && chars[idx] == '-'
                 && chars.get(idx + 1) == Some(&'-');
-            let ini_comment = language == Language::Ini && chars[idx] == ';';
+            let ini_comment = matches!(
+                language,
+                Language::Ini | Language::Config | Language::Properties
+            ) && chars[idx] == ';';
             if hash_comment || slash_comment || dash_comment || ini_comment {
                 result.spans.push(HighlightSpan {
                     chars: start..chars.len(),
@@ -296,11 +431,21 @@ impl SyntaxProvider for BasicSyntax {
                         idx += 1;
                     }
                 }
-                let key = matches!(language, Language::Json | Language::Yaml | Language::Toml)
-                    && chars[idx..]
-                        .iter()
-                        .find(|c| !c.is_whitespace())
-                        .is_some_and(|c| matches!(c, ':' | '='));
+                let key = matches!(
+                    language,
+                    Language::Json
+                        | Language::Json5
+                        | Language::Notebook
+                        | Language::Yaml
+                        | Language::Toml
+                        | Language::Env
+                        | Language::Config
+                        | Language::Properties
+                        | Language::Ini
+                ) && chars[idx..]
+                    .iter()
+                    .find(|c| !c.is_whitespace())
+                    .is_some_and(|c| matches!(c, ':' | '='));
                 Some(if key {
                     TokenKind::Key
                 } else {
@@ -322,12 +467,28 @@ impl SyntaxProvider for BasicSyntax {
                 let word: String = chars[start..idx].iter().collect();
                 keywords
                     .split_whitespace()
-                    .any(|keyword| keyword.eq_ignore_ascii_case(&word))
+                    .any(|keyword| {
+                        if matches!(
+                            language,
+                            Language::Sql
+                                | Language::Dockerfile
+                                | Language::Generic
+                                | Language::Other(_)
+                        ) {
+                            keyword.eq_ignore_ascii_case(&word)
+                        } else {
+                            keyword == word
+                        }
+                    })
                     .then_some(TokenKind::Keyword)
                     .or_else(|| {
                         (matches!(
                             language,
                             Language::Yaml
+                                | Language::Json5
+                                | Language::Env
+                                | Language::Config
+                                | Language::Properties
                                 | Language::Toml
                                 | Language::Ini
                                 | Language::Xml
@@ -377,7 +538,7 @@ mod tests {
             ("data.tsv", Language::Tsv),
             ("Dockerfile.dev", Language::Dockerfile),
             ("Makefile", Language::Makefile),
-            (".env.local", Language::Ini),
+            (".env.local", Language::Env),
             ("module.ps1", Language::PowerShell),
         ] {
             assert_eq!(Language::detect(Some(Path::new(filename))), expected);
@@ -394,6 +555,50 @@ mod tests {
                 kind
             );
         }
+    }
+
+    #[test]
+    fn extended_sources_config_names_and_shebangs_have_safe_fallbacks() {
+        for (name, label) in [
+            ("App.vue", "Vue"),
+            ("main.dart", "Dart"),
+            ("build.zig", "Zig"),
+            ("main.exs", "Elixir"),
+            ("analysis.R", "R"),
+            ("CMakeLists.txt", "CMake"),
+            (".env.production.local", "ENV"),
+            ("app.config", "Config"),
+            (".editorconfig", "Config"),
+            ("config.jsonc", "JSON5/JSONC"),
+            ("analysis.ipynb", "Notebook"),
+            ("app.properties", "Properties"),
+        ] {
+            assert_eq!(Language::detect(Some(Path::new(name))).label(), label);
+        }
+        assert_eq!(
+            Language::detect(Some(Path::new("future.unknownlang"))),
+            Language::Generic
+        );
+        assert_eq!(
+            Language::detect_content(
+                Some(Path::new("script")),
+                "#!/usr/bin/env python3\nprint(1)"
+            ),
+            Language::Python
+        );
+        assert_eq!(
+            Language::detect_content(None, "#!/bin/bash\necho hello"),
+            Language::Shell
+        );
+        let spans = BasicSyntax
+            .highlight_line(
+                Language::Generic,
+                "function foo() { return 42; } // comment",
+                0,
+            )
+            .spans;
+        assert!(spans.iter().any(|span| span.kind == TokenKind::Keyword));
+        assert!(spans.iter().any(|span| span.kind == TokenKind::Comment));
     }
 
     #[test]

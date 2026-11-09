@@ -1,6 +1,62 @@
 # Performance measurements
 
-## Current interaction budget: below 100 ms, 2026-11-09
+## Current expanded formats: below 100 ms, 2026-11-09
+
+Final release after the ENV/config/source expansion and replacement of the YAML
+parser: **138 samples per run, two runs, 276 total; max 57.719 ms; no sample
+>=100 ms** on the same local 10 MiB corpus/Windows host. Raw samples:
+[expanded run 1](responsiveness-expanded-run1.json),
+[expanded run 2](responsiveness-expanded-run2.json).
+
+The original workloads below now additionally test YAML, JSON5/JSONC, ENV,
+INI, Properties, XML/YAML config inference, notebook cells, generic code,
+extensionless Python scripts and directory collapse. Source review supports
+all UTF-8 files; naming/coloring support is not a full grammar for every
+programming language. Added parsers remain off the input thread.
+
+| Workload | Samples | p50 ms | p95 ms | Max ms |
+| --- | ---: | ---: | ---: | ---: |
+| ascii | 60 | 19.754 | 21.409 | 22.294 |
+| unicode | 60 | 3.492 | 6.331 | 44.337 |
+| note.md | 6 | 5.036 | 7.489 | 7.489 |
+| data.json | 6 | 4.295 | 9.721 | 9.721 |
+| data.xml | 6 | 6.530 | 7.592 | 7.592 |
+| data.csv | 6 | 6.842 | 15.592 | 15.592 |
+| data.tsv | 6 | 8.281 | 12.495 | 12.495 |
+| data.toml | 6 | 4.877 | 5.812 | 5.812 |
+| broken.json | 6 | 5.601 | 5.898 | 5.898 |
+| config.yaml | 6 | 7.222 | 8.230 | 8.230 |
+| config.json5 | 6 | 5.992 | 7.991 | 7.991 |
+| .env.local | 6 | 8.072 | 11.393 | 11.393 |
+| settings.ini | 6 | 6.070 | 7.736 | 7.736 |
+| app.properties | 6 | 7.014 | 8.116 | 8.116 |
+| application.config | 6 | 6.343 | 7.235 | 7.235 |
+| .prettierrc | 6 | 4.978 | 5.920 | 5.920 |
+| example.ipynb | 6 | 6.232 | 7.252 | 7.252 |
+| algorithm.futurelang | 6 | 6.664 | 7.719 | 7.719 |
+| script | 6 | 5.959 | 7.571 | 7.571 |
+| large-json | 14 | 5.757 | 10.558 | 10.558 |
+| workflow | 40 | 9.278 | 49.324 | 57.719 |
+
+Full 10 MiB JSON review completion, including repeated locale switches, took
+777.682 / 779.545 ms in the final runs; interactive feedback is separately
+bounded by the sample table. The generic source painter now walks ordered
+highlight spans once, instead of rescanning every span per grapheme. Repeated
+unsupported typing in read-only review gives one notice rather than redrawing
+for every ignored key. Prefix/shebang detection copies at most 160 scalars.
+
+An earlier widened run before these changes recorded multiple failures,
+including a 3,325.952 ms typed-path burst; it is preserved as
+[expanded earlier run](responsiveness-expanded-before.json). Host/PTY scheduling
+and unrelated load vary; the final passing measurements do not establish a
+hard real-time guarantee on arbitrary machines or inputs. No timing threshold
+was raised or disabled. The script still fails on any measured sample >=100 ms.
+
+Final validation: 69 Rust tests passed; required fmt/strict Clippy/release build,
+Linux/macOS cross-Clippy and workspace dependency audit passed. Runtime/latency
+on Linux/macOS remain unverified. CI remains disabled during development.
+
+## Initial interaction budget: below 100 ms, 2026-11-09
 
 The user's final requirement supersedes the initial 150 ms target. Scope:
 UTF-8 inputs up to 10 MiB on this Windows/MSVC development host (hardware below),

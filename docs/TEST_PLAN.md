@@ -143,3 +143,11 @@ panes in Vietnamese and English under target/previews. pyte 0.8.2's display
 adapter tolerates orphaned wide-cell stubs after ZWJ redraw; the parser/cell
 buffer and actual key/output transport are retained. Byte-exact saves and native
 Unicode input tests remain independent checks.
+
+Expanded format coverage adds ENV export/quoted/multiline/duplicate fields,
+INI sections, Properties continuation/escaped separators, config XML/YAML/JSON5
+inference and unknown-dialect fallback, notebook Markdown/code/saved text,
+non-finite JSON5 values, YAML aliases/multiple documents, complex keys, disabled
+include/interpolation and malformed/deep data. Generic code and extensionless
+shebang files get native source-review checks. The current probe has 138
+samples per run; raw final data is under docs/responsiveness-expanded-run*.json.

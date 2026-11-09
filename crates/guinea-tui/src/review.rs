@@ -18,6 +18,9 @@ use std::{
 };
 use unicode_segmentation::UnicodeSegmentation;
 
+mod data;
+mod value;
+
 const MAX_ROWS: usize = 100_000;
 
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
@@ -64,20 +67,6 @@ pub struct Review {
     cached: Option<Rendered>,
 }
 
-pub fn supported(language: Language) -> bool {
-    matches!(
-        language,
-        Language::Markdown
-            | Language::Json
-            | Language::Xml
-            | Language::Csv
-            | Language::Tsv
-            | Language::Toml
-            | Language::Yaml
-            | Language::Ini
-    )
-}
-
 fn json_lines(document: &Document) -> bool {
     document
         .path
@@ -98,7 +87,7 @@ impl Review {
                             id: document.id,
                             revision: document.revision(),
                             width: self.width,
-                            language: Language::detect(document.path.as_deref()),
+                            language: crate::app::document_language(document),
                             locale,
                             column: self.column,
                             json_lines: json_lines(document),
@@ -131,7 +120,7 @@ impl Review {
             id: document.id,
             revision: document.revision(),
             width: self.width.max(1),
-            language: Language::detect(document.path.as_deref()),
+            language: crate::app::document_language(document),
             locale,
             column: self.column,
             json_lines: json_lines(document),
@@ -156,12 +145,6 @@ impl Review {
                 }
                 Err(mpsc::TryRecvError::Empty) => {}
             }
-        }
-        if !supported(key.language) && self.mode != ViewMode::Source {
-            self.mode = ViewMode::Source;
-            self.desired = None;
-            self.cached = None;
-            return true;
         }
         if self.mode == ViewMode::Source || self.width == 0 {
             self.desired = None;
@@ -395,22 +378,27 @@ pub(crate) fn render(
                 theme,
             );
         }
-        Language::Yaml | Language::Ini => {
+        Language::Yaml => data::yaml(&mut writer, text, theme)?,
+        Language::Json5 => data::json5(&mut writer, text, theme)?,
+        Language::Notebook => data::notebook(&mut writer, text, theme)?,
+        Language::Ini | Language::Env | Language::Config | Language::Properties => {
+            data::config(&mut writer, text, language, theme)?
+        }
+        _ => {
             writer.push(
                 &format!(
                     "{} · {}\n\n",
                     language.label(),
                     if locale == Locale::Vi {
-                        "bản xem nguồn tô màu"
+                        "bản xem mã nguồn"
                     } else {
-                        "highlighted source view"
+                        "source review"
                     }
                 ),
                 title,
             );
             code(&mut writer, text, language, theme);
         }
-        _ => return Err("Review unavailable for this format".into()),
     }
     Ok(writer.finish())
 }

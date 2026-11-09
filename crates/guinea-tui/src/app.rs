@@ -15,6 +15,27 @@ use crate::config::Config;
 use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
 
+pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language {
+    let detected = guinea_syntax::Language::detect(document.path.as_deref());
+    if !matches!(
+        detected,
+        guinea_syntax::Language::Plain
+            | guinea_syntax::Language::Generic
+            | guinea_syntax::Language::Config
+    ) {
+        return detected;
+    }
+    let mut prefix = String::with_capacity(160);
+    let _ =
+        document
+            .buffer()
+            .visit_chunks(0..document.buffer().len_chars().min(160), &mut |chunk| {
+                prefix.push_str(chunk);
+                !prefix.contains('\n')
+            });
+    guinea_syntax::Language::detect_content(document.path.as_deref(), &prefix)
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Focus {
     Editor,
@@ -440,6 +461,32 @@ impl App {
                 }
             }
             Event::Key(key) if key.kind != KeyEventKind::Release => {
+                if self.modal.is_none()
+                    && self.focus == Focus::Editor
+                    && self.tabs[self.active].review.mode == ViewMode::Review
+                    && !key.modifiers.contains(KeyModifiers::CONTROL)
+                    && !matches!(
+                        key.code,
+                        KeyCode::Up
+                            | KeyCode::Down
+                            | KeyCode::Left
+                            | KeyCode::Right
+                            | KeyCode::PageUp
+                            | KeyCode::PageDown
+                            | KeyCode::Home
+                            | KeyCode::End
+                            | KeyCode::Esc
+                            | KeyCode::F(1..=8)
+                            | KeyCode::Char('j' | 'k' | ' ')
+                    )
+                {
+                    let message = "Review is read-only; F7 or Esc returns to source";
+                    if self.message != message {
+                        self.message = message.into();
+                        self.redraw = true;
+                    }
+                    return;
+                }
                 self.redraw = true;
                 if self.modal.is_some() {
                     self.modal_key(key);
@@ -602,10 +649,14 @@ impl App {
         }
         if self.tabs[self.active].review.mode == ViewMode::Review {
             let height = self.page_height;
+            let table = matches!(
+                document_language(self.document()),
+                guinea_syntax::Language::Csv | guinea_syntax::Language::Tsv
+            );
             let review = &mut self.tabs[self.active].review;
             match key.code {
-                KeyCode::Left => review.column = review.column.saturating_sub(1),
-                KeyCode::Right => review.column = review.column.saturating_add(1),
+                KeyCode::Left if table => review.column = review.column.saturating_sub(1),
+                KeyCode::Right if table => review.column = review.column.saturating_add(1),
                 KeyCode::Up => review.scroll(-1, height),
                 KeyCode::Down | KeyCode::Char('j') => review.scroll(1, height),
                 KeyCode::Char('k') => review.scroll(-1, height),
@@ -616,6 +667,7 @@ impl App {
                 KeyCode::Esc => review.mode = ViewMode::Source,
                 KeyCode::F(1) => self.command("help"),
                 KeyCode::F(2) => self.prompt(InputKind::Command),
+                KeyCode::F(3) => self.command("find-next"),
                 KeyCode::F(6) => self.command(if shift { "prev" } else { "next" }),
                 _ => {}
             }
@@ -844,12 +896,10 @@ impl App {
                 self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
             }
             "preview" | "review" | "source" | "split" => {
-                if crate::review::supported(guinea_syntax::Language::detect(self.document().path.as_deref())) {
                     let review = &mut self.tabs[self.active].review;
                     review.mode = match command { "source" => ViewMode::Source, "split" => ViewMode::Split, "review" => ViewMode::Review, _ => review.mode.next() };
                     self.focus = Focus::Editor;
                     self.message = "F7 Source / Split / Review · review never changes the source".into();
-                } else { self.message = "Review supports Markdown, JSON/JSONL, XML, CSV/TSV, TOML, YAML and INI".into(); }
             }
             "new" => {
                 let mut document = Document::default(); document.readonly = self.readonly;

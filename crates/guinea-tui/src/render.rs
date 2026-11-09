@@ -75,6 +75,7 @@ pub(crate) fn styled_line(
     let mut spans = Vec::new();
     let mut cell = paint.cell_start;
     let mut char_idx = start_char;
+    let mut token_idx = 0;
     for g in text.graphemes(true) {
         let count = g.chars().count();
         let (display, cells) = display_grapheme(g, cell, tab_width);
@@ -90,10 +91,18 @@ pub(crate) fn styled_line(
             } else {
                 display
             };
+            let relative = char_idx - start_char;
+            while paint
+                .highlights
+                .get(token_idx)
+                .is_some_and(|span| span.chars.end <= relative)
+            {
+                token_idx += 1;
+            }
             let token = paint
                 .highlights
-                .iter()
-                .find(|s| s.chars.contains(&(char_idx - start_char)));
+                .get(token_idx)
+                .filter(|span| span.chars.contains(&relative));
             let mut style = token.map_or(Style::default().fg(paint.theme.text), |span| {
                 Style::default().fg(match span.kind {
                     TokenKind::Keyword => paint.theme.blue,

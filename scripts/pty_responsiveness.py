@@ -80,6 +80,16 @@ def reviews(root):
         ("data.tsv", 'name\tvalue\nViệt\t42\n', "1 data rows"),
         ("data.toml", 'name = "Việt"\n', "formatted view"),
         ("broken.json", '{"invalid":}', "Invalid data"),
+        ("config.yaml", 'name: Việt\nlist: [1,2]\n', "YAML · document"),
+        ("config.json5", "{name:'Việt', count:0x10,}\n", "JSON5/JSONC · formatted"),
+        (".env.local", "export HOST=localhost\nTOKEN='${HOME}'\n", "ENV · 2 fields"),
+        ("settings.ini", "[server]\nhost=localhost\nport=8080\n", "INI · 2 fields"),
+        ("app.properties", "name=GuineaNote\nname=Second\n", "Properties · 2 fields"),
+        ("application.config", '<app><setting name="locale" value="vi"/></app>', "XML · structure"),
+        (".prettierrc", "singleQuote: true\n", "YAML · document"),
+        ("example.ipynb", json.dumps({"nbformat":4,"metadata":{},"cells":[{"cell_type":"markdown","source":["# NB review"]},{"cell_type":"code","source":["print('hello')"],"outputs":[]}]}), "Notebook · 2 cells"),
+        ("algorithm.futurelang", "function main() { return 42; }\n", "Generic code · source"),
+        ("script", "#!/usr/bin/env python3\nprint('hello')\n", "Python · source review"),
     ]
     for filename, text, expected in fixtures:
         path = root / filename

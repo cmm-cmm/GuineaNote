@@ -1,0 +1,609 @@
+{
+  "budget_ms": 100,
+  "input_bytes_max": 10485760,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "sample_count": 138,
+  "samples": [
+    {
+      "action": "ascii:type-start",
+      "ms": 9.85
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 9.333
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 9.002
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 9.356
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 9.454
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 9.588
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 8.607
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 10.289
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 11.199
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 8.966
+    },
+    {
+      "action": "ascii:end",
+      "ms": 74.439
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 55.839
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 58.455
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 58.418
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 68.187
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 64.858
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 80.197
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 59.375
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 76.578
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 72.406
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 55.554
+    },
+    {
+      "action": "ascii:insert-end",
+      "ms": 56.328
+    },
+    {
+      "action": "ascii:undo-end",
+      "ms": 50.15
+    },
+    {
+      "action": "ascii:redo-end",
+      "ms": 60.021
+    },
+    {
+      "action": "ascii:backspace-end",
+      "ms": 56.1
+    },
+    {
+      "action": "ascii:home",
+      "ms": 9.998
+    },
+    {
+      "action": "ascii:language-vi",
+      "ms": 14.036
+    },
+    {
+      "action": "ascii:language-en",
+      "ms": 7.706
+    },
+    {
+      "action": "ascii:help",
+      "ms": 12.054
+    },
+    {
+      "action": "ascii:dismiss-help",
+      "ms": 21.784
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 10.278
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.426
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 9.769
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 10.209
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 13.575
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 13.743
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 13.708
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.641
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 14.314
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 15.983
+    },
+    {
+      "action": "unicode:end",
+      "ms": 119.893
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 11.767
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 9.785
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 8.284
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 12.514
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 12.795
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 19.44
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 17.275
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 13.526
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 14.105
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 16.468
+    },
+    {
+      "action": "unicode:insert-end",
+      "ms": 17.107
+    },
+    {
+      "action": "unicode:undo-end",
+      "ms": 11.601
+    },
+    {
+      "action": "unicode:redo-end",
+      "ms": 15.624
+    },
+    {
+      "action": "unicode:backspace-end",
+      "ms": 16.445
+    },
+    {
+      "action": "unicode:home",
+      "ms": 13.09
+    },
+    {
+      "action": "unicode:language-vi",
+      "ms": 15.991
+    },
+    {
+      "action": "unicode:language-en",
+      "ms": 14.655
+    },
+    {
+      "action": "unicode:help",
+      "ms": 16.826
+    },
+    {
+      "action": "unicode:dismiss-help",
+      "ms": 43.865
+    },
+    {
+      "action": "note.md:split-feedback",
+      "ms": 11.244
+    },
+    {
+      "action": "note.md:full-review",
+      "ms": 12.644
+    },
+    {
+      "action": "note.md:source",
+      "ms": 6.265
+    },
+    {
+      "action": "data.json:split-feedback",
+      "ms": 10.561
+    },
+    {
+      "action": "data.json:full-review",
+      "ms": 14.153
+    },
+    {
+      "action": "data.json:source",
+      "ms": 10.671
+    },
+    {
+      "action": "data.xml:split-feedback",
+      "ms": 10.404
+    },
+    {
+      "action": "data.xml:full-review",
+      "ms": 14.361
+    },
+    {
+      "action": "data.xml:source",
+      "ms": 8.383
+    },
+    {
+      "action": "data.csv:split-feedback",
+      "ms": 8.441
+    },
+    {
+      "action": "data.csv:full-review",
+      "ms": 14.209
+    },
+    {
+      "action": "data.csv:source",
+      "ms": 8.283
+    },
+    {
+      "action": "data.tsv:split-feedback",
+      "ms": 10.701
+    },
+    {
+      "action": "data.tsv:full-review",
+      "ms": 15.477
+    },
+    {
+      "action": "data.tsv:source",
+      "ms": 17.624
+    },
+    {
+      "action": "data.toml:split-feedback",
+      "ms": 6.062
+    },
+    {
+      "action": "data.toml:full-review",
+      "ms": 10.212
+    },
+    {
+      "action": "data.toml:source",
+      "ms": 8.392
+    },
+    {
+      "action": "broken.json:split-feedback",
+      "ms": 5.032
+    },
+    {
+      "action": "broken.json:full-review",
+      "ms": 10.392
+    },
+    {
+      "action": "broken.json:source",
+      "ms": 10.784
+    },
+    {
+      "action": "config.yaml:split-feedback",
+      "ms": 7.115
+    },
+    {
+      "action": "config.yaml:full-review",
+      "ms": 6.387
+    },
+    {
+      "action": "config.yaml:source",
+      "ms": 7.811
+    },
+    {
+      "action": "config.json5:split-feedback",
+      "ms": 12.923
+    },
+    {
+      "action": "config.json5:full-review",
+      "ms": 10.033
+    },
+    {
+      "action": "config.json5:source",
+      "ms": 9.428
+    },
+    {
+      "action": ".env.local:split-feedback",
+      "ms": 16.656
+    },
+    {
+      "action": ".env.local:full-review",
+      "ms": 20.712
+    },
+    {
+      "action": ".env.local:source",
+      "ms": 25.36
+    },
+    {
+      "action": "settings.ini:split-feedback",
+      "ms": 112.4
+    },
+    {
+      "action": "settings.ini:full-review",
+      "ms": 115.699
+    },
+    {
+      "action": "settings.ini:source",
+      "ms": 624.342
+    },
+    {
+      "action": "app.properties:split-feedback",
+      "ms": 26.643
+    },
+    {
+      "action": "app.properties:full-review",
+      "ms": 26.092
+    },
+    {
+      "action": "app.properties:source",
+      "ms": 63.918
+    },
+    {
+      "action": "application.config:split-feedback",
+      "ms": 32.999
+    },
+    {
+      "action": "application.config:full-review",
+      "ms": 56.206
+    },
+    {
+      "action": "application.config:source",
+      "ms": 116.707
+    },
+    {
+      "action": ".prettierrc:split-feedback",
+      "ms": 9.777
+    },
+    {
+      "action": ".prettierrc:full-review",
+      "ms": 11.008
+    },
+    {
+      "action": ".prettierrc:source",
+      "ms": 8.982
+    },
+    {
+      "action": "example.ipynb:split-feedback",
+      "ms": 11.252
+    },
+    {
+      "action": "example.ipynb:full-review",
+      "ms": 13.508
+    },
+    {
+      "action": "example.ipynb:source",
+      "ms": 5.943
+    },
+    {
+      "action": "algorithm.futurelang:split-feedback",
+      "ms": 31.339
+    },
+    {
+      "action": "algorithm.futurelang:full-review",
+      "ms": 23.481
+    },
+    {
+      "action": "algorithm.futurelang:source",
+      "ms": 10.824
+    },
+    {
+      "action": "script:split-feedback",
+      "ms": 24.34
+    },
+    {
+      "action": "script:full-review",
+      "ms": 17.723
+    },
+    {
+      "action": "script:source",
+      "ms": 11.971
+    },
+    {
+      "action": "large-json:review-feedback",
+      "ms": 10.993
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 13.326
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 13.226
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 27.347
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 30.299
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 30.26
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 34.63
+    },
+    {
+      "action": "workflow:next-tab",
+      "ms": 39.02
+    },
+    {
+      "action": "workflow:copy",
+      "ms": 48.457
+    },
+    {
+      "action": "workflow:new-tab",
+      "ms": 16.167
+    },
+    {
+      "action": "workflow:paste",
+      "ms": 48.019
+    },
+    {
+      "action": "workflow:undo",
+      "ms": 74.545
+    },
+    {
+      "action": "workflow:redo",
+      "ms": 53.785
+    },
+    {
+      "action": "workflow:dirty-close",
+      "ms": 35.664
+    },
+    {
+      "action": "workflow:cancel-close",
+      "ms": 58.386
+    },
+    {
+      "action": "workflow:open-prompt",
+      "ms": 92.36
+    },
+    {
+      "action": "workflow:dismiss-prompt",
+      "ms": 41.835
+    },
+    {
+      "action": "workflow:find-prompt",
+      "ms": 78.669
+    },
+    {
+      "action": "workflow:find-response",
+      "ms": 357.258
+    },
+    {
+      "action": "workflow:show-tree",
+      "ms": 161.155
+    },
+    {
+      "action": "workflow:focus-editor",
+      "ms": 1.628
+    },
+    {
+      "action": "workflow:hide-tree",
+      "ms": 546.442
+    },
+    {
+      "action": "workflow:folder-prompt",
+      "ms": 80.287
+    },
+    {
+      "action": "workflow:folder-response",
+      "ms": 3325.952
+    },
+    {
+      "action": "workflow:expand-tree",
+      "ms": 173.163
+    },
+    {
+      "action": "workflow:collapse-tree",
+      "ms": 66.765
+    },
+    {
+      "action": "workflow:quit-prompt",
+      "ms": 36.221
+    }
+  ],
+  "background_completion": [
+    {
+      "operation": "10MiB JSON review completion including locale changes",
+      "ms": 1975.229
+    }
+  ],
+  "max_ms": 3325.952,
+  "failures": [
+    {
+      "action": "unicode:end",
+      "ms": 119.893
+    },
+    {
+      "action": "settings.ini:split-feedback",
+      "ms": 112.4
+    },
+    {
+      "action": "settings.ini:full-review",
+      "ms": 115.699
+    },
+    {
+      "action": "settings.ini:source",
+      "ms": 624.342
+    },
+    {
+      "action": "application.config:source",
+      "ms": 116.707
+    },
+    {
+      "action": "workflow:find-response",
+      "ms": 357.258
+    },
+    {
+      "action": "workflow:show-tree",
+      "ms": 161.155
+    },
+    {
+      "action": "workflow:hide-tree",
+      "ms": 546.442
+    },
+    {
+      "action": "workflow:folder-response",
+      "ms": 3325.952
+    },
+    {
+      "action": "workflow:expand-tree",
+      "ms": 173.163
+    }
+  ]
+}

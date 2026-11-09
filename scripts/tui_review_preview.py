@@ -12,6 +12,8 @@ def main():
         root = Path(directory)
         fixtures = [
             ("README.md", "# Không gian của ý tưởng\n\nGuineaNote — **tập trung** trong terminal.\n\n## Việc hôm nay\n\n- [x] Giao diện Việt / Anh\n- [x] Xem Markdown và dữ liệu\n- [ ] Viết thêm một ý tưởng\n\n> Mọi thay đổi đều bắt đầu từ một dòng.\n\n```rust\nfn main() {\n    let message = \"Xin chào, GuineaNote!\";\n}\n```\n\n| Định dạng | Chế độ xem |\n|---|---|\n| Markdown | Tài liệu |\n| JSON / XML | Cấu trúc |\n| CSV / TSV | Bảng dữ liệu |\n"),
+            (".env.local", "# Local configuration\nAPP_NAME=GuineaNote\nAPP_LOCALE=vi\nAPP_PORT=8080\nAPI_URL=https://example.com/api\nMESSAGE='Xin chào, GuineaNote!'\nLITERAL='${APP_NAME}'\n"),
+            ("settings.yaml", "app:\n  name: GuineaNote\n  languages: [vi, en]\nperformance:\n  interaction_budget_ms: 100\nformats:\n  - Markdown\n  - JSON5\n  - YAML\n"),
             ("customers.csv", "name,city,plan,active\nMinh,Hồ Chí Minh,Pro,true\nAn,Hà Nội,Team,true\nLinh,Đà Nẵng,Free,false\nAlex,London,Team,true\n"),
             ("settings.json", '{"project":"GuineaNote","languages":["vi","en"],"performance":{"interaction_budget_ms":100,"background_review":true},"formats":["Markdown","JSON","XML","CSV","TSV"]}'),
         ]

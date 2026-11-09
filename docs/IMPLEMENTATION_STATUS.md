@@ -15,7 +15,36 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — responsiveness, review and Vietnamese/English, 2026-11-09
+## Latest checkpoint — ENV/config and universal UTF-8 source review
+
+Added structured YAML (multiple documents/aliases), JSON5/JSONC, Jupyter
+nbformat 4 cells/saved text outputs, ENV, INI and Properties. Config names and
+extensions infer XML/JSON5/YAML/INI or retain source review for unknown dialects.
+ENV values are literal: export/quotes/multiline/comments/duplicate keys are
+shown without environment mutation, interpolation or command execution.
+Section/key/value review includes source line numbers and preserves duplicates.
+
+All UTF-8 source files can open/edit/review. Named aliases now additionally
+cover Dart/Zig/R/Julia/Scala/Haskell/Clojure/Elixir/Erlang/F#/OCaml/Perl/Lisp,
+Fortran/Assembly/Pascal/HDL, CMake/Nix/HCL/Proto/Solidity and web/template types.
+Unknown extensions have generic lexical colors; extensionless script shebangs
+are recognized. This is editable text/lexical support, not every grammar or LSP.
+
+Performance: ordered token painting is linear; repeated ignored typing in
+read-only review does not force repeated frames. The bounded input, viewport,
+Unicode index and asynchronous parsing protections remain in place.
+Final expanded native budget: 276 samples across two 10 MiB release runs,
+max 57.719 ms (<100 ms). Full background JSON review: 777.682 / 779.545 ms.
+Raw results/earlier failures are in PERFORMANCE.md. 69 Rust tests and required
+checks pass; runtime on Linux/macOS is unverified despite cross-Clippy passing.
+
+Dependency audit rejected the initial libyaml-based YAML parser. Replaced it
+with serde-saphyr 2.1.1 and an ordered generic Serde value, retaining parser
+budgets and rejecting unsupported tags; no include/property resolver is used.
+The reviewed BSD-3-Clause allowance is scoped to encoding_rs only. Final
+advisories/bans/licenses/sources pass; no advisory was waived. No GitHub CI.
+
+## Previous checkpoint — responsiveness, review and Vietnamese/English, 2026-11-09
 
 The confirmed benchmark scope is UTF-8 text up to 10 MiB. The user's final
 interaction target is **strictly below 100 ms**, superseding the initial 150 ms

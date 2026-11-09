@@ -51,7 +51,7 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
 | F6 / Shift+F6 | Next / previous tab (Ctrl+Tab also when available) |
-| F7 | Cycle source / split / review (Markdown and textual data) |
+| F7 | Cycle source / split / review (any UTF-8 file) |
 | F8 | Switch Vietnamese / English interface |
 | F1 / F2 | Help / command prompt with fallbacks for every main action |
 
@@ -72,13 +72,17 @@ the current session; F2 commands `language-vi` and `language-en` also work.
 Document contents and filenames remain unchanged. Parser/OS diagnostics may
 retain their original technical details.
 
-F7 opens a cached, background-rendered review. Markdown renders headings,
+F7 opens a cached, background-rendered review for any UTF-8 file. Markdown renders headings,
 emphasis, lists/tasks, quotes, links, code fences and tables. JSON/JSONL/NDJSON
 is formatted with key/value colors; XML/SVG displays element structure;
 CSV/TSV displays numbered rows and header columns, including quoted/multiline
 fields. CSV/TSV treats the first record as the header; Left/Right in full review
-browses further columns. TOML has a formatted view. YAML/INI provide highlighted
-source review. F2 `source`, `split` or `review` selects a mode directly.
+browses further columns. TOML, YAML (including multiple documents), and JSON5/JSONC have formatted
+views. ENV/INI/Properties show sections, fields and line numbers with literal
+values. Common config files infer XML/JSON5/YAML/INI and retain source review
+for unfamiliar dialects. Notebook `.ipynb` renders Markdown/code cells and saved
+text outputs without running them. All UTF-8 programming files also support
+source review, including unknown extensions via a generic lexer. F2 `source`, `split` or `review` selects a mode directly.
 In full review, arrows/PageUp/PageDown/Home/End and the mouse wheel scroll;
 Esc returns to source. Source and review have independent scroll positions.
 Review is read-only and refreshes after source edits. It never saves formatted
