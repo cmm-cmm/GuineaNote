@@ -1,0 +1,8 @@
+bytes,operation,p50_ms,p95_ms
+1048576,open_warm_cache,17.532,22.285
+1048576,save,52.361,66.980
+1048576,random_line_edit_undo_dirty,0.020,0.056
+1048576,scroll_100_lines,0.316,0.371
+1048576,search_absent,3.098,5.361
+1048576,long_line_right_left_at_start,3.536,5.365
+1048576,long_line_cell_at_start,0.000,0.000

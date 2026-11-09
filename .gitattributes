@@ -1,0 +1,5 @@
+* text=auto eol=lf
+# Preserve intentional Markdown hard line breaks in the supplied specification.
+*.md whitespace=-blank-at-eol
+# Byte-for-byte file fixtures must never be normalized by Git.
+tests/fixtures/** -text

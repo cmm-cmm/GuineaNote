@@ -1,0 +1,46 @@
+[workspace]
+members = ["crates/guinea-core", "crates/guinea-io", "crates/guinea-tui", "crates/guinea-syntax"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+rust-version = "1.98"
+
+[workspace.dependencies]
+guinea-core = { version = "0.1.0", path = "crates/guinea-core" }
+guinea-io = { version = "0.1.0", path = "crates/guinea-io" }
+guinea-syntax = { version = "0.1.0", path = "crates/guinea-syntax" }
+guinea-tui = { version = "0.1.0", path = "crates/guinea-tui" }
+thiserror = "2"
+unicode-segmentation = "1.12"
+unicode-width = "0.2"
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[package]
+name = "guineanote"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+description = "A Unicode-aware terminal text editor"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+guinea-tui.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+guinea-core.workspace = true
+guinea-io.workspace = true
+
+[[bench]]
+name = "editor"
+harness = false
+
+[lints]
+workspace = true

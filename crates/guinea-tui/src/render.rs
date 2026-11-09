@@ -1,0 +1,216 @@
+use guinea_core::coordinates::display_grapheme;
+use guinea_syntax::{HighlightSpan, TokenKind};
+use ratatui::{
+    Frame,
+    style::Style,
+    text::{Line, Span},
+};
+use unicode_segmentation::UnicodeSegmentation;
+
+use crate::{app::App, theme::Theme};
+
+pub(crate) fn safe(text: &str) -> String {
+    text.chars()
+        .map(|ch| if ch.is_control() { '�' } else { ch })
+        .collect()
+}
+
+// Lex only the prefix needed for this viewport. Starting at byte zero keeps
+// the line-local string/comment context correct while avoiding hidden suffixes.
+pub(crate) fn prefix_through_cell(text: &str, right: usize, tab_width: usize) -> &str {
+    let mut cell = 0;
+    let mut end = 0;
+    for (byte, grapheme) in text.grapheme_indices(true) {
+        if cell >= right {
+            break;
+        }
+        cell += display_grapheme(grapheme, cell, tab_width).1;
+        end = byte + grapheme.len();
+    }
+    &text[..end]
+}
+
+/// Clip by terminal cells, padding any partially clipped wide grapheme. Never
+/// emit half of an emoji/CJK cluster, nor a raw terminal control sequence.
+#[cfg(test)]
+fn visible_line(
+    text: &str,
+    start_char: usize,
+    selection: std::ops::Range<usize>,
+    left: usize,
+    width: usize,
+    tab_width: usize,
+) -> Line<'static> {
+    styled_line(
+        text,
+        start_char,
+        selection,
+        left,
+        width,
+        tab_width,
+        LinePaint {
+            theme: Theme::new(false),
+            highlights: &[],
+        },
+    )
+}
+
+pub(crate) struct LinePaint<'a> {
+    pub theme: Theme,
+    pub highlights: &'a [HighlightSpan],
+}
+
+pub(crate) fn styled_line(
+    text: &str,
+    start_char: usize,
+    selection: std::ops::Range<usize>,
+    left: usize,
+    width: usize,
+    tab_width: usize,
+    paint: LinePaint<'_>,
+) -> Line<'static> {
+    let mut spans = Vec::new();
+    let mut cell = 0;
+    let mut char_idx = start_char;
+    for g in text.graphemes(true) {
+        let count = g.chars().count();
+        let (display, cells) = display_grapheme(g, cell, tab_width);
+        let next = cell + cells;
+        if cell >= left + width {
+            break;
+        }
+        if next > left {
+            let visible_start = cell.max(left);
+            let visible_end = next.min(left + width);
+            let output = if cell < left || next > left + width {
+                " ".repeat(visible_end - visible_start)
+            } else {
+                display
+            };
+            let token = paint
+                .highlights
+                .iter()
+                .find(|s| s.chars.contains(&(char_idx - start_char)));
+            let mut style = token.map_or(Style::default().fg(paint.theme.text), |span| {
+                Style::default().fg(match span.kind {
+                    TokenKind::Keyword => paint.theme.blue,
+                    TokenKind::String => paint.theme.mint,
+                    TokenKind::Number => paint.theme.amber,
+                    TokenKind::Comment => paint.theme.muted,
+                    TokenKind::Heading => paint.theme.purple,
+                })
+            });
+            if char_idx < selection.end && char_idx + count > selection.start {
+                style = style.bg(paint.theme.line).fg(paint.theme.text);
+            }
+            spans.push(Span::styled(output, style));
+        }
+        cell = next;
+        char_idx += count;
+    }
+    Line::from(spans)
+}
+
+pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
+    crate::workspace_render::draw(frame, app);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::Config;
+    use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
+    use ratatui::{Terminal, backend::TestBackend};
+
+    #[test]
+    fn tabs_keep_neighbors_and_active_file_visible() {
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0].document.path = Some("README.md".into());
+        app.command("new");
+        app.tabs[1].document.path = Some("main.rs".into());
+        let mut terminal = Terminal::new(TestBackend::new(100, 28)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert_eq!(
+            app.hits
+                .tabs
+                .iter()
+                .map(|(_, index)| *index)
+                .collect::<Vec<_>>(),
+            vec![0, 1]
+        );
+        assert!(app.hits.tree.width > 0);
+        terminal.backend_mut().resize(50, 10);
+        terminal.autoresize().unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert_eq!(app.hits.tree.width, 0);
+        assert!(app.hits.editor.width > 20);
+    }
+
+    #[test]
+    fn explorer_focus_keeps_global_cancellation_feedback_visible() {
+        let mut app = App::new(vec![], false, Config::default());
+        app.focus = crate::app::Focus::Explorer;
+        app.message = "Cancelled".into();
+        let mut terminal = Terminal::new(TestBackend::new(100, 28)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        let screen = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|cell| cell.symbol())
+            .collect::<String>();
+        assert!(screen.contains("Cancelled"));
+    }
+
+    #[test]
+    fn syntax_prefix_stops_at_viewport_without_splitting_graphemes() {
+        let text = format!("let 界\t👩‍💻{}", "x".repeat(1024 * 1024));
+        assert_eq!(prefix_through_cell(&text, 5, 4), "let 界");
+        assert_eq!(prefix_through_cell(&text, 9, 4), "let 界\t👩‍💻");
+        assert!(prefix_through_cell(&text, 80, 4).len() < 100);
+        let prefix = prefix_through_cell("let s = \"// remains a string\"; // comment", 18, 4);
+        let spans = BasicSyntax.highlight_line(Language::Rust, prefix, 0).spans;
+        assert!(spans.iter().any(|span| span.kind == TokenKind::String));
+        assert!(!spans.iter().any(|span| span.kind == TokenKind::Comment));
+    }
+
+    #[test]
+    fn cell_clipping_never_splits_wide_cluster_or_emits_controls() {
+        let line = visible_line("界👩‍💻\t\u{1b}", 0, 0..0, 1, 7, 4);
+        let text = line
+            .spans
+            .iter()
+            .map(|s| s.content.as_ref())
+            .collect::<String>();
+        assert_eq!(text, " 👩‍💻    ");
+        let line = visible_line("\u{1b}", 0, 0..0, 0, 10, 4);
+        assert_eq!(line.spans[0].content, "�");
+    }
+
+    #[test]
+    fn renders_unicode_viewport_and_handles_tiny_resize() {
+        let mut app = App::new(vec![], false, Config::default());
+        app.handle(crossterm::event::Event::Paste(
+            "Việt 👩‍💻\t界\nsecond line".into(),
+        ));
+        app.tabs[0].document.path = Some(std::path::PathBuf::from(
+            "long directory name/longer directory name/visible-position.txt",
+        ));
+        let mut terminal = Terminal::new(TestBackend::new(60, 10)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let screen = terminal
+            .backend()
+            .buffer()
+            .content
+            .iter()
+            .map(|c| c.symbol())
+            .collect::<String>();
+        assert!(screen.contains("UTF-8"));
+        assert!(screen.contains("Ln 2, Col"));
+        assert!(screen.contains("second line"));
+        terminal.backend_mut().resize(2, 1);
+        terminal.autoresize().unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+    }
+}

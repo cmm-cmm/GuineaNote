@@ -1,0 +1,28 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.14.10",
+  "results": [
+    {
+      "bytes": 1024,
+      "samples": 31,
+      "workload": "type_at_start_of_single_line_rust",
+      "p50_input_to_output_ms": 14.753,
+      "p95_input_to_output_ms": 20.325,
+      "max_input_to_output_ms": 20.649,
+      "max_sampled_rss_bytes": 5660672,
+      "os_peak_working_set_bytes": 5742592,
+      "saved_bytes_and_terminal_cleanup": "PASS"
+    },
+    {
+      "bytes": 1048576,
+      "samples": 31,
+      "workload": "type_at_start_of_single_line_rust",
+      "p50_input_to_output_ms": 25.182,
+      "p95_input_to_output_ms": 36.74,
+      "max_input_to_output_ms": 37.814,
+      "max_sampled_rss_bytes": 8957952,
+      "os_peak_working_set_bytes": 11943936,
+      "saved_bytes_and_terminal_cleanup": "PASS"
+    }
+  ]
+}
