@@ -1,5 +1,25 @@
 # Performance measurements
 
+## Visible tab management, 2026-11-09
+
+The extended native release corpus adds All tabs opening, filtering and
+cancellation on 10 MiB ASCII/Unicode buffers and the multi-tab workflow.
+**196 samples, max 53.054 ms, no sample >=100 ms**; full JSON review completion
+is **448.020 ms** separately. The dedicated mouse/tab probe adds **26 samples,
+max 36.585 ms**, including New, Save feedback, Previous/Next, individual close,
+dirty confirmation/cancel and switching hidden tabs through the filtered list.
+Raw evidence: [corpus](responsiveness-tabs.json),
+[tab controls](responsiveness-tab-controls.json). Reproduce after release build
+with `python -X utf8 scripts/pty_responsiveness.py 10485760` and
+`python -X utf8 scripts/pty_tabs.py`. Same host/PTY/physical-display limitations
+below apply; these 222 passing samples do not certify every input or platform.
+
+Tab labels are generated only for the visible neighborhood, and All tabs caches
+metadata for filtering without reading file contents or the filesystem. Dirty
+counts exclude linked reviews to avoid counting a source twice. Existing TUI
+performance protections remain in place. No Agent/MCP runtime was introduced;
+its latency/queue proposals are unmeasured future work in AGENT_MCP_PLAN.md.
+
 ## Green/brown/white details on the original navy, 2026-11-09
 
 Updated foregrounds, syntax and border accents while preserving the original

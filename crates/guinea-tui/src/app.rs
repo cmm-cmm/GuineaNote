@@ -19,6 +19,7 @@ use crate::{
     file_picker::{Action as PickerAction, FilePicker},
     i18n::Locale,
     preferences::Preferences,
+    tab_manager::TabManager,
 };
 
 pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language {
@@ -52,6 +53,8 @@ pub enum Focus {
 pub struct HitRegions {
     pub tree: Rect,
     pub tabs: Vec<(Rect, usize)>,
+    pub tab_closes: Vec<(Rect, usize)>,
+    pub tab_strip: Rect,
     pub actions: Vec<(Rect, &'static str)>,
     pub editor: Rect,
     pub editor_text: Rect,
@@ -60,10 +63,11 @@ pub struct HitRegions {
     pub outline: Rect,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub document: Document,
+    pub untitled: usize,
     pub review_source: Option<u64>,
     pub top: usize,
     pub left: usize,
@@ -74,10 +78,25 @@ impl Tab {
     fn new(document: Document) -> Self {
         Self {
             document,
+            untitled: 1,
             review_source: None,
             top: 0,
             left: 0,
             review: Review::default(),
+        }
+    }
+    pub fn title(&self, locale: Locale) -> String {
+        let name = self
+            .document
+            .path
+            .as_ref()
+            .and_then(|p| p.file_name())
+            .map(|p| p.to_string_lossy().into_owned())
+            .unwrap_or_else(|| format!("{} {}", locale.tr("Untitled"), self.untitled));
+        if self.review_source.is_some() {
+            format!("{name} [Review]")
+        } else {
+            name
         }
     }
 }
@@ -110,6 +129,7 @@ impl InputKind {
 #[derive(Debug, Clone)]
 pub enum Action {
     Close,
+    CloseTab(usize),
     Quit,
     Reload,
     OpenLarge { path: PathBuf, replace: Option<u64> },
@@ -123,6 +143,7 @@ pub enum Modal {
     ReviewOptions { selected: usize },
     FilePicker(Box<FilePicker>),
     FileInfo(FileInfo),
+    Tabs(TabManager),
 }
 
 #[derive(Debug, Clone)]
@@ -163,6 +184,7 @@ pub struct App {
     saving: bool,
     quit_after_settings: bool,
     readonly: bool,
+    next_untitled: usize,
     clipboard: String,
     search: String,
     pending: Option<Receiver<Completed>>,
@@ -215,6 +237,7 @@ impl App {
             hits: HitRegions::default(),
             preferences: Preferences::default(),
             readonly,
+            next_untitled: 2,
             saving: false,
             quit_after_settings: false,
             clipboard: String::new(),
@@ -347,6 +370,7 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        let mut documents_changed = false;
         if let Some(result) = self.preferences.poll() {
             self.redraw = true;
             self.message = match result {
@@ -378,6 +402,7 @@ impl App {
             let result = receiver.try_recv();
             match result {
                 Ok(completed) => {
+                    documents_changed = true;
                     self.pending = None;
                     self.saving = false;
                     self.join_worker();
@@ -404,6 +429,9 @@ impl App {
             self.redraw = true;
         }
         self.sync_review_tabs();
+        if documents_changed && let Some(Modal::Tabs(manager)) = &mut self.modal {
+            manager.refresh(&self.tabs, self.active, self.config.language);
+        }
         let tab = &mut self.tabs[self.active];
         if tab.review.poll(
             &tab.document,
@@ -524,6 +552,8 @@ impl App {
                     value.push_str(&text.replace(['\r', '\n'], ""));
                 } else if let Some(Modal::FilePicker(picker)) = self.modal.as_mut() {
                     picker.paste(&text);
+                } else if let Some(Modal::Tabs(manager)) = self.modal.as_mut() {
+                    manager.paste(&text);
                 } else if self.modal.is_none()
                     && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode != ViewMode::Review
@@ -581,6 +611,58 @@ impl App {
     fn modal_key(&mut self, key: KeyEvent) {
         let modal = self.modal.take().expect("modal exists");
         match modal {
+            Modal::Tabs(mut manager) => {
+                let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+                match key.code {
+                    KeyCode::Esc => return,
+                    KeyCode::Char('p') if ctrl => return,
+                    KeyCode::Char('n' | 't') if ctrl => {
+                        self.command("new");
+                        return;
+                    }
+                    KeyCode::Char('s') if ctrl => {
+                        if let Some(index) = manager.current() {
+                            self.active = index;
+                            self.focus = Focus::Editor;
+                            self.command("save");
+                            return;
+                        }
+                    }
+                    KeyCode::Char('w') if ctrl => {
+                        if let Some(index) = manager.current() {
+                            self.request_close_tab(index);
+                            return;
+                        }
+                    }
+                    KeyCode::Enter => {
+                        if let Some(index) = manager.current() {
+                            self.active = index;
+                            self.focus = Focus::Editor;
+                            return;
+                        }
+                    }
+                    KeyCode::Up => manager.move_by(-1),
+                    KeyCode::Down => manager.move_by(1),
+                    KeyCode::PageUp => manager.move_by(-(manager.height as isize)),
+                    KeyCode::PageDown => manager.move_by(manager.height as isize),
+                    KeyCode::Home => manager.selected = 0,
+                    KeyCode::End => manager.selected = manager.filtered.len().saturating_sub(1),
+                    KeyCode::Backspace => manager.backspace(),
+                    KeyCode::Char('u') if ctrl => {
+                        manager.query.clear();
+                        manager.filter();
+                    }
+                    KeyCode::Char(ch)
+                        if !key
+                            .modifiers
+                            .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT) =>
+                    {
+                        manager.paste(&ch.to_string())
+                    }
+                    _ => {}
+                }
+                self.modal = Some(Modal::Tabs(manager));
+            }
             Modal::Settings { mut selected } => match key.code {
                 KeyCode::Esc | KeyCode::F(8) => self.message = "Cancelled".into(),
                 KeyCode::Left | KeyCode::Up | KeyCode::Right | KeyCode::Down | KeyCode::Tab => {
@@ -741,7 +823,10 @@ impl App {
                 KeyCode::Char('s' | 'S') if shift => self.command("save-as"),
                 KeyCode::Char('s') => self.command("save"),
                 KeyCode::Char('o') => self.command("open"),
-                KeyCode::Char('n') => self.command("new"),
+                KeyCode::Char('n' | 't') => self.command("new"),
+                KeyCode::Char('p') => self.command("tabs"),
+                KeyCode::PageUp => self.command("prev"),
+                KeyCode::PageDown => self.command("next"),
                 KeyCode::Char('b') => self.command("explorer"),
                 KeyCode::Char('k') => self.command("open-folder"),
                 KeyCode::Char('w') => self.command("close"),
@@ -930,6 +1015,31 @@ impl App {
 
     fn mouse(&mut self, mouse: MouseEvent) {
         let position = (mouse.column, mouse.row).into();
+        if self.hits.tab_strip.contains(position) {
+            match mouse.kind {
+                MouseEventKind::ScrollDown => {
+                    self.command("next");
+                    return;
+                }
+                MouseEventKind::ScrollUp => {
+                    self.command("prev");
+                    return;
+                }
+                MouseEventKind::Down(MouseButton::Left) => {
+                    if let Some((_, index)) = self
+                        .hits
+                        .tab_closes
+                        .iter()
+                        .find(|(rect, _)| rect.contains(position))
+                    {
+                        self.request_close_tab(*index);
+                        self.redraw = true;
+                        return;
+                    }
+                }
+                _ => {}
+            }
+        }
         if self.hits.outline.contains(position) {
             let rect = self.hits.outline;
             let review = &mut self.tabs[self.active].review;
@@ -995,6 +1105,19 @@ impl App {
 
     fn modal_mouse(&mut self, mouse: MouseEvent) {
         self.redraw = true;
+        if let Some(Modal::Tabs(manager)) = &mut self.modal {
+            match mouse.kind {
+                MouseEventKind::ScrollUp => manager.move_by(-3),
+                MouseEventKind::ScrollDown => manager.move_by(3),
+                MouseEventKind::Down(MouseButton::Left)
+                    if manager.list.contains((mouse.column, mouse.row).into()) =>
+                {
+                    manager.selected = (manager.top + (mouse.row - manager.list.y) as usize)
+                        .min(manager.filtered.len().saturating_sub(1));
+                }
+                _ => {}
+            }
+        }
         if matches!(&self.modal, Some(Modal::FilePicker(_))) {
             let Some(Modal::FilePicker(mut picker)) = self.modal.take() else {
                 unreachable!()
@@ -1039,6 +1162,27 @@ impl App {
                 .map(|(_, a)| *a)
         {
             match action {
+                "tabs-new" => {
+                    self.modal = None;
+                    self.command("new");
+                }
+                "tabs-switch" | "tabs-save" | "tabs-close" => {
+                    if let Some(Modal::Tabs(manager)) = self.modal.take() {
+                        if let Some(index) = manager.current() {
+                            if action == "tabs-close" {
+                                self.request_close_tab(index);
+                            } else {
+                                self.active = index;
+                                self.focus = Focus::Editor;
+                                if action == "tabs-save" {
+                                    self.command("save");
+                                }
+                            }
+                        } else {
+                            self.modal = Some(Modal::Tabs(manager));
+                        }
+                    }
+                }
                 "cancel" => {
                     self.modal = None;
                     self.message = "Cancelled".into();
@@ -1108,6 +1252,7 @@ impl App {
         match action {
             Action::Quit => self.request_quit(),
             Action::Close => self.close(),
+            Action::CloseTab(index) => self.close_at(index),
             Action::Reload => {
                 if let Some(path) = self.document().path.clone() {
                     self.start_open(
@@ -1130,20 +1275,70 @@ impl App {
         }
     }
     fn close(&mut self) {
-        let source = self.tabs[self.active]
+        self.close_at(self.active);
+    }
+    fn new_blank(&mut self) {
+        let mut document = Document::default();
+        document.readonly = self.readonly;
+        let mut tab = Tab::new(document);
+        tab.untitled = self.next_untitled;
+        self.next_untitled += 1;
+        self.tabs.push(tab);
+        self.active = self.tabs.len() - 1;
+        self.focus = Focus::Editor;
+    }
+    fn request_close_tab(&mut self, index: usize) {
+        if index >= self.tabs.len() {
+            return;
+        }
+        if self.busy() {
+            self.message = "Background operation in progress; retry when complete".into();
+        } else if self.tabs[index].review_source.is_none() && self.tabs[index].document.is_dirty() {
+            self.modal = Some(Modal::Confirm {
+                action: Action::CloseTab(index),
+                message: format!(
+                    "{}\n{}",
+                    self.tabs[index].title(self.config.language),
+                    self.config.language.tr("Discard unsaved changes in this tab? Y discard / N cancel (Ctrl+S saves after cancel)")
+                ),
+            });
+        } else {
+            self.close_at(index);
+        }
+    }
+    fn close_at(&mut self, index: usize) {
+        if index >= self.tabs.len() {
+            return;
+        }
+        let active_key = (
+            self.document().id,
+            self.tabs[self.active].review_source.is_some(),
+        );
+        let review_source = self.tabs[index].review_source;
+        let source = self.tabs[index]
             .review_source
             .is_none()
-            .then_some(self.document().id);
-        self.tabs.remove(self.active);
+            .then_some(self.tabs[index].document.id);
+        self.tabs.remove(index);
         if let Some(id) = source {
             self.tabs.retain(|tab| tab.review_source != Some(id));
         }
-        self.active = self.active.min(self.tabs.len().saturating_sub(1));
+        self.active = self
+            .tabs
+            .iter()
+            .position(|t| (t.document.id, t.review_source.is_some()) == active_key)
+            .or_else(|| {
+                review_source.and_then(|id| {
+                    self.tabs
+                        .iter()
+                        .position(|tab| tab.review_source.is_none() && tab.document.id == id)
+                })
+            })
+            .unwrap_or_else(|| index.min(self.tabs.len().saturating_sub(1)));
         if self.tabs.is_empty() {
-            let mut document = Document::default();
-            document.readonly = self.readonly;
-            self.tabs.push(Tab::new(document));
+            self.new_blank();
         }
+        self.focus = Focus::Editor;
     }
 
     fn sync_review_tabs(&mut self) {
@@ -1190,6 +1385,7 @@ impl App {
             self.active = index;
         } else {
             let mut tab = Tab::new(self.document().review_snapshot());
+            tab.untitled = self.tabs[self.active].untitled;
             tab.review_source = Some(id);
             tab.review.outline_visible = true;
             tab.review.mode = ViewMode::Review;
@@ -1261,16 +1457,13 @@ impl App {
                 self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
             }
             "settings" => self.modal = Some(Modal::Settings { selected: self.config.language }),
+            "tabs" => self.modal = Some(Modal::Tabs(TabManager::new(&self.tabs, self.active, self.config.language))),
             "info" | "file-info" => self.modal = Some(Modal::FileInfo(FileInfo::new(self.document(), self.config.language))),
             "preview" => self.modal = Some(Modal::ReviewOptions { selected: 0 }),
             "review" | "review-tab" => self.open_review_tab(),
             "source" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Source; },
             "split" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Split; self.focus = Focus::Editor; },
-            "new" => {
-                let mut document = Document::default(); document.readonly = self.readonly;
-                self.tabs.push(Tab::new(document)); self.active = self.tabs.len() - 1;
-                self.focus = Focus::Editor;
-            }
+            "new" => self.new_blank(),
             "open-folder" => self.prompt(InputKind::Folder),
             "explorer" => { self.explorer_visible = !self.explorer_visible; self.focus = if self.explorer_visible { Focus::Explorer } else { Focus::Editor }; }
             "focus" => { self.explorer_visible = true; self.focus = if self.focus == Focus::Editor { Focus::Explorer } else { Focus::Editor }; }
@@ -1316,6 +1509,107 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn closing_inactive_dirty_and_linked_tabs_preserves_selection_and_source() {
+        let mut a = app();
+        a.handle(Event::Paste("# draft".into()));
+        a.command("review-tab");
+        a.command("new");
+        let active = a.document().id;
+        let title = a.tabs[a.active].title(Locale::En);
+        a.request_close_tab(0);
+        assert!(matches!(
+            a.modal,
+            Some(Modal::Confirm {
+                action: Action::CloseTab(0),
+                ..
+            })
+        ));
+        a.handle(key(KeyCode::Char('n')));
+        assert_eq!(a.tabs.len(), 3);
+        assert_eq!(a.document().id, active);
+        assert_eq!(a.tabs[0].document.text(), "# draft");
+        a.request_close_tab(1);
+        assert_eq!(a.tabs.len(), 2);
+        assert_eq!(a.document().id, active);
+        assert_eq!(a.tabs[0].document.text(), "# draft");
+        a.request_close_tab(0);
+        a.handle(key(KeyCode::Char('y')));
+        assert_eq!(a.tabs.len(), 1);
+        assert_eq!(a.document().id, active);
+        a.request_close_tab(0);
+        assert_eq!(a.tabs.len(), 1);
+        assert_eq!(a.document().text(), "");
+        assert_ne!(a.tabs[0].title(Locale::En), title);
+    }
+
+    #[test]
+    fn tab_manager_filters_duplicate_paths_and_cancels_without_editing() {
+        let mut a = app();
+        a.document_mut().path = Some("alpha/Việt.md".into());
+        a.handle(Event::Paste("source".into()));
+        a.command("new");
+        a.document_mut().path = Some("beta/Việt.md".into());
+        let active = a.document().id;
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('p'),
+            KeyModifiers::CONTROL,
+        )));
+        a.handle(Event::Paste("alpha/Việt".into()));
+        let Some(Modal::Tabs(manager)) = &a.modal else {
+            panic!("missing tab manager")
+        };
+        assert_eq!(manager.current(), Some(0));
+        a.handle(key(KeyCode::Esc));
+        assert_eq!(a.document().id, active);
+        assert_eq!(a.tabs[0].document.text(), "source");
+        a.command("tabs");
+        a.handle(Event::Paste("no match".into()));
+        a.handle(key(KeyCode::Enter));
+        assert!(matches!(a.modal, Some(Modal::Tabs(_))));
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('u'),
+            KeyModifiers::CONTROL,
+        )));
+        a.handle(key(KeyCode::Home));
+        a.handle(key(KeyCode::Enter));
+        assert_eq!(a.active, 0);
+        a.command("undo");
+        assert_eq!(a.document().text(), "");
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::PageDown,
+            KeyModifiers::CONTROL,
+        )));
+        assert_eq!(a.active, 1);
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('t'),
+            KeyModifiers::CONTROL,
+        )));
+        assert_eq!(a.tabs.len(), 3);
+        assert!(a.document().path.is_none());
+    }
+
+    #[test]
+    fn tab_manager_refreshes_metadata_after_pending_save_without_losing_filter() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("draft.txt");
+        std::fs::write(&path, "original").unwrap();
+        let mut a = App::new(vec![path.clone()], false, Config::default());
+        drain_jobs(&mut a);
+        a.handle(Event::Paste("new ".into()));
+        a.command("save");
+        a.command("tabs");
+        a.handle(Event::Paste("draft".into()));
+        drain_jobs(&mut a);
+        let Some(Modal::Tabs(manager)) = &a.modal else {
+            panic!("missing manager after save")
+        };
+        assert_eq!(manager.query, "draft");
+        assert_eq!(manager.current(), Some(0));
+        assert!(!manager.entries[0].dirty);
+        assert_eq!(std::fs::read_to_string(path).unwrap(), "new original");
+    }
 
     #[test]
     fn f8_opens_settings_cancel_does_not_change_language_and_apply_is_explicit() {

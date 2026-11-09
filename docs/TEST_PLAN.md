@@ -167,3 +167,19 @@ Rust tests additionally cover Settings Apply/Cancel, queued preference writes,
 picker navigation/filtering/missing files, metadata versus unsaved buffer,
 linked review history isolation, reload invalidation from revision zero,
 Markdown features at narrow widths, semantic spans and modal resize safety.
+
+## Visible tab management
+
+`python -X utf8 scripts/pty_tabs.py` uses twelve temporary files, mouse actions
+and a filtered All tabs dialog. It checks blank creation, exact Unicode save,
+previous/next, individual close, dirty cancel/discard, inactive selection,
+hidden tabs, linked review close, the last blank, VI/EN and normal terminal
+cleanup. It fails at any measured response >=100 ms, writing raw evidence to
+target/tab-responsiveness.json. No real user file or profile is modified.
+
+The current general response probe has 196 samples; its previous 187-sample
+UX checkpoint remains historical. Rust tab tests cover path disambiguation,
+empty filters, preserved histories, save completion during the dialog, closing
+inactive sources/reviews, stable blank names and narrow/overflow hit regions.
+Agent/MCP is currently a plan, so no protocol conformance or Agent latency pass
+is claimed. See TAB_MANAGEMENT_PLAN.md and AGENT_MCP_PLAN.md.

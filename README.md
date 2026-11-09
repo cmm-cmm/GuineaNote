@@ -51,6 +51,8 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
 | F6 / Shift+F6 | Next / previous tab (Ctrl+Tab also when available) |
+| Ctrl+P | All tabs: filter by name/path, select, switch, save or close |
+| Ctrl+T, Ctrl+PageUp / Ctrl+PageDown | New blank tab, previous / next tab |
 | F7 | Choose split view or open a linked review tab (any UTF-8 file) |
 | F8 | Settings: choose Vietnamese / English, Apply or Cancel |
 | F9 | File details: metadata, text statistics and last verified fingerprint |
@@ -64,6 +66,19 @@ and full-document search/replace run in the background. Open/search/replace
 temporarily pause edits with visible feedback. Saving allows continued editing;
 completion marks the committed snapshot saved and keeps later edits dirty.
 All actions also work without a mouse.
+
+The tab toolbar shows the active position and total open count, with New,
+Save, Close, previous/next and All tabs buttons. Click a numbered tab to switch
+or its `x` to close. Blank tabs have stable numbered names; `●` marks unsaved
+changes and review tabs have a distinct label. Closing an inactive tab preserves
+the current tab. Closing a linked review returns to its source; closing the last
+tab leaves a blank document. Closing never deletes a file from disk.
+When the strip overflows, Ctrl+P lists every tab with its full path and state;
+type to filter, use arrows and Enter to switch, Ctrl+S to save, Ctrl+W to close,
+or Ctrl+N to create. Unsaved source changes require confirmation before discard.
+Narrow windows retain compact controls and keyboard access. See the
+[tab improvement plan](docs/TAB_MANAGEMENT_PLAN.md) and
+[Agent CLI/MCP assessment](docs/AGENT_MCP_PLAN.md); Agent/MCP is currently a plan.
 The original navy backgrounds use green, walnut-brown and warm-white details
 and content. The theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.

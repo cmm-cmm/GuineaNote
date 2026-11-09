@@ -15,7 +15,27 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — Settings, file navigation and linked reader
+## Latest checkpoint — visible tab management and Agent/MCP assessment
+
+Added local New/Save/Close/Previous/Next/All tabs controls, active/total count,
+unsaved state, numbered blank names and per-tab close buttons. Ctrl+P opens
+the searchable manager with paths and states; Ctrl+T creates a blank, and
+Ctrl+PageUp/PageDown switches. Closing an inactive tab preserves selection;
+closing an active linked review returns to its source. Dirty source close
+requires confirmation and closing the final tab leaves a blank buffer.
+
+84 Rust tests, strict Clippy and release gates pass; native tab controls pass
+26 measured responses (max 36.585 ms), and the extended 10 MiB corpus passes
+196 (max 53.054 ms). JSON preview completion is 448.020 ms separately.
+See TAB_MANAGEMENT_PLAN.md and PERFORMANCE.md for evidence and scope.
+
+AGENT_MCP_PLAN.md records a separate assessment and phased proposal for a
+typed service, CLI JSON, live-session bridge, MCP stdio and revision-checked
+patch/review/save. It cites current primary protocol sources and estimates
+12–20 engineering days subject to validation. Agent/MCP runtime remains
+unimplemented; no endpoint, new dependency or GitHub CI was enabled.
+
+## Previous checkpoint — Settings, file navigation and linked reader
 
 F8 now opens a language Settings dialog with explicit Apply/Cancel and
 asynchronous persistent preferences. Ctrl+O shows a filtered file/directory

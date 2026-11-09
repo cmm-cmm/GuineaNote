@@ -275,28 +275,23 @@ fn file_icon(path: &std::path::Path) -> &'static str {
 }
 
 fn tab_label(tab: &crate::app::Tab, welcome: bool, locale: Locale) -> String {
-    let name = tab
-        .document
-        .path
-        .as_ref()
-        .and_then(|path| path.file_name())
-        .map(|name| name.to_string_lossy().into_owned())
-        .unwrap_or_else(|| {
-            if welcome {
-                locale.tr("Welcome").into_owned()
-            } else {
-                locale.tr("Untitled").into_owned()
-            }
-        });
-    format!(
-        "  {} {}{}  ",
-        clipped(&name, 21),
-        if tab.document.is_dirty() { "●" } else { " " },
+    let name = if welcome {
+        locale.tr("Welcome").into_owned()
+    } else {
+        let title = tab.title(locale);
         if tab.review_source.is_some() {
-            " [Review]"
+            format!(
+                "Review · {}",
+                title.strip_suffix(" [Review]").unwrap_or(&title)
+            )
         } else {
-            ""
+            title
         }
+    };
+    format!(
+        " {} {} ",
+        clipped(&name, 25),
+        if tab.document.is_dirty() { "●" } else { " " },
     )
 }
 
@@ -305,28 +300,102 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         Block::default().style(Style::default().bg(theme.panel)),
         area,
     );
-    let labels = app
+    app.hits.tab_strip = area;
+    let locale = app.config.language;
+    let count = if area.width < 40 {
+        format!("{}/{}", app.active + 1, app.tabs.len())
+    } else {
+        format!(
+            "{} {}/{}",
+            locale.tr("Tabs"),
+            app.active + 1,
+            app.tabs.len()
+        )
+    };
+    let count_width = Line::from(count.as_str()).width().min(area.width as usize) as u16;
+    frame.render_widget(
+        Paragraph::new(count).style(bold(theme.accent)),
+        Rect::new(area.x, area.y, count_width, 1),
+    );
+    let mut x = area.x + count_width + 1;
+    let controls: Vec<(&str, &str)> = if area.width >= 56 {
+        vec![
+            (" + New ", "new"),
+            (" Save ", "save"),
+            (" Close ", "close"),
+            (" < ", "prev"),
+            (" > ", "next"),
+            (" All ^P ", "tabs"),
+        ]
+    } else {
+        vec![
+            (" + ", "new"),
+            (" < ", "prev"),
+            (" > ", "next"),
+            (" =^P ", "tabs"),
+        ]
+    };
+    for (label, action) in controls {
+        let label = locale.tr(label);
+        let width = Line::from(label.as_ref()).width() as u16;
+        if x + width > area.right() {
+            break;
+        }
+        let rect = Rect::new(x, area.y, width, 1);
+        frame.render_widget(
+            Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
+                if action == "new" {
+                    theme.accent
+                } else {
+                    theme.text
+                },
+            )),
+            rect,
+        );
+        app.hits.actions.push((rect, action));
+        x += width + 1;
+    }
+    let dirty = app
         .tabs
         .iter()
-        .map(|tab| tab_label(tab, app.welcome(), app.config.language))
-        .collect::<Vec<_>>();
+        .filter(|t| t.review_source.is_none() && t.document.is_dirty())
+        .count();
+    if dirty > 0 && area.right().saturating_sub(x) > 8 {
+        let hint = format!("● {dirty} {}", locale.tr("unsaved"));
+        frame.render_widget(
+            Paragraph::new(clipped(&hint, (area.right() - x) as usize))
+                .style(text_style(theme.warm)),
+            Rect::new(x, area.y, area.right() - x, 1),
+        );
+    }
+    if area.height < 2 {
+        return;
+    }
+    let welcome = app.welcome();
+    let label = |index: usize| {
+        format!(
+            "{}{}",
+            index + 1,
+            tab_label(&app.tabs[index], welcome, locale)
+        )
+    };
     let mut first = app.active;
-    let mut used = Line::from(labels[first].as_str()).width();
-    while first > 0 && used + Line::from(labels[first - 1].as_str()).width() <= area.width as usize
-    {
+    let mut used = Line::from(label(first)).width() + 3;
+    while first > 0 && used + Line::from(label(first - 1)).width() + 3 <= area.width as usize {
         first -= 1;
-        used += Line::from(labels[first].as_str()).width();
+        used += Line::from(label(first)).width() + 3;
     }
     let mut x = area.x;
-    for (index, label) in labels.into_iter().enumerate().skip(first) {
-        let width = (Line::from(label.as_str()).width() as u16).min(area.right() - x);
+    for index in first..app.tabs.len() {
+        let label = label(index);
+        let width = ((Line::from(label.as_str()).width() + 3) as u16).min(area.right() - x);
         if width < 5 {
             break;
         }
         let selected = index == app.active;
-        let rect = Rect::new(x, area.y, width, 1);
+        let rect = Rect::new(x, area.y + 1, width, 1);
         frame.render_widget(
-            Paragraph::new(label).style(
+            Paragraph::new(clipped(&label, width.saturating_sub(3) as usize)).style(
                 Style::default()
                     .bg(if selected { theme.raised } else { theme.panel })
                     .fg(if selected { theme.text } else { theme.muted }),
@@ -334,14 +403,24 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             rect,
         );
         app.hits.tabs.push((rect, index));
-        if area.height > 1 {
+        let close = Rect::new(rect.right() - 3, rect.y, 3, 1);
+        frame.render_widget(
+            Paragraph::new(" x ").style(
+                Style::default()
+                    .bg(if selected { theme.raised } else { theme.panel })
+                    .fg(theme.warm),
+            ),
+            close,
+        );
+        app.hits.tab_closes.push((close, index));
+        if area.height > 2 {
             frame.render_widget(
                 Paragraph::new("─".repeat(width as usize)).style(text_style(if selected {
                     theme.accent
                 } else {
                     theme.line
                 })),
-                Rect::new(x, area.y + 1, width, 1),
+                Rect::new(x, area.y + 2, width, 1),
             );
         }
         x += width;
@@ -445,7 +524,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
     let compact = area.height < 9;
     let regions = Layout::vertical([
-        Constraint::Length(if compact { 1 } else { 2 }),
+        Constraint::Length(if compact { 1 } else { 3 }),
         Constraint::Length(if compact { 0 } else { 1 }),
         Constraint::Min(1),
     ])
@@ -899,6 +978,7 @@ fn modal(frame: &mut Frame<'_>, modal: &Modal, area: Rect, theme: Theme, locale:
     );
     let content = match modal {
         Modal::Settings { .. }
+        | Modal::Tabs(_)
         | Modal::ReviewOptions { .. }
         | Modal::FilePicker(_)
         | Modal::FileInfo(_) => return,

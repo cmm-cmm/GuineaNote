@@ -1,0 +1,111 @@
+{
+  "sample_count": 26,
+  "max_ms": 36.585,
+  "samples": [
+    {
+      "action": "tabs:mouse-new",
+      "ms": 4.297
+    },
+    {
+      "action": "tabs:mouse-save-prompt",
+      "ms": 4.865
+    },
+    {
+      "action": "tabs:save-feedback",
+      "ms": 17.617
+    },
+    {
+      "action": "tabs:mouse-previous",
+      "ms": 7.146
+    },
+    {
+      "action": "tabs:mouse-next",
+      "ms": 7.703
+    },
+    {
+      "action": "tabs:individual-close",
+      "ms": 6.939
+    },
+    {
+      "action": "tabs:mouse-all",
+      "ms": 5.869
+    },
+    {
+      "action": "tabs:filter-alpha",
+      "ms": 8.071
+    },
+    {
+      "action": "tabs:activate-alpha",
+      "ms": 5.958
+    },
+    {
+      "action": "tabs:inactive-dirty-close",
+      "ms": 16.681
+    },
+    {
+      "action": "tabs:cancel-dirty-close",
+      "ms": 19.023
+    },
+    {
+      "action": "tabs:confirm-inactive-close",
+      "ms": 9.145
+    },
+    {
+      "action": "tabs:manager-open",
+      "ms": 12.611
+    },
+    {
+      "action": "tabs:filter-hidden-tab",
+      "ms": 24.136
+    },
+    {
+      "action": "tabs:mouse-switch-hidden",
+      "ms": 3.911
+    },
+    {
+      "action": "tabs:close-review-from-list",
+      "ms": 28.019
+    },
+    {
+      "action": "tabs:close-clean-11",
+      "ms": 36.585
+    },
+    {
+      "action": "tabs:close-clean-10",
+      "ms": 14.479
+    },
+    {
+      "action": "tabs:close-clean-9",
+      "ms": 22.137
+    },
+    {
+      "action": "tabs:close-clean-8",
+      "ms": 15.864
+    },
+    {
+      "action": "tabs:close-clean-7",
+      "ms": 29.949
+    },
+    {
+      "action": "tabs:close-clean-6",
+      "ms": 29.361
+    },
+    {
+      "action": "tabs:close-clean-5",
+      "ms": 14.375
+    },
+    {
+      "action": "tabs:close-clean-4",
+      "ms": 16.192
+    },
+    {
+      "action": "tabs:close-clean-3",
+      "ms": 12.882
+    },
+    {
+      "action": "tabs:close-clean-2",
+      "ms": 12.543
+    }
+  ],
+  "failures": []
+}

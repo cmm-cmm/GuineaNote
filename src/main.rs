@@ -17,7 +17,7 @@ struct Args {
     /// Read editor configuration from a TOML file.
     #[arg(long, value_name = "PATH")]
     config: Option<PathBuf>,
-    /// Interface language: Vietnamese or English (F8 switches while running).
+    /// Interface language: Vietnamese or English (F8 opens Settings).
     #[arg(long, value_parser = ["vi", "en"])]
     language: Option<String>,
 }

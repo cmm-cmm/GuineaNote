@@ -26,6 +26,12 @@ impl Locale {
             "REVIEW · F7" => "XEM TRƯỚC · F7",
             "Welcome" => "Chào bạn",
             "Untitled" => "Chưa đặt tên",
+            "Tabs" => "Thẻ",
+            "unsaved" => "chưa lưu",
+            " + New " => " + Mới ",
+            " Save " => " Lưu ",
+            " Close " => " Đóng ",
+            " All ^P " => " Tất cả ^P ",
             "    A little more focused." => "    Tập trung từng ý tưởng.",
             "WORKSPACE  /  v0.1.0 " => "KHÔNG GIAN  /  v0.1.0 ",
             " Settings F8 " => " Thiết lập F8 ",
@@ -240,7 +246,7 @@ impl Locale {
     }
 }
 
-pub const HELP_VI: &str = "GuineaNote — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H thay tất cả\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · chưa phục hồi sau lỗi\nF1 / Esc đóng hướng dẫn";
+pub const HELP_VI: &str = "GuineaNote — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H thay tất cả\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nCtrl+P Quản lý thẻ: lọc, chuyển, lưu, đóng\nCtrl+T Thẻ trống · Ctrl+PgUp/PgDn chuyển thẻ\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · chưa phục hồi sau lỗi\nF1 / Esc đóng hướng dẫn";
 
 #[cfg(test)]
 mod tests {

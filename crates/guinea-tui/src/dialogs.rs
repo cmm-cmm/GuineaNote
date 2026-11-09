@@ -79,8 +79,174 @@ fn button(frame: &mut Frame<'_>, rect: Rect, label: &str, theme: Theme, primary:
 
 pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> bool {
     let locale = app.config.language;
+    let active = app.active;
     let hits = &mut app.hits;
     match app.modal.as_mut() {
+        Some(Modal::Tabs(manager)) => {
+            let body = surface(
+                frame,
+                area,
+                100,
+                29,
+                tr(locale, "OPEN TABS · Ctrl+P", "QUẢN LÝ THẺ · Ctrl+P"),
+                theme,
+            );
+            let dirty = manager
+                .entries
+                .iter()
+                .filter(|e| !e.review && e.dirty)
+                .count();
+            let summary = format!(
+                "{} {} · {} {} · {} {}",
+                manager.entries.len(),
+                tr(locale, "open", "thẻ mở"),
+                dirty,
+                tr(locale, "unsaved", "chưa lưu"),
+                manager.filtered.len(),
+                tr(locale, "matching", "kết quả")
+            );
+            text(
+                frame,
+                row(body, 0, 1),
+                Line::from(summary),
+                bold(theme.accent),
+            );
+            text(
+                frame,
+                row(body, 2, 1),
+                Line::from(tr(
+                    locale,
+                    "Filter by name or path · Ctrl+U clear",
+                    "Lọc theo tên hoặc đường dẫn · Ctrl+U xóa lọc",
+                )),
+                fg(theme.muted),
+            );
+            text(
+                frame,
+                row(body, 3, 1),
+                Line::from(format!(
+                    "› {}│",
+                    input_tail(&manager.query, body.width.saturating_sub(7) as usize)
+                )),
+                fg(theme.text),
+            );
+            let list = row(body, 5, body.height.saturating_sub(12));
+            manager.list = list;
+            manager.height = list.height.max(1) as usize;
+            if manager.selected < manager.top {
+                manager.top = manager.selected;
+            }
+            if manager.selected >= manager.top + manager.height {
+                manager.top = manager.selected + 1 - manager.height;
+            }
+            manager.top = manager
+                .top
+                .min(manager.filtered.len().saturating_sub(manager.height));
+            for (offset, &index) in manager
+                .filtered
+                .iter()
+                .skip(manager.top)
+                .take(list.height as usize)
+                .enumerate()
+            {
+                let entry = &manager.entries[index];
+                let chosen = manager.top + offset == manager.selected;
+                let state = if entry.review {
+                    "REVIEW"
+                } else if entry.readonly {
+                    tr(locale, "READ ONLY", "CHỈ ĐỌC")
+                } else if entry.dirty {
+                    tr(locale, "UNSAVED", "CHƯA LƯU")
+                } else if entry.path.is_empty() {
+                    tr(locale, "NEW BUFFER", "THẺ TRỐNG")
+                } else {
+                    tr(locale, "SAVED", "ĐÃ LƯU")
+                };
+                let title = format!(
+                    "{} {:>3} {} {}",
+                    if entry.index == active { "●" } else { " " },
+                    entry.index + 1,
+                    if entry.dirty { "*" } else { " " },
+                    entry.title
+                );
+                let state_width = (Line::from(state).width() as u16 + 2).min(list.width / 3);
+                let title_width = list.width.saturating_sub(state_width);
+                let style = Style::default()
+                    .bg(if chosen { theme.raised } else { theme.panel })
+                    .fg(if chosen { theme.text } else { theme.muted });
+                let y = list.y + offset as u16;
+                text(
+                    frame,
+                    Rect::new(list.x, y, title_width, 1),
+                    Line::from(clipped(&title, title_width as usize)),
+                    style,
+                );
+                text(
+                    frame,
+                    Rect::new(list.x + title_width, y, state_width, 1),
+                    Line::from(clipped(state, state_width as usize)),
+                    style.fg(if entry.dirty {
+                        theme.warm
+                    } else {
+                        theme.secondary
+                    }),
+                );
+            }
+            if manager.filtered.is_empty() {
+                text(
+                    frame,
+                    list,
+                    Line::from(tr(locale, "No matching tabs", "Không có thẻ phù hợp")),
+                    fg(theme.muted),
+                );
+            }
+            if let Some(index) = manager.filtered.get(manager.selected) {
+                let entry = &manager.entries[*index];
+                let path = if entry.path.is_empty() {
+                    tr(
+                        locale,
+                        "Blank document · choose Save to create a file",
+                        "Thẻ trống · chọn Lưu để tạo file",
+                    )
+                } else {
+                    &entry.path
+                };
+                frame.render_widget(
+                    Paragraph::new(safe(path))
+                        .style(fg(theme.secondary))
+                        .wrap(Wrap { trim: false }),
+                    row(body, body.height.saturating_sub(6), 3),
+                );
+            }
+            let mut x = body.x + 2;
+            for (en, vi, action) in [
+                (" Switch ", " Chuyển ", "tabs-switch"),
+                (" Save ", " Lưu ", "tabs-save"),
+                (" Close ", " Đóng ", "tabs-close"),
+                (" + New ", " + Mới ", "tabs-new"),
+                (" Cancel ", " Hủy ", "cancel"),
+            ] {
+                let label = tr(locale, en, vi);
+                let width = Line::from(label).width() as u16;
+                if x + width > body.right() {
+                    break;
+                }
+                let rect = Rect::new(x, body.bottom().saturating_sub(2), width, 1);
+                button(frame, rect, label, theme, action == "tabs-switch");
+                hits.modal_actions.push((rect, action));
+                x += width + 2;
+            }
+            text(
+                frame,
+                row(body, body.height.saturating_sub(1), 1),
+                Line::from(tr(
+                    locale,
+                    "↑↓ Select · Enter Switch · ^S Save · ^W Close · ^N New · Esc Cancel",
+                    "↑↓ Chọn · Enter Chuyển · ^S Lưu · ^W Đóng · ^N Mới · Esc Hủy",
+                )),
+                fg(theme.muted),
+            );
+        }
         Some(Modal::Settings { selected }) => {
             let body = surface(
                 frame,

@@ -145,7 +145,7 @@ mod tests {
     #[test]
     fn new_dialogs_are_visible_and_safe_when_resized() {
         let mut app = App::new(vec![], false, Config::default());
-        for command in ["settings", "preview", "info", "open"] {
+        for command in ["settings", "preview", "info", "open", "tabs"] {
             app.command(command);
             let mut terminal = Terminal::new(TestBackend::new(110, 32)).unwrap();
             terminal.draw(|f| draw(f, &mut app)).unwrap();
@@ -160,6 +160,57 @@ mod tests {
     use crate::config::Config;
     use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
     use ratatui::{Terminal, backend::TestBackend};
+
+    #[test]
+    fn overflowing_tabs_keep_count_active_and_close_hit_regions_correct() {
+        use crossterm::event::{Event, KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
+        let mut app = App::new(vec![], false, Config::default());
+        for index in 0..25 {
+            app.tabs[app.active].document.path =
+                Some(format!("directory-{index}/same-long-name.md").into());
+            app.command("new");
+        }
+        let mut terminal = Terminal::new(TestBackend::new(110, 30)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        assert!(
+            terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|c| c.symbol())
+                .collect::<String>()
+                .contains("Tabs 26/26")
+        );
+        assert!(app.hits.tabs.iter().any(|(_, index)| *index == app.active));
+        assert!(app.hits.tabs.len() < app.tabs.len());
+        let active_id = app.document().id;
+        let (rect, index) = app
+            .hits
+            .tab_closes
+            .iter()
+            .find(|(_, i)| *i != app.active)
+            .copied()
+            .unwrap();
+        let closed_id = app.tabs[index].document.id;
+        app.handle(Event::Mouse(MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: rect.x,
+            row: rect.y,
+            modifiers: KeyModifiers::NONE,
+        }));
+        assert_eq!(app.document().id, active_id);
+        assert!(!app.tabs.iter().any(|t| t.document.id == closed_id));
+        for locale in [crate::i18n::Locale::Vi, crate::i18n::Locale::En] {
+            app.config.language = locale;
+            for (width, height) in [(30, 9), (50, 14), (110, 30)] {
+                terminal.backend_mut().resize(width, height);
+                terminal.autoresize().unwrap();
+                terminal.draw(|f| draw(f, &mut app)).unwrap();
+                assert!(app.hits.actions.iter().any(|(_, action)| *action == "tabs"));
+            }
+        }
+    }
 
     #[test]
     fn tabs_keep_neighbors_and_active_file_visible() {
