@@ -15,7 +15,29 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — ENV/config and universal UTF-8 source review
+## Latest checkpoint — Settings, file navigation and linked reader
+
+F8 now opens a language Settings dialog with explicit Apply/Cancel and
+asynchronous persistent preferences. Ctrl+O shows a filtered file/directory
+picker; F9 shows active-file metadata and background text statistics. F7 offers
+split review or a linked read-only review tab, reused per source and synchronized
+after edits, save and reload. Review tabs cannot mutate source/history; closing
+one preserves source edits, while closing the source also closes its reviews.
+
+The Markdown reader adds heading cards, a navigable contents sidebar, reading
+and task statistics, callouts, aligned tables, link references and numbered
+code cards. Syntax coloring distinguishes functions, types, constants,
+properties, attributes, escapes and operators. Source bytes are never formatted
+or executed. See UX_IMPROVEMENTS.md for behavior and verification evidence.
+
+Local validation: 80 Rust tests, required format/strict Clippy/release gates,
+native dialogs/edit/workspace/panic probes, Linux/macOS cross-Clippy and
+dependency audit pass. Two 10 MiB release PTY budget runs cover 374 interactions:
+max 58.551 ms, none >=100 ms; full background JSON review takes 419.093 /
+406.744 ms separately. Raw data and limits are in PERFORMANCE.md. Native
+Linux/macOS execution remains unverified. No GitHub CI.
+
+## Previous checkpoint — ENV/config and universal UTF-8 source review
 
 Added structured YAML (multiple documents/aliases), JSON5/JSONC, Jupyter
 nbformat 4 cells/saved text outputs, ENV, INI and Properties. Config names and

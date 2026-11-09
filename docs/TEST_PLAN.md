@@ -127,7 +127,8 @@ Run `python -X utf8 scripts/pty_responsiveness.py 10485760` after the release
 build. It fails when any measured interaction reaches 100 ms. It uses owned
 temporary files, fresh screen state changes, exact saved-byte checks and normal
 terminal cleanup, including 10 MiB ASCII/Unicode single lines, end movement,
-edits/history, F7 review, F8 localization, 10 MiB background JSON parsing, and
+edits/history, F7 split/review-tab selection, F8 Settings/localization, F9 details,
+10 MiB background JSON parsing, and
 tab/clipboard/prompt/search/folder/tree/quit workflows. Full JSON parse completion
 is separate from interactive feedback. Raw output is target/responsiveness.json.
 Run without concurrent compilation for comparable local measurements.
@@ -149,5 +150,20 @@ INI sections, Properties continuation/escaped separators, config XML/YAML/JSON5
 inference and unknown-dialect fallback, notebook Markdown/code/saved text,
 non-finite JSON5 values, YAML aliases/multiple documents, complex keys, disabled
 include/interpolation and malformed/deep data. Generic code and extensionless
-shebang files get native source-review checks. The current probe has 138
-samples per run; raw final data is under docs/responsiveness-expanded-run*.json.
+shebang files get native source-review checks. The previous expanded-format
+probe had 138 samples per run; its data remains under
+docs/responsiveness-expanded-run*.json. The Settings/reader probe has 187
+samples per run, with raw data under docs/responsiveness-ux-run*.json.
+
+Run `python -X utf8 scripts/pty_dialogs_reader.py` for saved-language restart
+(including a config that omits language), Settings cancellation, filtered file
+opening, details, split versus dedicated review, outline navigation, read-only
+save protection, live updates and a byte-exact source save. Preferences and files
+use owned temporary directories. Screenshots in target/previews show actual
+terminal output. Run `pty_smoke.py` and `pty_workspace.py` for native Unicode
+input, cleanup, toolbar/caret mouse clicks and folder/tree editing regression.
+
+Rust tests additionally cover Settings Apply/Cancel, queued preference writes,
+picker navigation/filtering/missing files, metadata versus unsaved buffer,
+linked review history isolation, reload invalidation from revision zero,
+Markdown features at narrow widths, semantic spans and modal resize safety.

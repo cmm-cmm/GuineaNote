@@ -154,6 +154,36 @@ impl Document {
     pub fn snapshot_buffer(&self) -> RopeyBuffer {
         self.buffer.clone()
     }
+    /// Read-only view of this document, sharing text/layout without copying or
+    /// retaining editable history. Its id links it back to the source tab.
+    pub fn review_snapshot(&self) -> Self {
+        Self {
+            id: self.id,
+            path: self.path.clone(),
+            readonly: true,
+            bom: self.bom,
+            fingerprint: self.fingerprint.clone(),
+            buffer: self.buffer.clone(),
+            content_state: self.content_state,
+            saved_state: self.saved_state,
+            next_content_state: self.next_content_state,
+            saved_bom: self.saved_bom,
+            selection: Selection::default(),
+            undo: Vec::new(),
+            redo: Vec::new(),
+            revision: self.revision,
+            preferred_column: None,
+            newline_policy: self.newline_policy,
+            layout_cache: self.layout_cache.clone(),
+        }
+    }
+    /// Reopened content keeps the tab identity but advances its view revision,
+    /// so cached previews cannot mistake a reload for the old saved buffer.
+    pub fn continue_identity(&mut self, previous: &Self) {
+        self.id = previous.id;
+        self.revision = previous.revision + 1;
+        *self.layout_cache.borrow_mut() = None;
+    }
     pub fn selection(&self) -> Selection {
         self.selection
     }

@@ -6,7 +6,6 @@ use crate::{
 };
 use guinea_core::{Document, TextBuffer};
 use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
-use pulldown_cmark::{CodeBlockKind, Event, Options, Parser, Tag, TagEnd};
 use ratatui::{
     style::{Modifier, Style},
     text::{Line, Span},
@@ -19,25 +18,17 @@ use std::{
 use unicode_segmentation::UnicodeSegmentation;
 
 mod data;
+mod markdown;
 mod value;
 
 const MAX_ROWS: usize = 100_000;
 
-#[derive(Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum ViewMode {
     #[default]
     Source,
     Split,
     Review,
-}
-impl ViewMode {
-    pub fn next(self) -> Self {
-        match self {
-            Self::Source => Self::Split,
-            Self::Split => Self::Review,
-            Self::Review => Self::Source,
-        }
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -50,10 +41,33 @@ struct Key {
     column: usize,
     json_lines: bool,
 }
+#[derive(Default)]
+pub struct OutlineEntry {
+    pub level: usize,
+    pub title: String,
+    pub row: usize,
+}
+#[derive(Default)]
+pub struct MarkdownStats {
+    pub words: usize,
+    pub headings: usize,
+    pub tasks: usize,
+    pub completed_tasks: usize,
+    pub code_blocks: usize,
+    pub tables: usize,
+    pub links: usize,
+}
+struct Content {
+    lines: Vec<Line<'static>>,
+    outline: Vec<OutlineEntry>,
+    stats: Option<MarkdownStats>,
+}
 struct Rendered {
     key: Key,
     lines: Vec<Line<'static>>,
     error: bool,
+    outline: Vec<OutlineEntry>,
+    stats: Option<MarkdownStats>,
 }
 
 #[derive(Default)]
@@ -62,6 +76,9 @@ pub struct Review {
     pub top: usize,
     pub width: usize,
     pub column: usize,
+    pub outline_visible: bool,
+    pub outline_focus: bool,
+    pub outline_selected: usize,
     desired: Option<(Key, Instant)>,
     pending: Option<Receiver<Rendered>>,
     cached: Option<Rendered>,
@@ -103,6 +120,18 @@ impl Review {
     pub fn error(&self) -> bool {
         self.cached.as_ref().is_some_and(|cache| cache.error)
     }
+    pub fn outline(&self) -> &[OutlineEntry] {
+        self.cached.as_ref().map_or(&[], |c| c.outline.as_slice())
+    }
+    pub fn stats(&self) -> Option<&MarkdownStats> {
+        self.cached.as_ref().and_then(|c| c.stats.as_ref())
+    }
+    pub fn jump_heading(&mut self) {
+        if let Some(entry) = self.outline().get(self.outline_selected) {
+            self.top = entry.row;
+        }
+        self.outline_focus = false;
+    }
     pub fn lines(&self) -> &[Line<'static>] {
         self.cached
             .as_ref()
@@ -140,6 +169,8 @@ impl Review {
                         key,
                         lines: vec![Line::from("Review worker failed; source retained")],
                         error: true,
+                        outline: Vec::new(),
+                        stats: None,
                     });
                     redraw = true;
                 }
@@ -170,7 +201,7 @@ impl Review {
             self.pending = Some(receiver);
             thread::spawn(move || {
                 let text = buffer.text();
-                let result = render(
+                let result = render_content(
                     &text,
                     key.language,
                     path.as_deref(),
@@ -179,17 +210,27 @@ impl Review {
                     locale,
                     key.column,
                 );
-                let (lines, error) = match result {
-                    Ok(lines) => (lines, false),
+                let (content, error) = match result {
+                    Ok(content) => (content, false),
                     Err(error) => (
-                        vec![Line::styled(
-                            safe(&error),
-                            Style::default().fg(Theme::new(basic).red),
-                        )],
+                        Content {
+                            lines: vec![Line::styled(
+                                safe(&error),
+                                Style::default().fg(Theme::new(basic).red),
+                            )],
+                            outline: vec![],
+                            stats: None,
+                        },
                         true,
                     ),
                 };
-                let _ = sender.send(Rendered { key, lines, error });
+                let _ = sender.send(Rendered {
+                    key,
+                    lines: content.lines,
+                    error,
+                    outline: content.outline,
+                    stats: content.stats,
+                });
             });
         }
         redraw
@@ -204,11 +245,15 @@ struct Writer {
     cell: usize,
     width: usize,
     locale: Locale,
+    outline: Vec<OutlineEntry>,
+    stats: Option<MarkdownStats>,
 }
 impl Writer {
     fn new(width: usize, locale: Locale) -> Self {
         Self {
             locale,
+            outline: vec![],
+            stats: None,
             lines: vec![],
             spans: vec![],
             cell: 0,
@@ -255,6 +300,14 @@ impl Writer {
                 self.spans.push(Span::styled(display, style));
             }
             self.cell += cells;
+        }
+    }
+    fn row(&mut self, line: Line<'static>) {
+        if !self.spans.is_empty() {
+            self.newline();
+        }
+        if !self.full() {
+            self.lines.push(line);
         }
     }
     fn finish(mut self) -> Vec<Line<'static>> {
@@ -305,7 +358,7 @@ fn code(writer: &mut Writer, text: &str, language: Language, theme: Theme) {
     }
 }
 
-pub(crate) fn render(
+fn render_content(
     text: &str,
     language: Language,
     path: Option<&std::path::Path>,
@@ -313,7 +366,7 @@ pub(crate) fn render(
     theme: Theme,
     locale: Locale,
     column: usize,
-) -> Result<Vec<Line<'static>>, String> {
+) -> Result<Content, String> {
     let mut writer = Writer::new(width, locale);
     let title = Style::default().fg(theme.mint).add_modifier(Modifier::BOLD);
     match language {
@@ -400,154 +453,37 @@ pub(crate) fn render(
             code(&mut writer, text, language, theme);
         }
     }
-    Ok(writer.finish())
+    let outline = if language == Language::Markdown {
+        std::mem::take(&mut writer.outline)
+    } else {
+        vec![]
+    };
+    let stats = if language == Language::Markdown {
+        writer.stats.take()
+    } else {
+        None
+    };
+    Ok(Content {
+        lines: writer.finish(),
+        outline,
+        stats,
+    })
 }
 
+#[cfg(test)]
+fn render(
+    text: &str,
+    language: Language,
+    path: Option<&std::path::Path>,
+    width: usize,
+    theme: Theme,
+    locale: Locale,
+    column: usize,
+) -> Result<Vec<Line<'static>>, String> {
+    render_content(text, language, path, width, theme, locale, column).map(|content| content.lines)
+}
 fn markdown(writer: &mut Writer, text: &str, theme: Theme) {
-    let normal = Style::default().fg(theme.text);
-    let mut style = normal;
-    let mut stack = Vec::new();
-    let mut lists: Vec<Option<u64>> = Vec::new();
-    let mut code_language = None;
-    let mut link = None;
-    for event in Parser::new_ext(
-        text,
-        Options::ENABLE_TABLES
-            | Options::ENABLE_TASKLISTS
-            | Options::ENABLE_STRIKETHROUGH
-            | Options::ENABLE_FOOTNOTES,
-    ) {
-        if writer.full() {
-            break;
-        }
-        match event {
-            Event::Start(tag) => {
-                stack.push(style);
-                match tag {
-                    Tag::Heading { level, .. } => {
-                        writer.blank();
-                        style = Style::default().fg(theme.mint).add_modifier(Modifier::BOLD);
-                        writer.push(
-                            &format!("{} ", "▌".repeat(if level as usize <= 2 { 2 } else { 1 })),
-                            style,
-                        );
-                    }
-                    Tag::Paragraph => {}
-                    Tag::Strong => style = style.add_modifier(Modifier::BOLD),
-                    Tag::Emphasis => style = style.add_modifier(Modifier::ITALIC),
-                    Tag::Strikethrough => style = style.add_modifier(Modifier::CROSSED_OUT),
-                    Tag::BlockQuote(_) => {
-                        writer.blank();
-                        writer.push("│ ", Style::default().fg(theme.purple));
-                        style = style.fg(theme.muted);
-                    }
-                    Tag::List(start) => {
-                        writer.blank();
-                        lists.push(start);
-                    }
-                    Tag::Item => {
-                        if !writer.spans.is_empty() {
-                            writer.newline();
-                        }
-                        let indent = "  ".repeat(lists.len().saturating_sub(1).min(20));
-                        let bullet = if let Some(Some(number)) = lists.last_mut() {
-                            let label = format!("{number}. ");
-                            *number += 1;
-                            label
-                        } else {
-                            "• ".into()
-                        };
-                        writer.push(
-                            &format!("{indent}{bullet}"),
-                            Style::default().fg(theme.blue),
-                        );
-                    }
-                    Tag::CodeBlock(kind) => {
-                        writer.blank();
-                        let alias = match kind {
-                            CodeBlockKind::Fenced(ref info) => {
-                                info.split_whitespace().next().unwrap_or("")
-                            }
-                            CodeBlockKind::Indented => "",
-                        };
-                        code_language = Some(Language::from_alias(alias));
-                        writer.push(
-                            &format!("┌─ {}\n", if alias.is_empty() { "code" } else { alias }),
-                            Style::default().fg(theme.blue),
-                        );
-                    }
-                    Tag::Link { dest_url, .. } => {
-                        link = Some(dest_url.to_string());
-                        style = style.fg(theme.blue).add_modifier(Modifier::UNDERLINED);
-                    }
-                    Tag::Image { .. } => writer.push("[image] ", Style::default().fg(theme.muted)),
-                    Tag::Table(_) => {
-                        writer.blank();
-                    }
-                    Tag::TableHead | Tag::TableRow => {
-                        if !writer.spans.is_empty() {
-                            writer.newline();
-                        }
-                    }
-                    Tag::TableCell => writer.push("│ ", Style::default().fg(theme.faint)),
-                    _ => {}
-                }
-            }
-            Event::End(tag) => {
-                match tag {
-                    TagEnd::Paragraph if lists.is_empty() => writer.blank(),
-                    TagEnd::Heading(_) | TagEnd::Item | TagEnd::TableHead | TagEnd::TableRow => {
-                        writer.newline()
-                    }
-                    TagEnd::List(_) => {
-                        lists.pop();
-                        writer.blank();
-                    }
-                    TagEnd::CodeBlock => {
-                        code_language = None;
-                        writer.push("└─\n", Style::default().fg(theme.blue));
-                        writer.blank();
-                    }
-                    TagEnd::Link => {
-                        if let Some(url) = link.take() {
-                            writer.push(&format!(" ({url})"), Style::default().fg(theme.muted));
-                        }
-                    }
-                    TagEnd::TableCell => writer.push("  ", normal),
-                    _ => {}
-                }
-                style = stack.pop().unwrap_or(normal);
-            }
-            Event::Text(text) => {
-                if let Some(language) = code_language {
-                    code(writer, &text, language, theme);
-                } else {
-                    writer.push(&text, style);
-                }
-            }
-            Event::Code(text) => {
-                writer.push(&text, Style::default().fg(theme.amber).bg(theme.raised))
-            }
-            Event::SoftBreak => writer.push(" ", style),
-            Event::HardBreak => writer.newline(),
-            Event::Rule => {
-                writer.blank();
-                writer.push(&"─".repeat(writer.width), Style::default().fg(theme.line));
-                writer.newline();
-            }
-            Event::TaskListMarker(checked) => writer.push(
-                if checked { "[x] " } else { "[ ] " },
-                Style::default().fg(theme.mint),
-            ),
-            Event::Html(html) | Event::InlineHtml(html) => {
-                writer.push(&html, Style::default().fg(theme.muted))
-            }
-            Event::FootnoteReference(label) => {
-                writer.push(&format!("[{label}]"), Style::default().fg(theme.purple))
-            }
-            _ => {}
-        }
-    }
+    markdown::render(writer, text, theme);
 }
 
 fn xml(writer: &mut Writer, text: &str, theme: Theme) -> Result<(), String> {
@@ -767,6 +703,48 @@ fn table(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn rich_markdown_has_navigable_outline_cards_stats_and_bounded_unicode_tables() {
+        let text = "# Title\n\n## Details\n\n- [x] done\n- [ ] todo\n\n> [!NOTE]\n> A useful note.\n\n```rust\nfn main() { let tên = \"Việt\"; }\n```\n\n| Name | Value |\n|---|---|\n| 界 | **bold** |\n\n[Read](https://example.com)\n";
+        for width in [24, 50, 100] {
+            let result = render_content(
+                text,
+                Language::Markdown,
+                None,
+                width,
+                Theme::new(false),
+                Locale::En,
+                0,
+            )
+            .unwrap();
+            let stats = result.stats.unwrap();
+            assert_eq!(
+                (
+                    stats.headings,
+                    stats.tasks,
+                    stats.completed_tasks,
+                    stats.code_blocks,
+                    stats.tables,
+                    stats.links
+                ),
+                (2, 2, 1, 1, 1, 1)
+            );
+            assert_eq!(result.outline[1].title, "Details");
+            assert!(result.outline[1].row < result.lines.len());
+            assert!(
+                result.lines.iter().all(|line| line.width() <= width),
+                "width {width}"
+            );
+            let output = result
+                .lines
+                .iter()
+                .flat_map(|l| l.spans.iter().map(|s| s.content.as_ref()))
+                .collect::<String>();
+            for expected in ["DOCUMENT", "NOTE", "LINK REFERENCES", "Name", "Việt"] {
+                assert!(output.contains(expected), "{expected}");
+            }
+        }
+    }
     #[test]
     fn stale_results_locale_and_resize_never_replace_source() {
         let mut d = Document::from_text("{\"old\": 1}");

@@ -28,6 +28,17 @@ impl Locale {
             "Untitled" => "Chưa đặt tên",
             "    A little more focused." => "    Tập trung từng ý tưởng.",
             "WORKSPACE  /  v0.1.0 " => "KHÔNG GIAN  /  v0.1.0 ",
+            " Settings F8 " => " Thiết lập F8 ",
+            " Info F9 " => " Chi tiết F9 ",
+            "Settings saved" => "Đã lưu thiết lập",
+            "Saving settings…" => "Đang lưu thiết lập…",
+            "Saving settings… Esc cancels exit" => "Đang lưu thiết lập… Esc hủy thoát",
+            "Settings applied for this session" => "Đã áp dụng thiết lập cho phiên này",
+            "Review tab is read-only; return to source to edit or save" => {
+                "Tab review chỉ đọc; về tab nguồn để chỉnh sửa hoặc lưu"
+            }
+            "Loading files…" => "Đang đọc danh sách file…",
+            "Opening path…" => "Đang mở đường dẫn…",
             " Open file  ^O " => " Mở file  ^O ",
             " Open folder  ^K " => " Mở thư mục  ^K ",
             " New  ^N " => " Tạo mới  ^N ",
@@ -205,6 +216,10 @@ impl Locale {
             );
         }
         for (prefix, vi) in [
+            (
+                "Settings apply to this session; save failed: ",
+                "Đã áp dụng cho phiên này; lưu thiết lập thất bại: ",
+            ),
             ("Opening ", "Đang mở "),
             ("Saving ", "Đang lưu "),
             ("Unknown command: ", "Lệnh không tồn tại: "),
@@ -225,7 +240,7 @@ impl Locale {
     }
 }
 
-pub const HELP_VI: &str = "GuineaNote — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H thay tất cả\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nF7 Nguồn / Chia đôi / Xem trước Markdown và dữ liệu\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nF8 đổi tiếng Việt / English\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review, source, split, language-vi, language-en\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · chưa phục hồi sau lỗi\nF1 / Esc đóng hướng dẫn";
+pub const HELP_VI: &str = "GuineaNote — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H thay tất cả\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · chưa phục hồi sau lỗi\nF1 / Esc đóng hướng dẫn";
 
 #[cfg(test)]
 mod tests {

@@ -14,6 +14,12 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::config::Config;
 use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
+use crate::{
+    file_info::FileInfo,
+    file_picker::{Action as PickerAction, FilePicker},
+    i18n::Locale,
+    preferences::Preferences,
+};
 
 pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language {
     let detected = guinea_syntax::Language::detect(document.path.as_deref());
@@ -50,12 +56,15 @@ pub struct HitRegions {
     pub editor: Rect,
     pub editor_text: Rect,
     pub review: Rect,
+    pub modal_actions: Vec<(Rect, &'static str)>,
+    pub outline: Rect,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nF7 source / split / review (Markdown and data)\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Vietnamese / English\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review, source, split, language-vi, language-en, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub document: Document,
+    pub review_source: Option<u64>,
     pub top: usize,
     pub left: usize,
     pub review: Review,
@@ -65,6 +74,7 @@ impl Tab {
     fn new(document: Document) -> Self {
         Self {
             document,
+            review_source: None,
             top: 0,
             left: 0,
             review: Review::default(),
@@ -109,6 +119,10 @@ pub enum Modal {
     Input { kind: InputKind, value: String },
     Confirm { action: Action, message: String },
     Help,
+    Settings { selected: Locale },
+    ReviewOptions { selected: usize },
+    FilePicker(Box<FilePicker>),
+    FileInfo(FileInfo),
 }
 
 #[derive(Debug, Clone)]
@@ -145,7 +159,9 @@ pub struct App {
     pub explorer_visible: bool,
     pub focus: Focus,
     pub hits: HitRegions,
+    pub preferences: Preferences,
     saving: bool,
+    quit_after_settings: bool,
     readonly: bool,
     clipboard: String,
     search: String,
@@ -197,8 +213,10 @@ impl App {
                 Focus::Editor
             },
             hits: HitRegions::default(),
+            preferences: Preferences::default(),
             readonly,
             saving: false,
+            quit_after_settings: false,
             clipboard: String::new(),
             search: String::new(),
             pending: None,
@@ -209,6 +227,9 @@ impl App {
 
     pub fn background_work(&self) -> bool {
         self.busy()
+            || self.preferences.busy()
+            || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
+            || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
             || self.explorer.scanning()
             || (self.explorer_visible && self.explorer.busy())
             || self.tabs[self.active]
@@ -326,12 +347,28 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
-        let tab = &mut self.tabs[self.active];
-        if tab.review.poll(
-            &tab.document,
-            self.config.basic_colors,
-            self.config.language,
-        ) {
+        if let Some(result) = self.preferences.poll() {
+            self.redraw = true;
+            self.message = match result {
+                Ok(()) => "Settings saved".into(),
+                Err(error) => format!("Settings apply to this session; save failed: {error}"),
+            };
+        }
+        let opened = match &mut self.modal {
+            Some(Modal::FilePicker(picker)) => {
+                let (changed, path) = picker.poll();
+                self.redraw |= changed;
+                path
+            }
+            Some(Modal::FileInfo(info)) => {
+                self.redraw |= info.poll();
+                None
+            }
+            _ => None,
+        };
+        if let Some(path) = opened {
+            self.modal = None;
+            self.start_open(path, None, self.config.large_file_warning_bytes);
             self.redraw = true;
         }
         if (self.explorer_visible || self.explorer.scanning()) && self.explorer.poll() {
@@ -366,6 +403,18 @@ impl App {
             self.start_open(path, None, self.config.large_file_warning_bytes);
             self.redraw = true;
         }
+        self.sync_review_tabs();
+        let tab = &mut self.tabs[self.active];
+        if tab.review.poll(
+            &tab.document,
+            self.config.basic_colors,
+            self.config.language,
+        ) {
+            self.redraw = true;
+        }
+        if self.quit_after_settings && !self.preferences.busy() {
+            self.exit = true;
+        }
     }
 
     fn finish_job(&mut self, completed: Completed) {
@@ -383,59 +432,79 @@ impl App {
             Err(error) => {
                 self.message = error.to_string();
             }
-            Ok(mut document) => match completed.job {
-                Job::Save { id } => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|t| t.document.id == id) {
-                        tab.document.accept_saved_snapshot(&document);
+            Ok(mut document) => {
+                match completed.job {
+                    Job::Save { id } => {
+                        if let Some(tab) = self
+                            .tabs
+                            .iter_mut()
+                            .find(|t| t.review_source.is_none() && t.document.id == id)
+                        {
+                            tab.document.accept_saved_snapshot(&document);
+                        }
+                        self.message = completed.warning.unwrap_or_else(|| "Saved".into());
                     }
-                    self.message = completed.warning.unwrap_or_else(|| "Saved".into());
+                    Job::Compute { id } => {
+                        if let Some(tab) = self
+                            .tabs
+                            .iter_mut()
+                            .find(|t| t.review_source.is_none() && t.document.id == id)
+                        {
+                            tab.document = document;
+                        }
+                        self.message = completed.warning.unwrap_or_else(|| "Saved".into());
+                    }
+                    Job::Open {
+                        replace: Some(id), ..
+                    } => {
+                        if let Some(tab) = self
+                            .tabs
+                            .iter_mut()
+                            .find(|t| t.review_source.is_none() && t.document.id == id)
+                        {
+                            document.continue_identity(&tab.document);
+                            *tab = Tab::new(document);
+                        }
+                        self.message = "Reloaded".into();
+                        self.focus = Focus::Editor;
+                    }
+                    Job::Open { .. } => {
+                        if let Some(idx) = self.tabs.iter().position(|t| {
+                            t.review_source.is_none() && t.document.path == document.path
+                        }) {
+                            self.active = idx;
+                            self.message = "Already open; switched to its tab".into();
+                        } else if self.tabs.len() == 1
+                            && self.document().path.is_none()
+                            && self.document().text().is_empty()
+                            && !self.document().is_dirty()
+                        {
+                            self.tabs[0] = Tab::new(document);
+                            self.message = "Opened".into();
+                        } else {
+                            self.tabs.push(Tab::new(document));
+                            self.active = self.tabs.len() - 1;
+                            self.message = "Opened".into();
+                        }
+                        self.focus = Focus::Editor;
+                        if let Some(path) = self.document().path.clone() {
+                            self.explorer.select_path(&path);
+                        }
+                    }
                 }
-                Job::Compute { id } => {
-                    if let Some(tab) = self.tabs.iter_mut().find(|t| t.document.id == id) {
-                        tab.document = document;
-                    }
-                    self.message = completed.warning.unwrap_or_else(|| "Saved".into());
-                }
-                Job::Open {
-                    replace: Some(id), ..
-                } => {
-                    document.id = id;
-                    if let Some(tab) = self.tabs.iter_mut().find(|t| t.document.id == id) {
-                        *tab = Tab::new(document);
-                    }
-                    self.message = "Reloaded".into();
-                    self.focus = Focus::Editor;
-                }
-                Job::Open { .. } => {
-                    if let Some(idx) = self
-                        .tabs
-                        .iter()
-                        .position(|t| t.document.path == document.path)
-                    {
-                        self.active = idx;
-                        self.message = "Already open; switched to its tab".into();
-                    } else if self.tabs.len() == 1
-                        && self.document().path.is_none()
-                        && self.document().text().is_empty()
-                        && !self.document().is_dirty()
-                    {
-                        self.tabs[0] = Tab::new(document);
-                        self.message = "Opened".into();
-                    } else {
-                        self.tabs.push(Tab::new(document));
-                        self.active = self.tabs.len() - 1;
-                        self.message = "Opened".into();
-                    }
-                    self.focus = Focus::Editor;
-                    if let Some(path) = self.document().path.clone() {
-                        self.explorer.select_path(&path);
-                    }
-                }
-            },
+            }
         }
     }
 
     pub fn handle(&mut self, event: Event) {
+        if self.quit_after_settings {
+            if matches!(event, Event::Key(key) if key.code == KeyCode::Esc) {
+                self.quit_after_settings = false;
+                self.message = "Cancelled".into();
+                self.redraw = true;
+            }
+            return;
+        }
         if matches!(event, Event::Resize(..)) {
             self.redraw = true;
             return;
@@ -453,6 +522,8 @@ impl App {
                 self.redraw = true;
                 if let Some(Modal::Input { value, .. }) = self.modal.as_mut() {
                     value.push_str(&text.replace(['\r', '\n'], ""));
+                } else if let Some(Modal::FilePicker(picker)) = self.modal.as_mut() {
+                    picker.paste(&text);
                 } else if self.modal.is_none()
                     && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode != ViewMode::Review
@@ -476,7 +547,9 @@ impl App {
                             | KeyCode::Home
                             | KeyCode::End
                             | KeyCode::Esc
-                            | KeyCode::F(1..=8)
+                            | KeyCode::Tab
+                            | KeyCode::Enter
+                            | KeyCode::F(1..=10)
                             | KeyCode::Char('j' | 'k' | ' ')
                     )
                 {
@@ -494,7 +567,13 @@ impl App {
                     self.editor_key(key);
                 }
             }
-            Event::Mouse(mouse) if self.modal.is_none() && self.config.mouse => self.mouse(mouse),
+            Event::Mouse(mouse) if self.config.mouse => {
+                if self.modal.is_none() {
+                    self.mouse(mouse);
+                } else {
+                    self.modal_mouse(mouse);
+                }
+            }
             _ => {}
         }
     }
@@ -502,6 +581,53 @@ impl App {
     fn modal_key(&mut self, key: KeyEvent) {
         let modal = self.modal.take().expect("modal exists");
         match modal {
+            Modal::Settings { mut selected } => match key.code {
+                KeyCode::Esc | KeyCode::F(8) => self.message = "Cancelled".into(),
+                KeyCode::Left | KeyCode::Up | KeyCode::Right | KeyCode::Down | KeyCode::Tab => {
+                    selected = selected.toggle();
+                    self.modal = Some(Modal::Settings { selected });
+                }
+                KeyCode::Char('v' | 'V') => {
+                    self.modal = Some(Modal::Settings {
+                        selected: Locale::Vi,
+                    })
+                }
+                KeyCode::Char('e' | 'E') => {
+                    self.modal = Some(Modal::Settings {
+                        selected: Locale::En,
+                    })
+                }
+                KeyCode::Enter | KeyCode::Char(' ') => self.apply_settings(selected),
+                _ => self.modal = Some(Modal::Settings { selected }),
+            },
+            Modal::ReviewOptions { mut selected } => match key.code {
+                KeyCode::Esc | KeyCode::F(7) => self.message = "Cancelled".into(),
+                KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::Tab => {
+                    selected = 1 - selected;
+                    self.modal = Some(Modal::ReviewOptions { selected });
+                }
+                KeyCode::Char('1') => self.command("split"),
+                KeyCode::Char('2') => self.command("review-tab"),
+                KeyCode::Enter => self.command(if selected == 0 { "split" } else { "review-tab" }),
+                _ => self.modal = Some(Modal::ReviewOptions { selected }),
+            },
+            Modal::FilePicker(mut picker) => {
+                let action = picker.key(key);
+                self.picker_action(action, picker);
+            }
+            Modal::FileInfo(mut info) => {
+                match key.code {
+                    KeyCode::Esc | KeyCode::F(9) | KeyCode::Enter => return,
+                    KeyCode::Up => info.scroll(-1),
+                    KeyCode::Down => info.scroll(1),
+                    KeyCode::PageUp => info.scroll(-(info.height as isize)),
+                    KeyCode::PageDown => info.scroll(info.height as isize),
+                    KeyCode::Home => info.top = 0,
+                    KeyCode::End => info.scroll(isize::MAX),
+                    _ => {}
+                }
+                self.modal = Some(Modal::FileInfo(info));
+            }
             Modal::Help => {
                 if !matches!(key.code, KeyCode::Esc | KeyCode::F(1)) {
                     self.modal = Some(Modal::Help);
@@ -582,8 +708,18 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
+        if key.code == KeyCode::F(10) {
+            let review = &mut self.tabs[self.active].review;
+            review.outline_visible = !review.outline_visible;
+            review.outline_focus = false;
+            return;
+        }
+        if key.code == KeyCode::F(9) {
+            self.command("info");
+            return;
+        }
         if key.code == KeyCode::F(8) {
-            self.command("language");
+            self.command("settings");
             return;
         }
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
@@ -654,6 +790,36 @@ impl App {
                 guinea_syntax::Language::Csv | guinea_syntax::Language::Tsv
             );
             let review = &mut self.tabs[self.active].review;
+            if self.hits.outline.width == 0 {
+                review.outline_focus = false;
+            }
+            if key.code == KeyCode::Tab
+                && self.hits.outline.width > 0
+                && review.outline_visible
+                && !review.outline().is_empty()
+            {
+                review.outline_focus = !review.outline_focus;
+                return;
+            }
+            if review.outline_focus {
+                match key.code {
+                    KeyCode::Up => {
+                        review.outline_selected = review.outline_selected.saturating_sub(1)
+                    }
+                    KeyCode::Down => {
+                        review.outline_selected = (review.outline_selected + 1)
+                            .min(review.outline().len().saturating_sub(1))
+                    }
+                    KeyCode::Home => review.outline_selected = 0,
+                    KeyCode::End => {
+                        review.outline_selected = review.outline().len().saturating_sub(1)
+                    }
+                    KeyCode::Enter => review.jump_heading(),
+                    KeyCode::Esc => review.outline_focus = false,
+                    _ => {}
+                }
+                return;
+            }
             match key.code {
                 KeyCode::Left if table => review.column = review.column.saturating_sub(1),
                 KeyCode::Right if table => review.column = review.column.saturating_add(1),
@@ -664,7 +830,7 @@ impl App {
                 KeyCode::PageDown | KeyCode::Char(' ') => review.scroll(height as isize, height),
                 KeyCode::Home => review.top = 0,
                 KeyCode::End => review.scroll(isize::MAX, height),
-                KeyCode::Esc => review.mode = ViewMode::Source,
+                KeyCode::Esc => self.command("source"),
                 KeyCode::F(1) => self.command("help"),
                 KeyCode::F(2) => self.prompt(InputKind::Command),
                 KeyCode::F(3) => self.command("find-next"),
@@ -764,6 +930,21 @@ impl App {
 
     fn mouse(&mut self, mouse: MouseEvent) {
         let position = (mouse.column, mouse.row).into();
+        if self.hits.outline.contains(position) {
+            let rect = self.hits.outline;
+            let review = &mut self.tabs[self.active].review;
+            if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
+                let top = review
+                    .outline_selected
+                    .saturating_sub(rect.height as usize / 2)
+                    .min(review.outline().len().saturating_sub(rect.height as usize));
+                review.outline_selected = (top + mouse.row.saturating_sub(rect.y) as usize)
+                    .min(review.outline().len().saturating_sub(1));
+                review.jump_heading();
+                self.redraw = true;
+            }
+            return;
+        }
         if self.hits.review.contains(position) {
             let height = self.page_height;
             match mouse.kind {
@@ -812,6 +993,84 @@ impl App {
         }
     }
 
+    fn modal_mouse(&mut self, mouse: MouseEvent) {
+        self.redraw = true;
+        if matches!(&self.modal, Some(Modal::FilePicker(_))) {
+            let Some(Modal::FilePicker(mut picker)) = self.modal.take() else {
+                unreachable!()
+            };
+            let point = (mouse.column, mouse.row).into();
+            let mut action = PickerAction::Keep;
+            match mouse.kind {
+                MouseEventKind::ScrollUp => picker.move_by(-3),
+                MouseEventKind::ScrollDown => picker.move_by(3),
+                MouseEventKind::Down(MouseButton::Left) if picker.hits.list.contains(point) => {
+                    picker.selected = (picker.top
+                        + mouse.row.saturating_sub(picker.hits.list.y) as usize)
+                        .min(picker.filtered.len().saturating_sub(1))
+                }
+                MouseEventKind::Down(MouseButton::Left) if picker.hits.parent.contains(point) => {
+                    picker.parent()
+                }
+                MouseEventKind::Down(MouseButton::Left) if picker.hits.open.contains(point) => {
+                    action = picker.activate()
+                }
+                MouseEventKind::Down(MouseButton::Left) if picker.hits.cancel.contains(point) => {
+                    action = PickerAction::Cancel
+                }
+                _ => {}
+            }
+            self.picker_action(action, picker);
+            return;
+        }
+        if let Some(Modal::FileInfo(info)) = &mut self.modal {
+            match mouse.kind {
+                MouseEventKind::ScrollDown => info.scroll(3),
+                MouseEventKind::ScrollUp => info.scroll(-3),
+                _ => {}
+            }
+        }
+        if mouse.kind == MouseEventKind::Down(MouseButton::Left)
+            && let Some(action) = self
+                .hits
+                .modal_actions
+                .iter()
+                .find(|(r, _)| r.contains((mouse.column, mouse.row).into()))
+                .map(|(_, a)| *a)
+        {
+            match action {
+                "cancel" => {
+                    self.modal = None;
+                    self.message = "Cancelled".into();
+                }
+                "settings-vi" => {
+                    self.modal = Some(Modal::Settings {
+                        selected: Locale::Vi,
+                    })
+                }
+                "settings-en" => {
+                    self.modal = Some(Modal::Settings {
+                        selected: Locale::En,
+                    })
+                }
+                "settings-apply" => {
+                    if let Some(Modal::Settings { selected }) = self.modal.take() {
+                        self.apply_settings(selected);
+                    }
+                }
+                "review-split" => {
+                    self.modal = None;
+                    self.command("split");
+                }
+                "review-tab" => {
+                    self.modal = None;
+                    self.command("review-tab");
+                }
+                _ => {}
+            }
+        }
+    }
+
     fn place_cursor(&mut self, column: u16, row: u16) {
         use guinea_core::coordinates::display_grapheme;
         let rect = self.hits.editor_text;
@@ -847,7 +1106,7 @@ impl App {
 
     fn confirm(&mut self, action: Action) {
         match action {
-            Action::Quit => self.exit = true,
+            Action::Quit => self.request_quit(),
             Action::Close => self.close(),
             Action::Reload => {
                 if let Some(path) = self.document().path.clone() {
@@ -862,8 +1121,23 @@ impl App {
         }
     }
 
+    fn request_quit(&mut self) {
+        if self.preferences.busy() {
+            self.quit_after_settings = true;
+            self.message = "Saving settings… Esc cancels exit".into();
+        } else {
+            self.exit = true;
+        }
+    }
     fn close(&mut self) {
+        let source = self.tabs[self.active]
+            .review_source
+            .is_none()
+            .then_some(self.document().id);
         self.tabs.remove(self.active);
+        if let Some(id) = source {
+            self.tabs.retain(|tab| tab.review_source != Some(id));
+        }
         self.active = self.active.min(self.tabs.len().saturating_sub(1));
         if self.tabs.is_empty() {
             let mut document = Document::default();
@@ -872,7 +1146,98 @@ impl App {
         }
     }
 
+    fn sync_review_tabs(&mut self) {
+        for index in 0..self.tabs.len() {
+            let Some(id) = self.tabs[index].review_source else {
+                continue;
+            };
+            let source = self
+                .tabs
+                .iter()
+                .find(|tab| tab.review_source.is_none() && tab.document.id == id);
+            if let Some(source) = source {
+                let old = &self.tabs[index].document;
+                if old.revision() != source.document.revision()
+                    || old.path != source.document.path
+                    || old.is_dirty() != source.document.is_dirty()
+                    || old.bom != source.document.bom
+                {
+                    self.tabs[index].document = source.document.review_snapshot();
+                    self.redraw = true;
+                }
+            }
+        }
+    }
+    fn source_tab(&mut self) {
+        if let Some(id) = self.tabs[self.active].review_source
+            && let Some(index) = self
+                .tabs
+                .iter()
+                .position(|t| t.review_source.is_none() && t.document.id == id)
+        {
+            self.active = index;
+        }
+        self.focus = Focus::Editor;
+    }
+    fn open_review_tab(&mut self) {
+        self.source_tab();
+        let id = self.document().id;
+        if let Some(index) = self
+            .tabs
+            .iter()
+            .position(|tab| tab.review_source == Some(id))
+        {
+            self.active = index;
+        } else {
+            let mut tab = Tab::new(self.document().review_snapshot());
+            tab.review_source = Some(id);
+            tab.review.outline_visible = true;
+            tab.review.mode = ViewMode::Review;
+            self.tabs.push(tab);
+            self.active = self.tabs.len() - 1;
+        }
+        self.focus = Focus::Editor;
+    }
+    fn apply_settings(&mut self, selected: Locale) {
+        self.config.language = selected;
+        self.preferences.request(selected);
+        self.message = if self.preferences.path.is_some() {
+            "Saving settings…"
+        } else {
+            "Settings applied for this session"
+        }
+        .into();
+    }
+    fn picker_action(&mut self, action: PickerAction, picker: Box<FilePicker>) {
+        match action {
+            PickerAction::Keep => self.modal = Some(Modal::FilePicker(picker)),
+            PickerAction::Cancel => self.message = "Cancelled".into(),
+            PickerAction::Open(path) => {
+                self.start_open(path, None, self.config.large_file_warning_bytes)
+            }
+        }
+    }
+
     pub fn command(&mut self, command: &str) {
+        if self.tabs[self.active].review_source.is_some()
+            && matches!(
+                command,
+                "save"
+                    | "save-as"
+                    | "reload"
+                    | "find"
+                    | "find-next"
+                    | "replace"
+                    | "undo"
+                    | "redo"
+                    | "cut"
+                    | "paste"
+            )
+        {
+            self.message = "Review tab is read-only; return to source to edit or save".into();
+            self.redraw = true;
+            return;
+        }
         if self.busy()
             && matches!(
                 command,
@@ -895,12 +1260,12 @@ impl App {
             "language" | "language-vi" | "language-en" => {
                 self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
             }
-            "preview" | "review" | "source" | "split" => {
-                    let review = &mut self.tabs[self.active].review;
-                    review.mode = match command { "source" => ViewMode::Source, "split" => ViewMode::Split, "review" => ViewMode::Review, _ => review.mode.next() };
-                    self.focus = Focus::Editor;
-                    self.message = "F7 Source / Split / Review · review never changes the source".into();
-            }
+            "settings" => self.modal = Some(Modal::Settings { selected: self.config.language }),
+            "info" | "file-info" => self.modal = Some(Modal::FileInfo(FileInfo::new(self.document(), self.config.language))),
+            "preview" => self.modal = Some(Modal::ReviewOptions { selected: 0 }),
+            "review" | "review-tab" => self.open_review_tab(),
+            "source" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Source; },
+            "split" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Split; self.focus = Focus::Editor; },
             "new" => {
                 let mut document = Document::default(); document.readonly = self.readonly;
                 self.tabs.push(Tab::new(document)); self.active = self.tabs.len() - 1;
@@ -910,15 +1275,19 @@ impl App {
             "explorer" => { self.explorer_visible = !self.explorer_visible; self.focus = if self.explorer_visible { Focus::Explorer } else { Focus::Editor }; }
             "focus" => { self.explorer_visible = true; self.focus = if self.focus == Focus::Editor { Focus::Explorer } else { Focus::Editor }; }
             "refresh" => self.explorer.refresh(),
-            "open" => self.prompt(InputKind::Open),
+            "open" => {
+                let root = self.document().path.as_ref().and_then(|p| p.parent()).filter(|p| !p.as_os_str().is_empty()).map(PathBuf::from).unwrap_or_else(|| self.explorer.root.clone());
+                self.modal = Some(Modal::FilePicker(Box::new(FilePicker::new(root))));
+            }
+            "open-path" => self.prompt(InputKind::Open),
             "save-as" => self.prompt(InputKind::SaveAs),
             "save" => {
                 if let Some(path) = self.document().path.clone() { self.start_save(path); } else { self.prompt(InputKind::SaveAs); }
             }
-            "close" if self.document().is_dirty() => self.modal = Some(Modal::Confirm { action: Action::Close, message: "Discard unsaved changes in this tab? Y discard / N cancel (Ctrl+S saves after cancel)".into() }),
+            "close" if self.tabs[self.active].review_source.is_none() && self.document().is_dirty() => self.modal = Some(Modal::Confirm { action: Action::Close, message: "Discard unsaved changes in this tab? Y discard / N cancel (Ctrl+S saves after cancel)".into() }),
             "close" => self.close(),
-            "quit" if self.tabs.iter().any(|t| t.document.is_dirty()) => self.modal = Some(Modal::Confirm { action: Action::Quit, message: "Discard ALL unsaved tabs and quit? Y discard / N cancel (save tabs after cancel)".into() }),
-            "quit" => self.exit = true,
+            "quit" if self.tabs.iter().any(|t| t.review_source.is_none() && t.document.is_dirty()) => self.modal = Some(Modal::Confirm { action: Action::Quit, message: "Discard ALL unsaved tabs and quit? Y discard / N cancel (save tabs after cancel)".into() }),
+            "quit" => self.request_quit(),
             "reload" if self.document().path.is_some() => self.modal = Some(Modal::Confirm { action: Action::Reload, message: "Reload from disk and discard this tab's edits/history? Y reload / N cancel".into() }),
             "reload" => self.message = "Untitled buffer has no file to reload".into(),
             "next" => { self.active = (self.active + 1) % self.tabs.len(); self.focus = Focus::Editor; }
@@ -947,6 +1316,101 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn f8_opens_settings_cancel_does_not_change_language_and_apply_is_explicit() {
+        let mut a = app();
+        let initial = a.config.language;
+        a.handle(key(KeyCode::F(8)));
+        assert!(matches!(a.modal, Some(Modal::Settings { .. })));
+        a.handle(key(KeyCode::Right));
+        assert_eq!(a.config.language, initial);
+        a.handle(key(KeyCode::Esc));
+        assert_eq!(a.config.language, initial);
+        a.handle(key(KeyCode::F(8)));
+        a.handle(key(KeyCode::Char('v')));
+        a.handle(key(KeyCode::Enter));
+        assert_eq!(a.config.language, Locale::Vi);
+        assert!(a.modal.is_none());
+    }
+
+    #[test]
+    fn review_tab_tracks_source_and_cannot_replace_editable_history() {
+        let mut a = app();
+        a.document_mut().path = Some("note.md".into());
+        a.handle(Event::Paste("# Source".into()));
+        a.command("review-tab");
+        assert_eq!(a.tabs.len(), 2);
+        assert_eq!(a.tabs[a.active].review_source, Some(a.tabs[0].document.id));
+        let original = a.tabs[0].document.text();
+        for cmd in [
+            "save",
+            "find-next",
+            "replace",
+            "undo",
+            "redo",
+            "paste",
+            "cut",
+            "reload",
+        ] {
+            a.command(cmd);
+            assert!(!a.busy());
+        }
+        a.handle(Event::Paste("never edit".into()));
+        assert_eq!(a.tabs[0].document.text(), original);
+        a.command("source");
+        a.handle(Event::Paste(" updated".into()));
+        a.poll_jobs();
+        assert_eq!(a.tabs[1].document.text(), a.tabs[0].document.text());
+        a.command("review-tab");
+        assert_eq!(a.tabs.len(), 2);
+        a.command("close");
+        assert_eq!(a.tabs.len(), 1);
+        assert!(a.document().is_dirty());
+        a.command("undo");
+        assert_eq!(a.document().text(), original);
+    }
+
+    #[test]
+    fn review_chooser_split_and_dirty_source_close_keep_document_safe() {
+        let mut a = app();
+        a.handle(Event::Paste("source".into()));
+        a.handle(key(KeyCode::F(7)));
+        assert!(matches!(a.modal, Some(Modal::ReviewOptions { .. })));
+        a.handle(key(KeyCode::Char('1')));
+        assert_eq!(a.tabs[a.active].review.mode, ViewMode::Split);
+        a.handle(key(KeyCode::F(7)));
+        a.handle(key(KeyCode::Char('2')));
+        assert_eq!(a.tabs.len(), 2);
+        a.command("source");
+        a.command("close");
+        assert!(matches!(a.modal, Some(Modal::Confirm { .. })));
+        a.handle(key(KeyCode::Char('n')));
+        assert_eq!(a.tabs.len(), 2);
+        a.command("close");
+        a.handle(key(KeyCode::Char('y')));
+        assert_eq!(a.tabs.len(), 1);
+        assert!(a.tabs[0].review_source.is_none());
+        assert_eq!(a.document().text(), "");
+    }
+
+    #[test]
+    fn reload_advances_preview_revision_even_for_saved_unedited_source() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("note.md");
+        std::fs::write(&path, "# Original").unwrap();
+        let mut a = App::new(vec![path.clone()], false, Config::default());
+        drain_jobs(&mut a);
+        a.command("review-tab");
+        let old = a.document().revision();
+        a.command("source");
+        std::fs::write(&path, "# Changed").unwrap();
+        a.command("reload");
+        a.handle(key(KeyCode::Char('y')));
+        drain_jobs(&mut a);
+        assert!(a.document().revision() > old);
+        assert_eq!(a.tabs[1].document.text(), "# Changed");
+    }
 
     fn key(code: KeyCode) -> Event {
         Event::Key(KeyEvent::new(code, KeyModifiers::NONE))

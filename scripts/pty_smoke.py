@@ -49,9 +49,11 @@ def probe_child(arguments):
 
 
 class Session:
-    def __init__(self, arguments, colors=False):
+    def __init__(self, arguments, colors=False, preferences_path=None):
         command = [sys.executable, str(Path(__file__).resolve()), "--probe-child", *arguments]
+        self.preference_directory = tempfile.TemporaryDirectory(prefix="guineanote-preferences-")
         environment = dict(os.environ)
+        environment["GUINEANOTE_PREFERENCES"] = str(preferences_path or (Path(self.preference_directory.name) / "preferences.toml"))
         if colors:
             environment.pop("NO_COLOR", None)
             environment["TERM"] = "xterm-256color"
@@ -189,6 +191,7 @@ class Session:
                 self.process.terminate()
                 self.process.wait(timeout=5)
             os.close(self.fd)
+        self.preference_directory.cleanup()
 
 
 def run(binary, panic):

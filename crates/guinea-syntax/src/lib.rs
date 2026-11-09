@@ -256,6 +256,14 @@ pub enum TokenKind {
     Comment,
     Heading,
     Key,
+    Function,
+    Type,
+    Constant,
+    Property,
+    Operator,
+    Punctuation,
+    Attribute,
+    Escape,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -283,6 +291,27 @@ pub trait SyntaxProvider {
 }
 
 pub struct BasicSyntax;
+
+fn slash_comment_language(language: Language) -> bool {
+    matches!(
+        language,
+        Language::Rust
+            | Language::C
+            | Language::Cpp
+            | Language::CSharp
+            | Language::Java
+            | Language::Kotlin
+            | Language::Swift
+            | Language::JavaScript
+            | Language::TypeScript
+            | Language::Go
+            | Language::Php
+            | Language::Css
+            | Language::Json5
+            | Language::Generic
+            | Language::Other(_)
+    )
+}
 
 impl SyntaxProvider for BasicSyntax {
     fn highlight_line(&self, language: Language, line: &str, revision: u64) -> Highlights {
@@ -418,6 +447,57 @@ impl SyntaxProvider for BasicSyntax {
                 });
                 break;
             }
+            if slash_comment_language(language)
+                && chars[idx] == '/'
+                && chars.get(idx + 1) == Some(&'*')
+            {
+                idx += 2;
+                while idx < chars.len() && !(chars[idx - 1] == '*' && chars[idx] == '/') {
+                    idx += 1;
+                }
+                if idx < chars.len() {
+                    idx += 1;
+                }
+                result.spans.push(HighlightSpan {
+                    chars: start..idx,
+                    kind: TokenKind::Comment,
+                });
+                continue;
+            }
+            if chars[idx] == '@'
+                || (matches!(language, Language::Rust)
+                    && chars[idx] == '#'
+                    && chars.get(idx + 1) == Some(&'['))
+            {
+                idx += 1;
+                while idx < chars.len()
+                    && (chars[idx].is_alphanumeric() || matches!(chars[idx], '_' | '.' | '[' | ']'))
+                {
+                    idx += 1;
+                }
+                result.spans.push(HighlightSpan {
+                    chars: start..idx,
+                    kind: TokenKind::Attribute,
+                });
+                continue;
+            }
+            if language == Language::Rust
+                && chars[idx] == '\''
+                && chars
+                    .get(idx + 1)
+                    .is_some_and(|c| c.is_alphabetic() || *c == '_')
+                && chars.get(idx + 2) != Some(&'\'')
+            {
+                idx += 2;
+                while idx < chars.len() && (chars[idx].is_alphanumeric() || chars[idx] == '_') {
+                    idx += 1;
+                }
+                result.spans.push(HighlightSpan {
+                    chars: start..idx,
+                    kind: TokenKind::Attribute,
+                });
+                continue;
+            }
             let kind = if chars[idx] == '"' || chars[idx] == '\'' || chars[idx] == '`' {
                 let quote = chars[idx];
                 idx += 1;
@@ -446,11 +526,46 @@ impl SyntaxProvider for BasicSyntax {
                     .iter()
                     .find(|c| !c.is_whitespace())
                     .is_some_and(|c| matches!(c, ':' | '='));
-                Some(if key {
-                    TokenKind::Key
+                if key {
+                    Some(TokenKind::Key)
                 } else {
-                    TokenKind::String
-                })
+                    let mut part = start;
+                    let mut scan = start + 1;
+                    while scan < idx {
+                        if chars[scan] == '\\' {
+                            if part < scan {
+                                result.spans.push(HighlightSpan {
+                                    chars: part..scan,
+                                    kind: TokenKind::String,
+                                });
+                            }
+                            let mut end = (scan + 2).min(idx);
+                            if chars.get(scan + 1) == Some(&'u')
+                                && chars.get(scan + 2) == Some(&'{')
+                            {
+                                while end < idx && chars[end] != '}' {
+                                    end += 1;
+                                }
+                                end = (end + 1).min(idx);
+                            }
+                            result.spans.push(HighlightSpan {
+                                chars: scan..end,
+                                kind: TokenKind::Escape,
+                            });
+                            part = end;
+                            scan = end;
+                        } else {
+                            scan += 1;
+                        }
+                    }
+                    if part < idx {
+                        result.spans.push(HighlightSpan {
+                            chars: part..idx,
+                            kind: TokenKind::String,
+                        });
+                    }
+                    continue;
+                }
             } else if chars[idx].is_ascii_digit() {
                 idx += 1;
                 while idx < chars.len()
@@ -465,7 +580,7 @@ impl SyntaxProvider for BasicSyntax {
                     idx += 1;
                 }
                 let word: String = chars[start..idx].iter().collect();
-                keywords
+                let keyword = keywords
                     .split_whitespace()
                     .any(|keyword| {
                         if matches!(
@@ -499,7 +614,25 @@ impl SyntaxProvider for BasicSyntax {
                             .find(|c| !c.is_whitespace())
                             .is_some_and(|c| matches!(c, ':' | '=' | '>')))
                         .then_some(TokenKind::Key)
-                    })
+                    });
+                let next = chars[idx..].iter().copied().find(|c| !c.is_whitespace());
+                keyword.or_else(|| {
+                    if next == Some('(') || (language == Language::Rust && next == Some('!')) {
+                        Some(TokenKind::Function)
+                    } else if word.chars().any(|c| c.is_alphabetic())
+                        && word
+                            .chars()
+                            .all(|c| c.is_uppercase() || c.is_ascii_digit() || c == '_')
+                    {
+                        Some(TokenKind::Constant)
+                    } else if word.chars().next().is_some_and(char::is_uppercase) {
+                        Some(TokenKind::Type)
+                    } else if start > 0 && matches!(chars[start - 1], '.' | '$') {
+                        Some(TokenKind::Property)
+                    } else {
+                        None
+                    }
+                })
             } else {
                 idx += 1;
                 (matches!(
@@ -507,6 +640,15 @@ impl SyntaxProvider for BasicSyntax {
                     Language::Csv | Language::Tsv | Language::Xml | Language::Html | Language::Css
                 ) && matches!(chars[start], ',' | '\t' | '<' | '>' | '{' | '}' | ':' | ';'))
                 .then_some(TokenKind::Key)
+                .or_else(|| {
+                    if "(){}[],;:.".contains(chars[start]) {
+                        Some(TokenKind::Punctuation)
+                    } else if "+-*/%=!<>|&^~?:".contains(chars[start]) {
+                        Some(TokenKind::Operator)
+                    } else {
+                        None
+                    }
+                })
             };
             if let Some(kind) = kind {
                 result.spans.push(HighlightSpan {
@@ -522,6 +664,42 @@ impl SyntaxProvider for BasicSyntax {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn semantic_tokens_escape_lifetimes_macros_and_block_comments_are_ordered() {
+        let text = "#[derive(Debug)] fn main<'a>() { let thing: Widget = build(); println!(\"hi\\n\"); /* block */ MAX_VALUE + thing.field; }";
+        let result = BasicSyntax.highlight_line(Language::Rust, text, 3);
+        for kind in [
+            TokenKind::Attribute,
+            TokenKind::Function,
+            TokenKind::Type,
+            TokenKind::Escape,
+            TokenKind::Constant,
+            TokenKind::Property,
+            TokenKind::Operator,
+            TokenKind::Punctuation,
+            TokenKind::Comment,
+        ] {
+            assert!(result.spans.iter().any(|s| s.kind == kind), "{kind:?}");
+        }
+        assert!(
+            result
+                .spans
+                .windows(2)
+                .all(|s| s[0].chars.end <= s[1].chars.start)
+        );
+        assert!(
+            result
+                .spans
+                .iter()
+                .filter(|s| s.kind == TokenKind::String)
+                .all(|s| !text
+                    .chars()
+                    .skip(s.chars.start)
+                    .take(s.chars.len())
+                    .collect::<String>()
+                    .contains("block"))
+        );
+    }
 
     #[test]
     fn programming_and_data_aliases_and_special_names() {
@@ -613,8 +791,16 @@ mod tests {
                     kind: TokenKind::Keyword
                 },
                 HighlightSpan {
+                    chars: 8..9,
+                    kind: TokenKind::Operator
+                },
+                HighlightSpan {
                     chars: 10..19,
                     kind: TokenKind::String
+                },
+                HighlightSpan {
+                    chars: 19..20,
+                    kind: TokenKind::Punctuation
                 },
                 HighlightSpan {
                     chars: 21..31,

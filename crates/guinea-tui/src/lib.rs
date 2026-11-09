@@ -1,8 +1,12 @@
 mod app;
 mod config;
+mod dialogs;
 mod explorer;
+mod file_info;
+mod file_picker;
 mod i18n;
 mod input;
+mod preferences;
 mod render;
 mod review;
 mod theme;
@@ -77,6 +81,7 @@ pub fn run(
     }
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
     let mut app = app::App::new(files, readonly, config);
+    app.preferences.path = preferences::path();
     let mut input = input::Input::new();
     while !app.exit {
         app.poll_jobs();

@@ -25,7 +25,7 @@ fn bold(color: ratatui::style::Color) -> Style {
     text_style(color).add_modifier(Modifier::BOLD)
 }
 
-fn clipped(text: &str, width: usize) -> String {
+pub(crate) fn clipped(text: &str, width: usize) -> String {
     let safe = safe(text);
     if Line::from(safe.as_str()).width() <= width {
         return safe;
@@ -47,7 +47,7 @@ fn clipped(text: &str, width: usize) -> String {
     out
 }
 
-fn input_tail(text: &str, width: usize) -> String {
+pub(crate) fn input_tail(text: &str, width: usize) -> String {
     let safe = safe(text);
     if Line::from(safe.as_str()).width() <= width {
         return safe;
@@ -64,7 +64,7 @@ fn input_tail(text: &str, width: usize) -> String {
     format!("…{}", &safe[start..])
 }
 
-fn panel(title: &str, theme: Theme, focused: bool) -> Block<'static> {
+pub(crate) fn panel(title: &str, theme: Theme, focused: bool) -> Block<'static> {
     Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
@@ -109,14 +109,8 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         (" New  ^N ", "new"),
         (" Save  ^S ", "save"),
         (" Review  F7 ", "preview"),
-        (
-            if locale == Locale::Vi {
-                " VI · F8 "
-            } else {
-                " EN · F8 "
-            },
-            "language",
-        ),
+        (" Settings F8 ", "settings"),
+        (" Info F9 ", "info"),
     ] {
         let label = locale.tr(label);
         let width = Line::from(label.as_ref()).width() as u16;
@@ -291,9 +285,14 @@ fn tab_label(tab: &crate::app::Tab, welcome: bool, locale: Locale) -> String {
             }
         });
     format!(
-        "  {} {}  ",
+        "  {} {}{}  ",
         clipped(&name, 21),
-        if tab.document.is_dirty() { "●" } else { " " }
+        if tab.document.is_dirty() { "●" } else { " " },
+        if tab.review_source.is_some() {
+            " [Review]"
+        } else {
+            ""
+        }
     )
 }
 
@@ -590,13 +589,26 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
 
 fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
+    let is_markdown = crate::app::document_language(app.document()) == Language::Markdown;
+    let linked = app.tabs[app.active].review_source.is_some();
     let block = panel(&locale.tr("REVIEW · F7"), theme, true);
     let body = block.inner(area);
     frame.render_widget(block, area);
-    app.hits.review = body;
-    app.page_height = body.height.max(1) as usize;
+    if body.width < 4 || body.height < 3 {
+        return;
+    }
     let review = &mut app.tabs[app.active].review;
-    let width = body.width.saturating_sub(2).max(1) as usize;
+    let show_outline = is_markdown && review.outline_visible && body.width >= 92;
+    let outline_width = if show_outline { 25 } else { 0 };
+    let content = Rect::new(
+        body.x + 1,
+        body.y + if is_markdown { 4 } else { 2 },
+        body.width.saturating_sub(2 + outline_width),
+        body.height.saturating_sub(if is_markdown { 4 } else { 2 }),
+    );
+    app.hits.review = content;
+    app.page_height = content.height.max(1) as usize;
+    let width = content.width.max(1) as usize;
     if review.width != width {
         review.width = width;
         app.redraw = true;
@@ -610,17 +622,83 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     } else {
         "↑↓ Scroll · F7 View · Esc Source"
     };
-    frame.render_widget(
-        Paragraph::new(locale.tr(hint).into_owned()).style(text_style(if review.error() {
-            theme.red
+    if is_markdown {
+        let reader_title = if locale == Locale::Vi {
+            "ĐỌC MARKDOWN"
         } else {
-            theme.muted
-        })),
-        Rect::new(body.x + 1, body.y, width as u16, 1),
-    );
-    let height = body.height.saturating_sub(2) as usize;
+            "MARKDOWN READER"
+        };
+        let live = if linked {
+            "  LIVE · READ ONLY"
+        } else {
+            "  SPLIT"
+        };
+        frame.render_widget(
+            Paragraph::new(Line::from(vec![
+                Span::styled(reader_title, bold(theme.mint)),
+                Span::styled(live, text_style(theme.muted)),
+            ])),
+            Rect::new(body.x + 1, body.y, body.width.saturating_sub(2), 1),
+        );
+        if let Some(stats) = review.stats() {
+            let text = if locale == Locale::Vi {
+                format!(
+                    "{} từ · ~{} phút · {} mục · Code {} · Bảng {} · Việc {}/{}",
+                    stats.words,
+                    stats.words.div_ceil(200).max(1),
+                    stats.headings,
+                    stats.code_blocks,
+                    stats.tables,
+                    stats.completed_tasks,
+                    stats.tasks
+                )
+            } else {
+                format!(
+                    "{} words · ~{} min · {} sections · Code {} · Tables {} · Tasks {}/{}",
+                    stats.words,
+                    stats.words.div_ceil(200).max(1),
+                    stats.headings,
+                    stats.code_blocks,
+                    stats.tables,
+                    stats.completed_tasks,
+                    stats.tasks
+                )
+            };
+            frame.render_widget(
+                Paragraph::new(clipped(&text, body.width.saturating_sub(2) as usize))
+                    .style(text_style(theme.blue)),
+                Rect::new(body.x + 1, body.y + 1, body.width.saturating_sub(2), 1),
+            );
+        }
+        let total = review.lines().len().max(1);
+        let percent = (review.top + content.height as usize).min(total) * 100 / total;
+        let navigation = if locale == Locale::Vi {
+            format!("{percent}% · F10 Mục lục · Tab Chuyển vùng · Esc Về nguồn")
+        } else {
+            format!("{percent}% · F10 Contents · Tab Focus outline · Esc Source")
+        };
+        frame.render_widget(
+            Paragraph::new(if review.busy() || review.error() {
+                locale.tr(hint).into_owned()
+            } else {
+                navigation
+            })
+            .style(text_style(theme.muted)),
+            Rect::new(body.x + 1, body.y + 2, body.width.saturating_sub(2), 1),
+        );
+    } else {
+        frame.render_widget(
+            Paragraph::new(locale.tr(hint).into_owned()).style(text_style(if review.error() {
+                theme.red
+            } else {
+                theme.muted
+            })),
+            Rect::new(body.x + 1, body.y, body.width.saturating_sub(2), 1),
+        );
+    }
+    let height = content.height as usize;
     review.top = review.top.min(review.lines().len().saturating_sub(height));
-    for (index, line) in review
+    for (offset, line) in review
         .lines()
         .iter()
         .skip(review.top)
@@ -629,8 +707,50 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     {
         frame.render_widget(
             Paragraph::new(line.clone()),
-            Rect::new(body.x + 1, body.y + 2 + index as u16, width as u16, 1),
+            Rect::new(content.x, content.y + offset as u16, content.width, 1),
         );
+    }
+    if show_outline {
+        let rect = Rect::new(body.right() - 25, content.y, 25, content.height);
+        let block = panel(
+            if locale == Locale::Vi {
+                "MỤC LỤC"
+            } else {
+                "CONTENTS"
+            },
+            theme,
+            review.outline_focus,
+        );
+        let inner = block.inner(rect);
+        frame.render_widget(block, rect);
+        app.hits.outline = inner;
+        let top = review
+            .outline_selected
+            .saturating_sub(inner.height as usize / 2)
+            .min(review.outline().len().saturating_sub(inner.height as usize));
+        for (offset, entry) in review
+            .outline()
+            .iter()
+            .skip(top)
+            .take(inner.height as usize)
+            .enumerate()
+        {
+            let selected = top + offset == review.outline_selected;
+            let label = format!(
+                "{}{}{}",
+                if selected { "▌" } else { " " },
+                " ".repeat(entry.level.saturating_sub(1).min(5)),
+                entry.title
+            );
+            frame.render_widget(
+                Paragraph::new(clipped(&label, inner.width as usize)).style(
+                    Style::default()
+                        .fg(if selected { theme.mint } else { theme.muted })
+                        .bg(if selected { theme.raised } else { theme.panel }),
+                ),
+                Rect::new(inner.x, inner.y + offset as u16, inner.width, 1),
+            );
+        }
     }
 }
 
@@ -660,7 +780,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     );
     let document = app.document();
     let (line, column) = document.position();
-    let mode = if document.readonly {
+    let mode = if app.tabs[app.active].review_source.is_some() {
+        " REVIEW "
+    } else if document.readonly {
         " READ ONLY "
     } else if app.tabs[app.active].review.mode == ViewMode::Review {
         " REVIEW "
@@ -741,6 +863,7 @@ fn modal(frame: &mut Frame<'_>, modal: &Modal, area: Rect, theme: Theme, locale:
             ..
         } => ("COMMANDS", 15, theme.mint),
         Modal::Input { .. } => ("OPEN / SEARCH / SAVE", 10, theme.mint),
+        _ => return,
     };
     let width = area.width.saturating_sub(4).min(84);
     let height = area.height.saturating_sub(2).min(height);
@@ -771,6 +894,10 @@ fn modal(frame: &mut Frame<'_>, modal: &Modal, area: Rect, theme: Theme, locale:
         inner.height,
     );
     let content = match modal {
+        Modal::Settings { .. }
+        | Modal::ReviewOptions { .. }
+        | Modal::FilePicker(_)
+        | Modal::FileInfo(_) => return,
         Modal::Help => {
             if locale == Locale::Vi {
                 crate::i18n::HELP_VI.into()
@@ -863,7 +990,9 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         editor(frame, app, workspace, theme);
     }
     status(frame, app, &areas[3..], theme);
-    if let Some(value) = &app.modal {
+    if !crate::dialogs::draw(frame, app, area, theme)
+        && let Some(value) = &app.modal
+    {
         modal(frame, value, area, theme, locale);
     }
 }

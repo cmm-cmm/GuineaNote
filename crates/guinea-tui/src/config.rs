@@ -32,8 +32,22 @@ impl Default for Config {
 impl Config {
     pub fn load(path: Option<&Path>) -> Result<Self, Box<dyn std::error::Error>> {
         let config: Self = match path {
-            Some(path) => toml::from_str(&fs::read_to_string(path)?)?,
-            None => Self::default(),
+            Some(path) => {
+                let value: toml::Value = toml::from_str(&fs::read_to_string(path)?)?;
+                let explicit_language = value.get("language").is_some();
+                let mut config: Self = value.try_into()?;
+                if !explicit_language && let Some(language) = crate::preferences::load()? {
+                    config.language = language;
+                }
+                config
+            }
+            None => {
+                let mut config = Self::default();
+                if let Some(language) = crate::preferences::load()? {
+                    config.language = language;
+                }
+                config
+            }
         };
         if !(1..=16).contains(&config.tab_width) {
             return Err("tab_width must be between 1 and 16".into());

@@ -2,7 +2,7 @@ use guinea_core::coordinates::display_grapheme;
 use guinea_syntax::{HighlightSpan, TokenKind};
 use ratatui::{
     Frame,
-    style::Style,
+    style::{Modifier, Style},
     text::{Line, Span},
 };
 use unicode_segmentation::UnicodeSegmentation;
@@ -104,13 +104,23 @@ pub(crate) fn styled_line(
                 .get(token_idx)
                 .filter(|span| span.chars.contains(&relative));
             let mut style = token.map_or(Style::default().fg(paint.theme.text), |span| {
-                Style::default().fg(match span.kind {
-                    TokenKind::Keyword => paint.theme.blue,
-                    TokenKind::String => paint.theme.mint,
-                    TokenKind::Number => paint.theme.amber,
-                    TokenKind::Comment => paint.theme.muted,
-                    TokenKind::Heading | TokenKind::Key => paint.theme.purple,
-                })
+                let base = Style::default();
+                match span.kind {
+                    TokenKind::Keyword => base.fg(paint.theme.purple).add_modifier(Modifier::BOLD),
+                    TokenKind::String => base.fg(paint.theme.mint),
+                    TokenKind::Number | TokenKind::Constant => base.fg(paint.theme.amber),
+                    TokenKind::Comment => base.fg(paint.theme.muted).add_modifier(Modifier::ITALIC),
+                    TokenKind::Heading => base.fg(paint.theme.mint).add_modifier(Modifier::BOLD),
+                    TokenKind::Key | TokenKind::Property => base.fg(paint.theme.blue),
+                    TokenKind::Function => base.fg(paint.theme.blue).add_modifier(Modifier::BOLD),
+                    TokenKind::Type => base.fg(paint.theme.amber).add_modifier(Modifier::ITALIC),
+                    TokenKind::Operator => base.fg(paint.theme.red),
+                    TokenKind::Punctuation => base.fg(paint.theme.muted),
+                    TokenKind::Attribute => {
+                        base.fg(paint.theme.purple).add_modifier(Modifier::ITALIC)
+                    }
+                    TokenKind::Escape => base.fg(paint.theme.amber).add_modifier(Modifier::BOLD),
+                }
             });
             if char_idx < selection.end && char_idx + count > selection.start {
                 style = style.bg(paint.theme.line).fg(paint.theme.text);
@@ -130,6 +140,21 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn new_dialogs_are_visible_and_safe_when_resized() {
+        let mut app = App::new(vec![], false, Config::default());
+        for command in ["settings", "preview", "info", "open"] {
+            app.command(command);
+            let mut terminal = Terminal::new(TestBackend::new(110, 32)).unwrap();
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            for (width, height) in [(50, 14), (30, 9), (110, 32)] {
+                terminal.backend_mut().resize(width, height);
+                terminal.autoresize().unwrap();
+                terminal.draw(|f| draw(f, &mut app)).unwrap();
+            }
+            assert!(app.modal.is_some());
+        }
+    }
     use crate::config::Config;
     use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
     use ratatui::{Terminal, backend::TestBackend};

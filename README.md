@@ -51,8 +51,10 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
 | F6 / Shift+F6 | Next / previous tab (Ctrl+Tab also when available) |
-| F7 | Cycle source / split / review (any UTF-8 file) |
-| F8 | Switch Vietnamese / English interface |
+| F7 | Choose split view or open a linked review tab (any UTF-8 file) |
+| F8 | Settings: choose Vietnamese / English, Apply or Cancel |
+| F9 | File details: metadata, text statistics and last verified fingerprint |
+| F10 | Show/hide Markdown contents; Tab focuses the visible outline |
 | F1 / F2 | Help / command prompt with fallbacks for every main action |
 
 Prompts use Enter to submit and Esc to cancel. Destructive confirmations
@@ -67,13 +69,29 @@ color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
 
 Use `--language vi` / `--language en`, or `language = "vi"` / `"en"` in the
-configuration, for Vietnamese / English. The default is English. F8 switches
-the current session; F2 commands `language-vi` and `language-en` also work.
+configuration, for Vietnamese / English. The default is English. F8 opens
+Settings; Enter applies the selected language, while Esc cancels. Applied
+preferences are saved for the next launch in `%APPDATA%/GuineaNote/preferences.toml`
+on Windows, or `$XDG_CONFIG_HOME/guineanote/preferences.toml` (otherwise
+`~/.config/guineanote/preferences.toml`) on Unix. An explicit config language
+overrides preferences, and `--language` overrides both. F2 commands
+`language-vi` and `language-en` change only the current session.
 Document contents and filenames remain unchanged. Parser/OS diagnostics may
 retain their original technical details.
 
-F7 opens a cached, background-rendered review for any UTF-8 file. Markdown renders headings,
-emphasis, lists/tasks, quotes, links, code fences and tables. JSON/JSONL/NDJSON
+Ctrl+O opens a file picker with an asynchronously loaded directory listing.
+Type to filter, use arrows to select, Tab to complete, and Enter to open a file
+or navigate a folder. Alt+Up returns to the parent; Ctrl+U clears the query.
+Full paths and new filenames also work. F9 opens details for the active file,
+including buffer versus disk size, encoding/newlines, UTC timestamps and the
+last verified SHA-256 fingerprint. Text statistics run in the background.
+
+F7 offers split view and a separate linked, read-only review tab. F6 switches
+tabs; Esc returns from review to its editable source. Markdown includes a
+contents sidebar, heading hierarchy, reading/task statistics, callout cards,
+aligned tables, numbered syntax-colored code blocks and link references.
+The sidebar appears in a full-width reader with enough space; F10 toggles it,
+Tab focuses it, and Enter jumps to the selected heading. JSON/JSONL/NDJSON
 is formatted with key/value colors; XML/SVG displays element structure;
 CSV/TSV displays numbered rows and header columns, including quoted/multiline
 fields. CSV/TSV treats the first record as the header; Left/Right in full review
@@ -82,10 +100,12 @@ views. ENV/INI/Properties show sections, fields and line numbers with literal
 values. Common config files infer XML/JSON5/YAML/INI and retain source review
 for unfamiliar dialects. Notebook `.ipynb` renders Markdown/code cells and saved
 text outputs without running them. All UTF-8 programming files also support
-source review, including unknown extensions via a generic lexer. F2 `source`, `split` or `review` selects a mode directly.
+source review, including unknown extensions via a generic lexer. F2 `source`
+or `split` selects a mode directly; `review` / `review-tab` opens the linked tab.
 In full review, arrows/PageUp/PageDown/Home/End and the mouse wheel scroll;
 Esc returns to source. Source and review have independent scroll positions.
-Review is read-only and refreshes after source edits. It never saves formatted
+Review is read-only and refreshes after source edits, saves and reloads.
+Closing a review tab preserves the source and its undo history. It never saves formatted
 content over the source. HTML in Markdown is literal text and links are inert.
 Review output is capped at 100,000 display rows with an explicit notice; all
 source data remains available in the editor. See [formats](docs/FORMATS.md).
@@ -101,7 +121,9 @@ Ropey keeps content in resident memory; history and search snapshots add memory.
 Files above 10 MiB trigger confirmation by default. Long lines and full-document
 operations can be expensive. The 100 ms interaction budget is measured on the
 local 10 MiB corpus, with full I/O/parse completion reported separately; it is
-not a universal timing guarantee. Syntax is a small line-local lexer, without
+not a universal timing guarantee. Syntax distinguishes functions, types,
+constants, properties, attributes, escapes, operators and punctuation, with
+italic comments and separate semantic colors. It is a lightweight line-local lexer, without
 multiline grammar state; very long horizontally-scrolled lines use viewport
 context. No bounded-memory large-file support, system clipboard
 integration, LSP, plugin runtime, Git integration or crash recovery.

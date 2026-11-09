@@ -72,3 +72,11 @@ resolver is installed. Unknown YAML tags are rejected, and JSON5 input has a
 string/comment-aware nesting limit. An ordered project-owned Serde value keeps
 non-finite numbers/complex keys without libyaml. Project code forbids unsafe
 Rust; no source, notebook, config directive or environment value is executed.
+
+## Settings and file-details dependencies
+
+The TUI now uses the existing tempfile crate at runtime for atomic language
+preferences and time 0.3.55 with formatting (time-macros 0.2.32) for UTC file
+timestamps. Re-ran the locked workspace offline audit against the recorded
+snapshot: exit 0, advisories/bans/licenses/sources pass, only the existing Syn
+duplicate warning. No policy allowance or advisory exception was added.

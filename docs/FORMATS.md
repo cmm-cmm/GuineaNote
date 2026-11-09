@@ -1,14 +1,15 @@
 # Source formats and read-only review
 
-F7 cycles Source → Split → Review. Split uses two panes from 76 available
-columns; narrower areas show review full-width. Esc returns from full review.
-F2 accepts `source`, `split`, `review`, and `preview` (cycle). F8 switches the
-interface between Vietnamese and English; startup selection is `--language vi`
-or `--language en`, overriding the configuration's `language` field.
+F7 offers Split or a linked, read-only Review tab. Split uses two panes from
+76 available columns; narrower areas show review full-width. F6 switches tabs;
+Esc returns from review to its source. F2 accepts `source`, `split`,
+`review` / `review-tab`, and `preview` (chooser). F8 opens language Settings
+with Apply/Cancel and persisted preferences; an explicit config language takes
+precedence, and `--language vi` / `--language en` overrides both.
 
 | Format | Detection | Review |
 | --- | --- | --- |
-| Markdown | md, markdown, mdown | Styled headings, emphasis, quotes, lists/tasks, code fences, tables, links, footnotes |
+| Markdown | md, markdown, mdown | Contents navigation, heading cards, reading/task statistics, callouts, numbered code cards, aligned tables, links and footnotes |
 | JSON | json | Strict JSON formatted view; invalid JSON reports an error |
 | JSON5 / JSONC | json5, jsonc | Formatted JSON5, comments/trailing commas/unquoted keys/hex/NaN/Infinity accepted; JSONC uses the JSON5 superset |
 | JSON Lines | jsonl, ndjson | Each nonempty physical line is parsed as a separate JSON record; record number on errors |
@@ -35,8 +36,12 @@ CSV/TSV table cells clip with an ellipsis (48 cells maximum per field). Full
 review Left/Right shifts the first displayed column, exposing columns beyond
 the viewport; source holds complete untruncated field contents. Output is
 limited to 100,000 display rows and reports truncation. Parsing validates all
-CSV/TSV records even after reaching that display limit. Markdown preview tables
-are a flowing text representation, not an editable spreadsheet.
+CSV/TSV records even after reaching that display limit. Markdown tables use
+borders, aligned columns and alternating row backgrounds. They display up to
+12 fitting columns, 10,000 rows and 8 wrapped lines per cell; the full content
+remains in source. Markdown block collection is bounded to 100,000 events / an
+approximately 2 MiB text budget, and the outline to 2,000 headings. These are
+display limits; review never edits the document.
 
 Source detection and lightweight line-local syntax also support Rust, Python,
 JavaScript, TypeScript, Go, C, C++, C#, Java, Kotlin, Swift, Ruby, PHP, Lua,

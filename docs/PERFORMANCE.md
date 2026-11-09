@@ -1,6 +1,39 @@
 # Performance measurements
 
-## Current expanded formats: below 100 ms, 2026-11-09
+## Current Settings and linked-reader UI: below 100 ms, 2026-11-09
+
+Two native release runs after the dialog/reader redesign: **187 samples per
+run, 374 total, max 58.551 ms, no sample >=100 ms**. Combined p50 is 9.507 ms
+and p95 is 30.127 ms (sorted sample-rank percentiles). Same Windows/MSVC host,
+10 MiB maximum corpus, no concurrent compilation. Raw evidence:
+[UX run 1](responsiveness-ux-run1.json), [UX run 2](responsiveness-ux-run2.json).
+
+| Workload | Samples | p50 ms | p95 ms | Max ms |
+| --- | ---: | ---: | ---: | ---: |
+| ASCII single line, edits/navigation/dialogs | 68 | 9.007 | 24.403 | 32.110 |
+| Unicode single line, edits/navigation/dialogs | 68 | 3.633 | 11.010 | 58.231 |
+| 17 format reviews, split/tab chooser | 170 | 11.177 | 31.161 | 38.799 |
+| Large JSON, Settings during parsing | 28 | 15.904 | 22.190 | 24.085 |
+| Tabs/clipboard/prompts/search/tree/quit | 40 | 9.517 | 32.805 | 58.551 |
+
+F8 now opens Settings; language changes use explicit Apply. The probe measures
+opening/dismissing Settings, applying VI/EN, opening/dismissing F9 details, and
+choosing split or a dedicated review tab with F7. It retains the previous file
+formats and fresh-screen checks. Full 10 MiB JSON review completion including
+locale changes took **419.093 / 406.744 ms**, reported separately from feedback.
+File-list loading, metadata/statistics, preference writes and preview parsing
+run in workers. These timings measure input through PTY/emulated screen state,
+not physical display latency or a universal bound for every file and host.
+
+`pty_dialogs_reader.py` separately verifies saved preferences on restart,
+Apply/Cancel, file filtering/opening, details, both review layouts, outline
+navigation, linked live updates, read-only protection and byte-exact source
+saves. Its screenshots are under target/previews. Format/strict Clippy/tests/
+release build pass (80 Rust tests), as do native edit/workspace/panic probes,
+Linux/macOS cross-Clippy and the recorded-snapshot dependency audit. Native
+runtime/latency on Linux/macOS remains unverified. No GitHub CI was added.
+
+## Previous expanded formats: below 100 ms, 2026-11-09
 
 Final release after the ENV/config/source expansion and replacement of the YAML
 parser: **138 samples per run, two runs, 276 total; max 57.719 ms; no sample
