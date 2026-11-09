@@ -9,6 +9,7 @@ mod input;
 mod preferences;
 mod render;
 mod review;
+mod search;
 mod tab_manager;
 mod theme;
 mod workspace_render;

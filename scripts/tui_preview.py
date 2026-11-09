@@ -11,10 +11,10 @@ from pty_smoke import ROOT, Session
 from PIL import Image, ImageDraw, ImageFont
 
 PALETTE = {
-    "default": "#f8f5ec", "black": "#0c111c", "red": "#efaa91", "green": "#86d38a",
-    "brown": "#dab58a", "yellow": "#dab58a", "blue": "#bdd9b3", "magenta": "#bad68a",
+    "default": "#f8f5ec", "black": "#090e17", "red": "#efaa91", "green": "#86d38a",
+    "brown": "#dbad5b", "yellow": "#dbad5b", "blue": "#bdd9b3", "magenta": "#bad68a",
     "cyan": "#86d38a", "white": "#f8f5ec", "brightblack": "#91816b",
-    "brightred": "#efaa91", "brightgreen": "#86d38a", "brightyellow": "#dab58a",
+    "brightred": "#efaa91", "brightgreen": "#86d38a", "brightyellow": "#dbad5b",
     "brightblue": "#bdd9b3", "brightmagenta": "#bad68a", "brightcyan": "#86d38a", "brightwhite": "#ffffff",
 }
 
@@ -41,13 +41,13 @@ def snapshot(session, name):
     cell_height = sum(font.getmetrics())
     pad = 20
     width, height = session.screen.columns * cell_width + pad * 2, session.screen.lines * cell_height + pad * 2
-    image = Image.new("RGB", (width, height), "#0c111c")
+    image = Image.new("RGB", (width, height), "#090e17")
     draw = ImageDraw.Draw(image)
     for row in range(session.screen.lines):
         for column in range(session.screen.columns):
             char = session.screen.buffer[row][column]
             x, y = pad + column * cell_width, pad + row * cell_height
-            fg, bg = color(char.fg, "#f8f5ec"), color(char.bg, "#0c111c")
+            fg, bg = color(char.fg, "#f8f5ec"), color(char.bg, "#090e17")
             if char.reverse:
                 fg, bg = bg, fg
             draw.rectangle((x, y, x + cell_width - 1, y + cell_height - 1), fill=bg)

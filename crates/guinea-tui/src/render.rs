@@ -142,6 +142,205 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn mouse_event(
+        kind: crossterm::event::MouseEventKind,
+        x: u16,
+        y: u16,
+    ) -> crossterm::event::Event {
+        crossterm::event::Event::Mouse(crossterm::event::MouseEvent {
+            kind,
+            column: x,
+            row: y,
+            modifiers: crossterm::event::KeyModifiers::NONE,
+        })
+    }
+    #[test]
+    fn confirmation_buttons_cancel_by_default_and_close_the_clicked_inactive_tab() {
+        use crossterm::event::{
+            Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEventKind,
+        };
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0].document.path = Some("alpha.txt".into());
+        app.tabs[0].document.insert("draft").unwrap();
+        app.command("new");
+        app.tabs[1].document.path = Some("beta.json".into());
+        let active = app.document().id;
+        let mut terminal = Terminal::new(TestBackend::new(120, 32)).unwrap();
+        for discard in [false, true] {
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            let rect = app.hits.tabs.iter().find(|(_, i)| *i == 0).unwrap().0;
+            app.handle(mouse_event(
+                MouseEventKind::Down(MouseButton::Middle),
+                rect.x + 2,
+                rect.y,
+            ));
+            assert!(matches!(
+                app.modal,
+                Some(crate::app::Modal::Confirm {
+                    selected: false,
+                    ..
+                })
+            ));
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            let accept = app
+                .hits
+                .modal_actions
+                .iter()
+                .find(|(_, a)| *a == "confirm-accept")
+                .unwrap()
+                .0;
+            let outside = app
+                .hits
+                .actions
+                .iter()
+                .find(|(_, a)| *a == "new")
+                .unwrap()
+                .0;
+            app.handle(mouse_event(
+                MouseEventKind::Down(MouseButton::Left),
+                outside.x,
+                outside.y,
+            ));
+            assert_eq!(
+                app.tabs.len(),
+                2,
+                "Dialog must block clicks on the workspace"
+            );
+            if discard {
+                app.handle(mouse_event(
+                    MouseEventKind::Down(MouseButton::Left),
+                    accept.x + 1,
+                    accept.y + 1,
+                ));
+            } else {
+                app.handle(Event::Key(KeyEvent::new(
+                    KeyCode::Enter,
+                    KeyModifiers::NONE,
+                )));
+            }
+            assert!(app.modal.is_none());
+            assert_eq!(app.document().id, active);
+            assert_eq!(app.tabs.len(), if discard { 1 } else { 2 });
+        }
+    }
+    #[test]
+    fn mouse_drag_selects_whole_unicode_clusters_and_wheel_preserves_caret() {
+        use crossterm::event::{
+            Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEventKind,
+        };
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0]
+            .document
+            .insert(&format!(
+                "a界e\u{301}👩‍💻z\n{}",
+                (1..80).map(|n| format!("line{n}\n")).collect::<String>()
+            ))
+            .unwrap();
+        app.tabs[0].document.select(0, 0).unwrap();
+        let mut terminal = Terminal::new(TestBackend::new(120, 32)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let rect = app.hits.editor_text;
+        app.handle(mouse_event(
+            MouseEventKind::Down(MouseButton::Left),
+            rect.x + 1,
+            rect.y,
+        ));
+        app.handle(mouse_event(
+            MouseEventKind::Drag(MouseButton::Left),
+            rect.x + 7,
+            rect.y,
+        ));
+        app.handle(mouse_event(
+            MouseEventKind::Up(MouseButton::Left),
+            rect.x + 7,
+            rect.y,
+        ));
+        assert_eq!(app.document().selected_text(), "界e\u{301}👩‍💻z");
+        let cursor = app.document().cursor();
+        app.handle(mouse_event(MouseEventKind::ScrollDown, rect.x + 3, rect.y));
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        assert_eq!(app.tabs[0].top, 3);
+        assert_eq!(app.document().cursor(), cursor);
+        app.handle(Event::Key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE)));
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        assert_eq!(app.tabs[0].top, 0);
+        let nav = app
+            .hits
+            .actions
+            .iter()
+            .find(|(_, a)| *a == "tabs")
+            .unwrap()
+            .0;
+        assert!(app.hits.tabs.iter().all(|(r, _)| r.y > nav.bottom()));
+        let status = terminal.backend().buffer();
+        let row = (0..status.area.height)
+            .find(|&y| {
+                (0..status.area.width)
+                    .map(|x| status[(x, y)].symbol())
+                    .collect::<String>()
+                    .contains("Ln 1, Col")
+            })
+            .unwrap();
+        let utf8 = (0..status.area.width)
+            .find(|&x| status[(x, row)].symbol() == "U")
+            .unwrap();
+        assert!(
+            utf8 > status.area.width / 2,
+            "Encoding belongs to the right status group"
+        );
+    }
+    #[test]
+    fn small_dialog_buttons_stay_inside_and_tabs_require_a_real_double_click() {
+        use crossterm::event::{MouseButton, MouseEventKind};
+        for command in [
+            "settings", "preview", "open", "tabs", "info", "save-as", "help", "close",
+        ] {
+            let mut app = App::new(vec![], false, Config::default());
+            app.tabs[0].document.insert("draft").unwrap();
+            app.command(command);
+            let mut terminal = Terminal::new(TestBackend::new(30, 9)).unwrap();
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            for (r, _) in &app.hits.modal_actions {
+                assert!(
+                    r.x >= app.hits.modal.x
+                        && r.right() <= app.hits.modal.right()
+                        && r.y >= app.hits.modal.y
+                        && r.bottom() <= app.hits.modal.bottom(),
+                    "{command}: button {r:?} outside {:?}",
+                    app.hits.modal
+                );
+            }
+        }
+        let mut app = App::new(vec![], false, Config::default());
+        app.command("new");
+        app.command("tabs");
+        let mut terminal = Terminal::new(TestBackend::new(110, 32)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let list = match &app.modal {
+            Some(crate::app::Modal::Tabs(m)) => m.list,
+            _ => unreachable!(),
+        };
+        app.handle(mouse_event(MouseEventKind::ScrollDown, 0, 0));
+        app.handle(mouse_event(
+            MouseEventKind::Down(MouseButton::Left),
+            list.x + 2,
+            list.y + 4,
+        ));
+        assert!(matches!(&app.modal,Some(crate::app::Modal::Tabs(m)) if m.selected==1));
+        app.handle(mouse_event(
+            MouseEventKind::Down(MouseButton::Left),
+            list.x + 2,
+            list.y,
+        ));
+        assert!(app.modal.is_some());
+        app.handle(mouse_event(
+            MouseEventKind::Down(MouseButton::Left),
+            list.x + 2,
+            list.y,
+        ));
+        assert!(app.modal.is_none());
+        assert_eq!(app.active, 0);
+    }
     #[test]
     fn ai_context_and_manager_details_follow_linked_review_and_locale() {
         let mut app = App::new(vec![], false, Config::default());

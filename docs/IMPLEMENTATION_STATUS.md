@@ -15,7 +15,32 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — Agent CLI/MCP and AI read-only tabs
+## Latest checkpoint — dialogs, mouse and find/replace
+
+Implemented a shared dialog design, explicit default-cancel decisions, clickable
+close/submit controls, native mouse drag and wheel handling, file/tab double-click,
+middle-click tab closing, separated tab controls and right-aligned file metadata.
+The navy background is slightly darker; green, honey amber and warm white remain.
+
+Find/replace now has two editable fields, counted/paged contextual results,
+mouse actions, replacement preview, replace-one/all and one-step Undo. Work runs
+on bounded background workers; stale revisions and read-only/AI-owned buffers
+cannot receive prepared changes. Save remains explicit. VI/EN and F2 fallbacks
+are available. See [SEARCH_REPLACE.md](SEARCH_REPLACE.md).
+
+108 Rust tests, fmt, strict native/Linux/macOS cross-Clippy and debug/release
+workspace builds pass. Native functional tests cover Unicode/BOM/CRLF saves,
+Undo, readonly protection, mouse, dialogs, tabs, review and Agent cleanup.
+278 general/tab/Agent/dialog/search responses are <100 ms (max 64.349 ms).
+The first navigation run includes one unexplained 916.326 ms outlier; four
+repeat runs (128 responses) max at 14.848 ms. The strict global budget remains
+unproven; raw failures and repeats are retained. Background completion is
+reported separately in [PERFORMANCE.md](PERFORMANCE.md). Native Linux/macOS
+execution remains unverified. No GitHub CI was added.
+After the final help/translation copy update, search (13 samples, max 67.142 ms)
+and native Unicode smoke passed again on the rebuilt binary.
+
+## Previous checkpoint — Agent CLI/MCP and AI read-only tabs
 
 Continuing polish: 99 Rust tests pass; native and Linux/macOS cross-target
 strict Clippy, debug/release builds and native UI/Agent regression probes pass.

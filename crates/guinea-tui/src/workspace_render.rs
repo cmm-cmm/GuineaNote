@@ -6,12 +6,12 @@ use ratatui::{
     layout::{Alignment, Constraint, Layout, Rect},
     style::{Modifier, Style},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, Clear, Paragraph, Wrap},
+    widgets::{Block, BorderType, Borders, Paragraph},
 };
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-    app::{App, Focus, HELP, HitRegions, InputKind, Modal},
+    app::{App, Focus, HitRegions},
     i18n::Locale,
     render::{LinePaint, safe, styled_line},
     review::ViewMode,
@@ -108,10 +108,26 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         (" Open folder  ^K ", "open-folder"),
         (" New  ^N ", "new"),
         (" Save  ^S ", "save"),
+        (" Find ^F ", "find"),
+        (" Replace ^H ", "replace"),
         (" Review  F7 ", "preview"),
         (" Settings F8 ", "settings"),
         (" Info F9 ", "info"),
     ] {
+        let label = if area.width < 110 {
+            match command {
+                "open" => " Open ^O ",
+                "open-folder" => " Folder ^K ",
+                "new" => " New ^N ",
+                "save" => " Save ^S ",
+                "preview" => " View F7 ",
+                "settings" => " F8 ",
+                "info" => " F9 ",
+                _ => label,
+            }
+        } else {
+            label
+        };
         let label = locale.tr(label);
         let width = Line::from(label.as_ref()).width() as u16;
         if x + width > area.right() {
@@ -310,7 +326,13 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         Block::default().style(Style::default().bg(theme.panel)),
         area,
     );
-    app.hits.tab_strip = area;
+    let label_row = if area.height >= 4 { 2 } else { 1 };
+    app.hits.tab_strip = Rect::new(
+        area.x,
+        area.y + label_row,
+        area.width,
+        u16::from(area.height > label_row),
+    );
     let locale = app.config.language;
     let count = if area.width < 40 {
         format!("{}/{}", app.active + 1, app.tabs.len())
@@ -393,6 +415,12 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.height < 2 {
         return;
     }
+    if label_row == 2 {
+        frame.render_widget(
+            Block::default().style(Style::default().bg(theme.canvas)),
+            Rect::new(area.x, area.y + 1, area.width, 1),
+        );
+    }
     let welcome = app.welcome();
     let label = |index: usize| {
         format!(
@@ -415,7 +443,7 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             break;
         }
         let selected = index == app.active;
-        let rect = Rect::new(x, area.y + 1, width, 1);
+        let rect = Rect::new(x, area.y + label_row, width, 1);
         frame.render_widget(
             Paragraph::new(clipped(&label, width.saturating_sub(3) as usize)).style(
                 Style::default()
@@ -444,14 +472,14 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         if !locked {
             app.hits.tab_closes.push((close, index));
         }
-        if area.height > 2 {
+        if area.height > label_row + 1 {
             frame.render_widget(
                 Paragraph::new("─".repeat(width as usize)).style(text_style(if selected {
                     theme.accent
                 } else {
                     theme.line
                 })),
-                Rect::new(x, area.y + 2, width, 1),
+                Rect::new(x, area.y + label_row + 1, width, 1),
             );
         }
         x += width;
@@ -553,9 +581,9 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
 
 fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
-    let compact = area.height < 9;
+    let compact = area.height < 10;
     let regions = Layout::vertical([
-        Constraint::Length(if compact { 1 } else { 3 }),
+        Constraint::Length(if compact { 1 } else { 4 }),
         Constraint::Length(if compact { 0 } else { 1 }),
         Constraint::Min(1),
     ])
@@ -572,9 +600,13 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 .into_owned()
         })
         .unwrap_or_else(|| {
-            locale
-                .tr("Welcome / your next idea starts here")
-                .into_owned()
+            if app.welcome() {
+                locale
+                    .tr("Welcome / your next idea starts here")
+                    .into_owned()
+            } else {
+                app.tabs[app.active].title(locale)
+            }
         });
     let tab = &app.tabs[app.active];
     let context = if let Some(action) = &tab.ai_action {
@@ -674,16 +706,16 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     };
     let width = body.width as usize - gutter;
     app.hits.editor_text = Rect::new(body.x + gutter as u16, body.y, width as u16, body.height);
-    if cursor_line < tab.top {
+    if tab.follow_cursor && cursor_line < tab.top {
         tab.top = cursor_line;
     }
-    if cursor_line >= tab.top + body.height as usize {
+    if tab.follow_cursor && cursor_line >= tab.top + body.height as usize {
         tab.top = cursor_line + 1 - body.height as usize;
     }
-    if cursor_cell < tab.left {
+    if tab.follow_cursor && cursor_cell < tab.left {
         tab.left = cursor_cell;
     }
-    if cursor_cell >= tab.left + width {
+    if tab.follow_cursor && cursor_cell >= tab.left + width {
         tab.left = cursor_cell + 1 - width;
     }
     for offset in 0..body.height {
@@ -736,7 +768,12 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Rect::new(body.x + gutter as u16, body.y + offset, width as u16, 1),
         );
     }
-    if app.focus == Focus::Editor && app.modal.is_none() && !busy {
+    if app.focus == Focus::Editor
+        && app.modal.is_none()
+        && !busy
+        && (tab.top..tab.top + body.height as usize).contains(&cursor_line)
+        && (tab.left..tab.left + width).contains(&cursor_cell)
+    {
         frame.set_cursor_position((
             body.x + gutter as u16 + (cursor_cell - tab.left) as u16,
             body.y + (cursor_line - tab.top) as u16,
@@ -973,15 +1010,6 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             text_style(theme.text),
         ),
         Span::styled(
-            format!(
-                " │ {}  UTF-8{}  {}",
-                language.label(),
-                if document.bom { "+BOM" } else { "" },
-                document.line_ending().label()
-            ),
-            text_style(theme.muted),
-        ),
-        Span::styled(
             locale
                 .tr(if document.is_dirty() {
                     "  ● MODIFIED"
@@ -998,17 +1026,26 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             }),
         ),
     ]);
-    let status_width = line.width();
-    frame.render_widget(
-        Paragraph::new(line).style(Style::default().bg(theme.raised)),
-        areas[1],
+    let full_format = format!(
+        " {} · UTF-8{} · {} ",
+        language.label(),
+        if document.bom { "+BOM" } else { "" },
+        document.line_ending().label()
     );
+    let left_width = line.width();
+    let available = (areas[1].width as usize).saturating_sub(left_width + 1);
+    let format = if available >= Line::from(full_format.as_str()).width() {
+        full_format
+    } else {
+        format!(" {} ", language.label())
+    };
+    let mut right = Line::from(vec![Span::styled(format, text_style(theme.secondary))]);
     if areas[1].width >= 100 {
         let selected = document.selection().range().len();
         let progress = document.cursor().saturating_mul(100) / document.buffer().len_chars().max(1);
         let detail = if selected > 0 {
             format!(
-                " {} {selected} · {progress:>3}% ",
+                "{} {selected} · {progress}% │",
                 if locale == Locale::Vi {
                     "CHỌN"
                 } else {
@@ -1016,22 +1053,35 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
                 }
             )
         } else {
-            format!(" {progress:>3}% ")
+            format!("{progress}% │")
         };
-        let width = Line::from(detail.as_str()).width() as u16;
-        if status_width + width as usize <= areas[1].width as usize {
-            frame.render_widget(
-                Paragraph::new(detail).style(Style::default().bg(theme.raised).fg(
-                    if selected > 0 {
+        if left_width + right.width() + Line::from(detail.as_str()).width() + 2
+            <= areas[1].width as usize
+        {
+            right.spans.insert(
+                0,
+                Span::styled(
+                    detail,
+                    text_style(if selected > 0 {
                         theme.warm
                     } else {
                         theme.faint
-                    },
-                )),
-                Rect::new(areas[1].right() - width, areas[1].y, width, 1),
+                    }),
+                ),
             );
         }
     }
+    let right_width = (right.width() as u16).min(areas[1].width / 2);
+    frame.render_widget(
+        Paragraph::new(line).style(Style::default().bg(theme.raised)),
+        Rect::new(areas[1].x, areas[1].y, areas[1].width - right_width, 1),
+    );
+    frame.render_widget(
+        Paragraph::new(right)
+            .alignment(Alignment::Right)
+            .style(Style::default().bg(theme.raised)),
+        Rect::new(areas[1].right() - right_width, areas[1].y, right_width, 1),
+    );
     let hints = if app.tabs[app.active].ai_action.is_some() {
         " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings"
     } else if app.focus == Focus::Explorer {
@@ -1042,85 +1092,6 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     frame.render_widget(
         Paragraph::new(locale.tr(hints).into_owned()).style(text_style(theme.muted)),
         areas[2],
-    );
-}
-
-fn modal(frame: &mut Frame<'_>, modal: &Modal, area: Rect, theme: Theme, locale: Locale) {
-    let (title, height, border) = match modal {
-        Modal::Help => ("KEYBOARD GUIDE", 31, theme.secondary),
-        Modal::Confirm { .. } => ("UNSAVED CHANGES / CONFIRM", 10, theme.warm),
-        Modal::Input {
-            kind: InputKind::Command,
-            ..
-        } => ("COMMANDS", 15, theme.accent),
-        Modal::Input { .. } => ("OPEN / SEARCH / SAVE", 10, theme.accent),
-        _ => return,
-    };
-    let width = area.width.saturating_sub(4).min(84);
-    let height = area.height.saturating_sub(2).min(height);
-    let rect = Rect::new(
-        area.x + (area.width - width) / 2,
-        area.y + (area.height - height) / 2,
-        width,
-        height,
-    );
-    let shadow = Rect::new(
-        (rect.x + 1).min(area.right()),
-        (rect.y + 1).min(area.bottom()),
-        rect.width.min(area.right().saturating_sub(rect.x + 1)),
-        rect.height.min(area.bottom().saturating_sub(rect.y + 1)),
-    );
-    frame.render_widget(
-        Block::default().style(Style::default().bg(theme.canvas)),
-        shadow,
-    );
-    frame.render_widget(Clear, rect);
-    let block = panel(&locale.tr(title), theme, true).border_style(text_style(border));
-    let inner = block.inner(rect);
-    frame.render_widget(block, rect);
-    let body = Rect::new(
-        inner.x + 1,
-        inner.y,
-        inner.width.saturating_sub(2),
-        inner.height,
-    );
-    let content = match modal {
-        Modal::Settings { .. }
-        | Modal::Tabs(_)
-        | Modal::ReviewOptions { .. }
-        | Modal::FilePicker(_)
-        | Modal::FileInfo(_) => return,
-        Modal::Help => {
-            if locale == Locale::Vi {
-                crate::i18n::HELP_VI.into()
-            } else {
-                HELP.into()
-            }
-        }
-        Modal::Confirm { message, .. } => format!(
-            "\n{}\n\n{}",
-            safe(&locale.message(message)),
-            locale.tr("[Y] Confirm     [N / Esc] Keep working")
-        ),
-        Modal::Input { kind, value } => {
-            let suggestions = if matches!(kind, InputKind::Command) {
-                "\n\nnew  open  open-folder  save  save-as  close\nexplorer  focus  refresh  find  replace  quit\n\nType a command · Enter runs · Esc closes"
-            } else {
-                "\n\nEnter accepts     Esc cancels"
-            };
-            format!(
-                "{}\n\n  › {}│{}",
-                locale.tr(kind.label()),
-                input_tail(value, body.width.saturating_sub(5) as usize),
-                locale.tr(suggestions)
-            )
-        }
-    };
-    frame.render_widget(
-        Paragraph::new(content)
-            .style(text_style(theme.text))
-            .wrap(Wrap { trim: false }),
-        body,
     );
 }
 
@@ -1182,9 +1153,5 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         editor(frame, app, workspace, theme);
     }
     status(frame, app, &areas[3..], theme);
-    if !crate::dialogs::draw(frame, app, area, theme)
-        && let Some(value) = &app.modal
-    {
-        modal(frame, value, area, theme, locale);
-    }
+    crate::dialogs::draw(frame, app, area, theme);
 }

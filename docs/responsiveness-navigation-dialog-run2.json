@@ -1,0 +1,172 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "input_bytes_max": 10485760,
+  "cold_sessions": 8,
+  "samples": [
+    {
+      "action": "unicode:type-start",
+      "ms": 12.531
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 3.159
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 2.653
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 4.492
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 14.134
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 3.433
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 2.921
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.443
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 11.647
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 6.055
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 2.988
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.487
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.327
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 3.221
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.32
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.115
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.112
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 3.683
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.475
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.478
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.398
+    },
+    {
+      "action": "unicode:first-end",
+      "ms": 5.767
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 2.829
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 2.884
+    },
+    {
+      "action": "ascii-prefix-bare-cr:type-start",
+      "ms": 12.95
+    },
+    {
+      "action": "ascii-prefix-bare-cr:first-end",
+      "ms": 3.2
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-left",
+      "ms": 2.947
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-right",
+      "ms": 4.956
+    },
+    {
+      "action": "ascii-prefix-bare-cr:type-start",
+      "ms": 13.297
+    },
+    {
+      "action": "ascii-prefix-bare-cr:first-end",
+      "ms": 3.285
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-left",
+      "ms": 3.305
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-right",
+      "ms": 3.124
+    }
+  ],
+  "sample_count": 32,
+  "background_open_completion": [
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 294.576
+    },
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 247.911
+    },
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 240.509
+    },
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 236.589
+    },
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 253.553
+    },
+    {
+      "fixture": "unicode",
+      "process_start_to_opened_ms": 237.442
+    },
+    {
+      "fixture": "ascii-prefix-bare-cr",
+      "process_start_to_opened_ms": 224.603
+    },
+    {
+      "fixture": "ascii-prefix-bare-cr",
+      "process_start_to_opened_ms": 227.879
+    }
+  ],
+  "max_ms": 14.134,
+  "failures": []
+}

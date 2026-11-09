@@ -1,0 +1,74 @@
+{
+  "max_input_bytes": 10485760,
+  "samples": [
+    {
+      "action": "search:open-replace",
+      "ms": 7.54
+    },
+    {
+      "action": "search:query-unicode",
+      "ms": 21.174
+    },
+    {
+      "action": "search:replace-one",
+      "ms": 9.854
+    },
+    {
+      "action": "search:replace-all",
+      "ms": 67.142
+    },
+    {
+      "action": "search:close",
+      "ms": 12.377
+    },
+    {
+      "action": "search:undo-all",
+      "ms": 9.17
+    },
+    {
+      "action": "search:undo-one",
+      "ms": 10.871
+    },
+    {
+      "action": "search:open-find",
+      "ms": 8.801
+    },
+    {
+      "action": "search:replace-selected-query",
+      "ms": 18.318
+    },
+    {
+      "action": "search:10MiB-open",
+      "ms": 6.66
+    },
+    {
+      "action": "search:10MiB-query-feedback",
+      "ms": 13.599
+    },
+    {
+      "action": "search:10MiB-last-page-feedback",
+      "ms": 7.136
+    },
+    {
+      "action": "search:10MiB-replace-feedback",
+      "ms": 7.06
+    }
+  ],
+  "sample_count": 13,
+  "max_ms": 67.142,
+  "background_completion": [
+    {
+      "operation": "10MiB search complete",
+      "ms": 118.38
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 71.676
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 151.381
+    }
+  ],
+  "failures": []
+}

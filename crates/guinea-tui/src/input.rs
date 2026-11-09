@@ -33,15 +33,15 @@ pub struct Input {
 #[cfg(windows)]
 impl Input {
     pub fn new() -> Self {
-        use crossterm::event::{KeyModifiers, MouseButton, MouseEvent, MouseEventKind};
-        use crossterm_winapi::{Console, EventFlags, Handle, InputRecord};
+        use crossterm::event::MouseEvent;
+        use crossterm_winapi::{Console, Handle, InputRecord};
         let (sender, receiver) = std::sync::mpsc::sync_channel(1024);
         let wake_sender = sender.clone();
         std::thread::spawn(move || {
             let run = || -> io::Result<()> {
                 let console = Console::from(Handle::current_in_handle()?);
                 let mut decoder = WindowsKeys::default();
-                let mut left_down = false;
+                let mut mouse_decoder = WindowsMouse::default();
                 loop {
                     match console.read_single_input_event()? {
                         InputRecord::KeyEvent(record) => {
@@ -73,29 +73,18 @@ impl Input {
                                 })?;
                         }
                         InputRecord::MouseEvent(record) => {
-                            let pressed = record.button_state.left_button();
-                            let kind = match record.event_flags {
-                                EventFlags::MouseWheeled if record.button_state.scroll_down() => {
-                                    Some(MouseEventKind::ScrollDown)
-                                }
-                                EventFlags::MouseWheeled => Some(MouseEventKind::ScrollUp),
-                                EventFlags::PressOrRelease | EventFlags::DoubleClick
-                                    if pressed && !left_down =>
-                                {
-                                    Some(MouseEventKind::Down(MouseButton::Left))
-                                }
-                                EventFlags::PressOrRelease if !pressed && left_down => {
-                                    Some(MouseEventKind::Up(MouseButton::Left))
-                                }
-                                _ => None,
-                            };
-                            left_down = pressed;
-                            if let Some(kind) = kind {
+                            let flags = [0x01, 0x02, 0x04, 0x08, 0x10]
+                                .into_iter()
+                                .filter(|&bit| record.control_key_state.has_state(bit))
+                                .sum();
+                            for kind in mouse_decoder
+                                .decode(record.button_state.state(), record.event_flags)
+                            {
                                 let event = Event::Mouse(MouseEvent {
                                     kind,
                                     column: record.mouse_position.x.max(0) as u16,
                                     row: record.mouse_position.y.max(0) as u16,
-                                    modifiers: KeyModifiers::NONE,
+                                    modifiers: windows_modifiers(flags),
                                 });
                                 if sender.send(Ok(event)).is_err() {
                                     return Ok(());
@@ -131,6 +120,72 @@ impl Input {
                 Err(io::Error::other("console input reader stopped"))
             }
         }
+    }
+}
+
+#[cfg(windows)]
+fn windows_modifiers(flags: u32) -> crossterm::event::KeyModifiers {
+    use crossterm::event::KeyModifiers;
+    let mut modifiers = KeyModifiers::NONE;
+    if flags & 0x10 != 0 {
+        modifiers |= KeyModifiers::SHIFT;
+    }
+    if flags & 0x0c != 0 {
+        modifiers |= KeyModifiers::CONTROL;
+    }
+    if flags & 0x03 != 0 {
+        modifiers |= KeyModifiers::ALT;
+    }
+    modifiers
+}
+
+#[cfg(windows)]
+#[derive(Default)]
+struct WindowsMouse {
+    pressed: [bool; 3],
+}
+#[cfg(windows)]
+impl WindowsMouse {
+    fn decode(
+        &mut self,
+        state: i32,
+        flags: crossterm_winapi::EventFlags,
+    ) -> Vec<crossterm::event::MouseEventKind> {
+        use crossterm::event::{MouseButton, MouseEventKind};
+        use crossterm_winapi::EventFlags;
+        if flags == EventFlags::MouseWheeled {
+            return vec![if state < 0 {
+                MouseEventKind::ScrollDown
+            } else {
+                MouseEventKind::ScrollUp
+            }];
+        }
+        if flags == EventFlags::MouseHwheeled {
+            return vec![if state < 0 {
+                MouseEventKind::ScrollLeft
+            } else {
+                MouseEventKind::ScrollRight
+            }];
+        }
+        let buttons = [MouseButton::Left, MouseButton::Middle, MouseButton::Right];
+        let pressed = [state & 1 != 0, state & 4 != 0, state & 2 != 0];
+        let mut events = Vec::new();
+        for (index, &button) in buttons.iter().enumerate() {
+            if pressed[index] != self.pressed[index] {
+                events.push(if pressed[index] {
+                    MouseEventKind::Down(button)
+                } else {
+                    MouseEventKind::Up(button)
+                });
+            }
+        }
+        self.pressed = pressed;
+        if flags == EventFlags::MouseMoved
+            && let Some(index) = pressed.iter().position(|p| *p)
+        {
+            events.push(MouseEventKind::Drag(buttons[index]));
+        }
+        events
     }
 }
 
@@ -215,6 +270,46 @@ impl WindowsKeys {
 mod tests {
     use super::*;
     use crossterm::event::{KeyCode, KeyModifiers};
+    #[test]
+    fn mouse_transitions_drag_buttons_horizontal_wheel_and_modifiers() {
+        use crossterm::event::{MouseButton, MouseEventKind};
+        use crossterm_winapi::EventFlags;
+        let mut mouse = WindowsMouse::default();
+        assert_eq!(
+            mouse.decode(1, EventFlags::PressOrRelease),
+            vec![MouseEventKind::Down(MouseButton::Left)]
+        );
+        assert_eq!(
+            mouse.decode(1, EventFlags::MouseMoved),
+            vec![MouseEventKind::Drag(MouseButton::Left)]
+        );
+        assert_eq!(
+            mouse.decode(0, EventFlags::PressOrRelease),
+            vec![MouseEventKind::Up(MouseButton::Left)]
+        );
+        for (bit, button) in [(4, MouseButton::Middle), (2, MouseButton::Right)] {
+            assert_eq!(
+                mouse.decode(bit, EventFlags::DoubleClick),
+                vec![MouseEventKind::Down(button)]
+            );
+            assert_eq!(
+                mouse.decode(0, EventFlags::PressOrRelease),
+                vec![MouseEventKind::Up(button)]
+            );
+        }
+        assert_eq!(
+            mouse.decode(120 << 16, EventFlags::MouseHwheeled),
+            vec![MouseEventKind::ScrollRight]
+        );
+        assert_eq!(
+            mouse.decode(-120 << 16, EventFlags::MouseHwheeled),
+            vec![MouseEventKind::ScrollLeft]
+        );
+        assert_eq!(
+            windows_modifiers(0x18),
+            KeyModifiers::SHIFT | KeyModifiers::CONTROL
+        );
+    }
 
     #[test]
     fn surrogate_keyup_between_halves_does_not_drop_emoji() {

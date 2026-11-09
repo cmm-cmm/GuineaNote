@@ -1,5 +1,37 @@
 # Test plan and reproduction
 
+## Dialog, mouse and search coverage
+
+After building release binaries, run sequentially:
+
+```powershell
+python -X utf8 scripts/pty_dialog_mouse.py
+python -X utf8 scripts/pty_search.py
+python -X utf8 scripts/pty_responsiveness.py 10485760
+python -X utf8 scripts/pty_tabs.py
+python -X utf8 scripts/pty_agent_latency.py
+python -X utf8 scripts/pty_navigation.py
+```
+
+Do not compile or run another performance probe concurrently. These probes
+enforce strictly <100 ms for measured fresh UI feedback. Search/replacement,
+preview and Agent completion are reported separately. Search exercises a
+10 MiB input with nearly a million matches, page wrap and replace-all/Undo.
+Native small-file assertions verify BOM/CRLF/Unicode byte preservation,
+replace-one/all, two Undo steps, explicit save and read-only protection.
+Dialog/mouse coverage includes real native drag/copy, scroll without caret
+movement, middle-close, default cancel, clickable decision/submit/close,
+file/tab double-click, Vietnamese confirmation and terminal cleanup.
+
+Rust tests cover grapheme-safe matching/field edits, cancellation, page bounds,
+stale query/result rejection, immutable original replacement revision,
+replace-one progression when inserted text contains the needle, and one-step
+Undo. Rendering tests verify small-window hit regions, modal click isolation,
+tab spacing, right-aligned format metadata and default confirmation safety.
+Run `pty_smoke.py`, `pty_workspace.py`, `pty_dialogs_reader.py` and `pty_agent.py`
+for functional regressions. Linux/macOS cross-Clippy does not replace native
+runtime verification.
+
 ## Continuing UI and navigation performance
 
 After `cargo build --workspace --release`, run

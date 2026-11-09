@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-09",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "profile": "release",
+  "max_input_bytes": 10485760,
+  "rust_tests_passed": 108,
+  "checks": [
+    "fmt",
+    "native strict Clippy",
+    "Linux x86_64 cross-Clippy",
+    "macOS aarch64 cross-Clippy",
+    "debug/release workspace builds"
+  ],
+  "native_functional_probes": [
+    "pty_smoke.py",
+    "pty_workspace.py",
+    "pty_dialogs_reader.py",
+    "pty_agent.py",
+    "pty_dialog_mouse.py",
+    "pty_search.py",
+    "pty_tabs.py"
+  ],
+  "ui_reports": {
+    "general": {
+      "file": "docs/responsiveness-dialog-search-general.json",
+      "samples": 196,
+      "max_ms": 54.066
+    },
+    "tabs": {
+      "file": "docs/responsiveness-dialog-search-tabs.json",
+      "samples": 26,
+      "max_ms": 37.034
+    },
+    "agent": {
+      "file": "docs/responsiveness-dialog-search-agent.json",
+      "samples": 28,
+      "max_ms": 8.599
+    },
+    "dialogs-mouse": {
+      "file": "docs/responsiveness-dialog-search-dialogs-mouse.json",
+      "samples": 15,
+      "max_ms": 26.757
+    },
+    "search": {
+      "file": "docs/responsiveness-dialog-search-search.json",
+      "samples": 13,
+      "max_ms": 64.349
+    }
+  },
+  "all_measured_samples": 451,
+  "observed_over_budget_samples": [
+    {
+      "action": "unicode:first-end",
+      "ms": 916.326
+    }
+  ],
+  "navigation_repeat_samples": 128,
+  "navigation_repeat_max_ms": 14.848,
+  "limitations": [
+    "One first-End transition measured 916.326 ms in the initial navigation run; cause not established. Four subsequent independent runs did not reproduce it.",
+    "The strict <100 ms budget is not established for every operation on this host.",
+    "Background completion is measured separately from initial feedback.",
+    "Native Linux/macOS runtime unverified."
+  ],
+  "github_ci_added": false,
+  "final_copy_recheck": {
+    "changes": "Help text and Vietnamese error translations only; search and smoke probes rerun after final release build.",
+    "file": "docs/responsiveness-dialog-search-final-copy.json",
+    "samples": 13,
+    "max_ms": 67.142
+  }
+}

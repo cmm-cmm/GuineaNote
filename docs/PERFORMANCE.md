@@ -1,6 +1,62 @@
 # Performance measurements
 
-## Prepared navigation and amber workspace, 2026-11-09
+## Dialog, mouse and find/replace, 2026-11-09
+
+Native Windows 11/MSVC release; sequential probes after builds completed.
+Input corpus reaches 10 MiB. Measurements include ConPTY transport and Python
+screen parsing, not physical display paint. Background completion is separate.
+
+| Workload | Samples | Max UI ms |
+| --- | ---: | ---: |
+| General editor/review/dialog/tree corpus | 196 | 54.066 |
+| Tab controls and overflow manager | 26 | 37.034 |
+| Human UI during live MCP JSON analysis | 28 | 8.599 |
+| Redesigned dialogs and native mouse actions | 15 | 26.757 |
+| Find/replace including 10 MiB search and replace-all feedback | 13 | 64.349 |
+
+These **278 transitions passed** the strict <100 ms threshold. Raw samples:
+[general](responsiveness-dialog-search-general.json),
+[tabs](responsiveness-dialog-search-tabs.json),
+[Agent](responsiveness-dialog-search-agent.json),
+[dialog/mouse](responsiveness-dialog-search-dialogs-mouse.json),
+[search](responsiveness-dialog-search-search.json).
+
+The initial fresh-session navigation probe had **one 916.326 ms first-End
+outlier among 32 samples**. Its cause is not established; it must not be
+discarded or counted as a passing budget check. Four subsequent independent
+32-sample runs did not reproduce it: **128 responses, max 14.848 ms**. All
+**438 transitions in the primary run include 437 below budget and this one failure**;
+therefore a universal <100 ms claim is not supported. Evidence is retained in
+[initial navigation](responsiveness-navigation-dialog-outlier.json) and
+repeat runs [2](responsiveness-navigation-dialog-run2.json),
+[3](responsiveness-navigation-dialog-run3.json),
+[4](responsiveness-navigation-dialog-run4.json),
+[5](responsiveness-navigation-dialog-run5.json).
+
+After the final help-text/Vietnamese error-copy update and release rebuild,
+the search probe passed again: **13 responses, max 67.142 ms**. Search/page/
+replace-all completion was 118.380/71.676/151.381 ms. The native Unicode smoke
+probe also passed again. [Final copy recheck](responsiveness-dialog-search-final-copy.json)
+retains this additional run. Across all runs, **451 measured transitions have
+450 below budget and one unexplained failure**; repeats do not erase it.
+
+10 MiB search completion was **122.987 ms**, previous-page completion
+**77.676 ms**, and replace-all completion **147.707 ms**. The query has nearly
+a million matches; scanning counts all but retains only 200 per page. Worker
+concurrency is capped at two and query changes cancel/coalesce stale work.
+General JSON review completed in **396.049 ms**; concurrent Agent analysis in
+**877.566 ms**. These single-run completion observations are not a statistical
+throughput comparison. Search/replacement preparation never scans the full
+buffer in the key/mouse handler, and applying a prepared edit swaps shared
+buffer state after revision/access checks.
+
+Reproduction and functional scope are in [TEST_PLAN.md](TEST_PLAN.md).
+[Validation manifest](dialog-search-validation.json) records checks and limits.
+The darker theme/dialog layout does not introduce animation or periodic redraw.
+The native smoke probe observed 0.0 CPU seconds and no output over 2.012 idle
+seconds for a small buffer (RSS 6,500,352 bytes); this is not a peak-memory claim.
+
+## Previous prepared navigation and amber workspace, 2026-11-09
 
 Native Windows 11/MSVC release, sequential local probes after all builds.
 Navy surfaces remain unchanged; the warm foreground is now honey amber.

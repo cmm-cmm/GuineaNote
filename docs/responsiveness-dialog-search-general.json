@@ -1,0 +1,800 @@
+{
+  "budget_ms": 100,
+  "input_bytes_max": 10485760,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "sample_count": 196,
+  "samples": [
+    {
+      "action": "ascii:type-start",
+      "ms": 5.407
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 2.848
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.27
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.239
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.15
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.257
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 2.858
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.227
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.259
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.19
+    },
+    {
+      "action": "ascii:end",
+      "ms": 20.684
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 22.097
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 20.971
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 27.535
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 23.132
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 22.371
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 22.017
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 21.73
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 21.097
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 21.227
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 22.134
+    },
+    {
+      "action": "ascii:insert-end",
+      "ms": 21.501
+    },
+    {
+      "action": "ascii:undo-end",
+      "ms": 21.672
+    },
+    {
+      "action": "ascii:redo-end",
+      "ms": 22.286
+    },
+    {
+      "action": "ascii:backspace-end",
+      "ms": 20.904
+    },
+    {
+      "action": "ascii:home",
+      "ms": 2.915
+    },
+    {
+      "action": "ascii:settings-open",
+      "ms": 4.636
+    },
+    {
+      "action": "ascii:language-vi-apply",
+      "ms": 7.088
+    },
+    {
+      "action": "ascii:settings-open-vi",
+      "ms": 8.256
+    },
+    {
+      "action": "ascii:language-en-apply",
+      "ms": 9.116
+    },
+    {
+      "action": "ascii:file-info-open",
+      "ms": 6.986
+    },
+    {
+      "action": "ascii:file-info-close",
+      "ms": 7.316
+    },
+    {
+      "action": "ascii:tabs-open",
+      "ms": 5.609
+    },
+    {
+      "action": "ascii:tabs-filter",
+      "ms": 7.031
+    },
+    {
+      "action": "ascii:tabs-cancel",
+      "ms": 6.088
+    },
+    {
+      "action": "ascii:help",
+      "ms": 4.453
+    },
+    {
+      "action": "ascii:dismiss-help",
+      "ms": 6.716
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.543
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.259
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.358
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.665
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 4.82
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.424
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.388
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.903
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.912
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.797
+    },
+    {
+      "action": "unicode:end",
+      "ms": 3.492
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 2.805
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.763
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.005
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.382
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.159
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.202
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.056
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 2.907
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.206
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.149
+    },
+    {
+      "action": "unicode:insert-end",
+      "ms": 3.698
+    },
+    {
+      "action": "unicode:undo-end",
+      "ms": 3.191
+    },
+    {
+      "action": "unicode:redo-end",
+      "ms": 2.889
+    },
+    {
+      "action": "unicode:backspace-end",
+      "ms": 3.295
+    },
+    {
+      "action": "unicode:home",
+      "ms": 3.736
+    },
+    {
+      "action": "unicode:settings-open",
+      "ms": 3.644
+    },
+    {
+      "action": "unicode:language-vi-apply",
+      "ms": 6.521
+    },
+    {
+      "action": "unicode:settings-open-vi",
+      "ms": 8.212
+    },
+    {
+      "action": "unicode:language-en-apply",
+      "ms": 7.331
+    },
+    {
+      "action": "unicode:file-info-open",
+      "ms": 6.893
+    },
+    {
+      "action": "unicode:file-info-close",
+      "ms": 7.312
+    },
+    {
+      "action": "unicode:tabs-open",
+      "ms": 5.17
+    },
+    {
+      "action": "unicode:tabs-filter",
+      "ms": 7.836
+    },
+    {
+      "action": "unicode:tabs-cancel",
+      "ms": 6.114
+    },
+    {
+      "action": "unicode:help",
+      "ms": 3.816
+    },
+    {
+      "action": "unicode:dismiss-help",
+      "ms": 6.173
+    },
+    {
+      "action": "note.md:review-chooser",
+      "ms": 5.631
+    },
+    {
+      "action": "note.md:split-feedback",
+      "ms": 6.332
+    },
+    {
+      "action": "note.md:tab-chooser",
+      "ms": 5.225
+    },
+    {
+      "action": "note.md:review-tab",
+      "ms": 9.705
+    },
+    {
+      "action": "note.md:source",
+      "ms": 13.039
+    },
+    {
+      "action": "data.json:review-chooser",
+      "ms": 6.183
+    },
+    {
+      "action": "data.json:split-feedback",
+      "ms": 7.327
+    },
+    {
+      "action": "data.json:tab-chooser",
+      "ms": 6.981
+    },
+    {
+      "action": "data.json:review-tab",
+      "ms": 17.995
+    },
+    {
+      "action": "data.json:source",
+      "ms": 9.473
+    },
+    {
+      "action": "data.xml:review-chooser",
+      "ms": 3.973
+    },
+    {
+      "action": "data.xml:split-feedback",
+      "ms": 5.463
+    },
+    {
+      "action": "data.xml:tab-chooser",
+      "ms": 8.13
+    },
+    {
+      "action": "data.xml:review-tab",
+      "ms": 13.755
+    },
+    {
+      "action": "data.xml:source",
+      "ms": 7.726
+    },
+    {
+      "action": "data.csv:review-chooser",
+      "ms": 4.423
+    },
+    {
+      "action": "data.csv:split-feedback",
+      "ms": 9.158
+    },
+    {
+      "action": "data.csv:tab-chooser",
+      "ms": 4.616
+    },
+    {
+      "action": "data.csv:review-tab",
+      "ms": 12.354
+    },
+    {
+      "action": "data.csv:source",
+      "ms": 7.941
+    },
+    {
+      "action": "data.tsv:review-chooser",
+      "ms": 5.865
+    },
+    {
+      "action": "data.tsv:split-feedback",
+      "ms": 10.271
+    },
+    {
+      "action": "data.tsv:tab-chooser",
+      "ms": 9.212
+    },
+    {
+      "action": "data.tsv:review-tab",
+      "ms": 35.414
+    },
+    {
+      "action": "data.tsv:source",
+      "ms": 9.797
+    },
+    {
+      "action": "data.toml:review-chooser",
+      "ms": 5.663
+    },
+    {
+      "action": "data.toml:split-feedback",
+      "ms": 7.403
+    },
+    {
+      "action": "data.toml:tab-chooser",
+      "ms": 12.363
+    },
+    {
+      "action": "data.toml:review-tab",
+      "ms": 31.129
+    },
+    {
+      "action": "data.toml:source",
+      "ms": 6.194
+    },
+    {
+      "action": "broken.json:review-chooser",
+      "ms": 5.261
+    },
+    {
+      "action": "broken.json:split-feedback",
+      "ms": 10.738
+    },
+    {
+      "action": "broken.json:tab-chooser",
+      "ms": 8.536
+    },
+    {
+      "action": "broken.json:review-tab",
+      "ms": 15.355
+    },
+    {
+      "action": "broken.json:source",
+      "ms": 10.711
+    },
+    {
+      "action": "config.yaml:review-chooser",
+      "ms": 5.836
+    },
+    {
+      "action": "config.yaml:split-feedback",
+      "ms": 12.603
+    },
+    {
+      "action": "config.yaml:tab-chooser",
+      "ms": 13.773
+    },
+    {
+      "action": "config.yaml:review-tab",
+      "ms": 21.336
+    },
+    {
+      "action": "config.yaml:source",
+      "ms": 7.35
+    },
+    {
+      "action": "config.json5:review-chooser",
+      "ms": 7.057
+    },
+    {
+      "action": "config.json5:split-feedback",
+      "ms": 9.086
+    },
+    {
+      "action": "config.json5:tab-chooser",
+      "ms": 10.958
+    },
+    {
+      "action": "config.json5:review-tab",
+      "ms": 18.717
+    },
+    {
+      "action": "config.json5:source",
+      "ms": 6.754
+    },
+    {
+      "action": ".env.local:review-chooser",
+      "ms": 4.914
+    },
+    {
+      "action": ".env.local:split-feedback",
+      "ms": 7.483
+    },
+    {
+      "action": ".env.local:tab-chooser",
+      "ms": 10.306
+    },
+    {
+      "action": ".env.local:review-tab",
+      "ms": 28.254
+    },
+    {
+      "action": ".env.local:source",
+      "ms": 8.992
+    },
+    {
+      "action": "settings.ini:review-chooser",
+      "ms": 4.841
+    },
+    {
+      "action": "settings.ini:split-feedback",
+      "ms": 10.786
+    },
+    {
+      "action": "settings.ini:tab-chooser",
+      "ms": 9.609
+    },
+    {
+      "action": "settings.ini:review-tab",
+      "ms": 35.332
+    },
+    {
+      "action": "settings.ini:source",
+      "ms": 7.19
+    },
+    {
+      "action": "app.properties:review-chooser",
+      "ms": 6.153
+    },
+    {
+      "action": "app.properties:split-feedback",
+      "ms": 6.564
+    },
+    {
+      "action": "app.properties:tab-chooser",
+      "ms": 6.511
+    },
+    {
+      "action": "app.properties:review-tab",
+      "ms": 13.167
+    },
+    {
+      "action": "app.properties:source",
+      "ms": 8.875
+    },
+    {
+      "action": "application.config:review-chooser",
+      "ms": 6.136
+    },
+    {
+      "action": "application.config:split-feedback",
+      "ms": 15.922
+    },
+    {
+      "action": "application.config:tab-chooser",
+      "ms": 10.904
+    },
+    {
+      "action": "application.config:review-tab",
+      "ms": 28.599
+    },
+    {
+      "action": "application.config:source",
+      "ms": 9.129
+    },
+    {
+      "action": ".prettierrc:review-chooser",
+      "ms": 8.144
+    },
+    {
+      "action": ".prettierrc:split-feedback",
+      "ms": 8.262
+    },
+    {
+      "action": ".prettierrc:tab-chooser",
+      "ms": 13.102
+    },
+    {
+      "action": ".prettierrc:review-tab",
+      "ms": 26.256
+    },
+    {
+      "action": ".prettierrc:source",
+      "ms": 6.331
+    },
+    {
+      "action": "example.ipynb:review-chooser",
+      "ms": 10.152
+    },
+    {
+      "action": "example.ipynb:split-feedback",
+      "ms": 9.217
+    },
+    {
+      "action": "example.ipynb:tab-chooser",
+      "ms": 13.705
+    },
+    {
+      "action": "example.ipynb:review-tab",
+      "ms": 29.906
+    },
+    {
+      "action": "example.ipynb:source",
+      "ms": 8.497
+    },
+    {
+      "action": "algorithm.futurelang:review-chooser",
+      "ms": 5.992
+    },
+    {
+      "action": "algorithm.futurelang:split-feedback",
+      "ms": 8.745
+    },
+    {
+      "action": "algorithm.futurelang:tab-chooser",
+      "ms": 13.513
+    },
+    {
+      "action": "algorithm.futurelang:review-tab",
+      "ms": 36.471
+    },
+    {
+      "action": "algorithm.futurelang:source",
+      "ms": 8.048
+    },
+    {
+      "action": "script:review-chooser",
+      "ms": 4.458
+    },
+    {
+      "action": "script:split-feedback",
+      "ms": 12.495
+    },
+    {
+      "action": "script:tab-chooser",
+      "ms": 13.804
+    },
+    {
+      "action": "script:review-tab",
+      "ms": 34.776
+    },
+    {
+      "action": "script:source",
+      "ms": 5.649
+    },
+    {
+      "action": "large-json:review-chooser",
+      "ms": 5.771
+    },
+    {
+      "action": "large-json:review-feedback",
+      "ms": 8.654
+    },
+    {
+      "action": "large-json:settings-open",
+      "ms": 11.214
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 13.934
+    },
+    {
+      "action": "large-json:settings-open-vi",
+      "ms": 12.442
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 13.704
+    },
+    {
+      "action": "large-json:settings-open",
+      "ms": 15.142
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 16.928
+    },
+    {
+      "action": "large-json:settings-open-vi",
+      "ms": 17.325
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 17.859
+    },
+    {
+      "action": "large-json:settings-open",
+      "ms": 20.364
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 20.202
+    },
+    {
+      "action": "large-json:settings-open-vi",
+      "ms": 19.519
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 19.366
+    },
+    {
+      "action": "workflow:next-tab",
+      "ms": 6.524
+    },
+    {
+      "action": "workflow:copy",
+      "ms": 6.963
+    },
+    {
+      "action": "workflow:new-tab",
+      "ms": 6.519
+    },
+    {
+      "action": "workflow:tabs-open",
+      "ms": 5.369
+    },
+    {
+      "action": "workflow:tabs-filter",
+      "ms": 9.792
+    },
+    {
+      "action": "workflow:tabs-cancel",
+      "ms": 7.722
+    },
+    {
+      "action": "workflow:paste",
+      "ms": 19.063
+    },
+    {
+      "action": "workflow:undo",
+      "ms": 7.963
+    },
+    {
+      "action": "workflow:redo",
+      "ms": 8.361
+    },
+    {
+      "action": "workflow:dirty-close",
+      "ms": 8.319
+    },
+    {
+      "action": "workflow:cancel-close",
+      "ms": 12.939
+    },
+    {
+      "action": "workflow:open-prompt",
+      "ms": 19.311
+    },
+    {
+      "action": "workflow:dismiss-prompt",
+      "ms": 34.704
+    },
+    {
+      "action": "workflow:find-prompt",
+      "ms": 19.813
+    },
+    {
+      "action": "workflow:find-response",
+      "ms": 22.422
+    },
+    {
+      "action": "workflow:show-tree",
+      "ms": 21.613
+    },
+    {
+      "action": "workflow:focus-editor",
+      "ms": 1.987
+    },
+    {
+      "action": "workflow:hide-tree",
+      "ms": 36.696
+    },
+    {
+      "action": "workflow:folder-prompt",
+      "ms": 13.219
+    },
+    {
+      "action": "workflow:folder-response",
+      "ms": 54.066
+    },
+    {
+      "action": "workflow:expand-tree",
+      "ms": 23.312
+    },
+    {
+      "action": "workflow:collapse-tree",
+      "ms": 20.211
+    },
+    {
+      "action": "workflow:quit-prompt",
+      "ms": 11.446
+    }
+  ],
+  "background_completion": [
+    {
+      "operation": "10MiB JSON review completion including locale changes",
+      "ms": 396.049
+    }
+  ],
+  "max_ms": 54.066,
+  "failures": []
+}

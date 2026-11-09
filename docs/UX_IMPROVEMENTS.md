@@ -1,8 +1,37 @@
 # Settings, file navigation and reader redesign
 
-## Continuing workspace polish
+## Dialog, mouse and search redesign
 
-Preserve navy canvas/panel/raised surfaces, green details and warm white.
+All dialogs now share raised title bars, clear borders, a shadow and a clickable
+top-right close button. Confirmations identify affected files and explain the
+consequence above two large decision buttons. Keep working is initially selected;
+Tab/Left/Right changes the selection, Enter/Space applies it, and Y/N remain
+available. Input dialogs have a framed field and clickable Submit/Cancel.
+Settings, review options, file picker and tab manager adapt to compact windows.
+Modal clicks cannot activate controls behind the dialog.
+
+The user requested a slightly darker overall background: canvas `#090E17`,
+panel `#0D1422`, raised surfaces `#162031`. Green, honey amber `#DBAD5B` and
+warm white remain the foreground palette. Confirmations use amber emphasis;
+normal dialogs use green emphasis. The tab toolbar and labels have a spacer;
+format/encoding/newline metadata is right-aligned, including tab-manager details.
+
+Mouse selection supports drag and Shift-click. Vertical scrolling preserves
+the caret; horizontal wheel and Shift+wheel scroll sideways. Keyboard movement
+resumes following the caret. Middle-click closes a tab through existing safety
+checks. File-picker and tab-manager rows support select, real double-click and
+wheel navigation; blank rows do not activate stale targets. Windows input now
+decodes button releases, drag, middle/right buttons and wheel modifiers.
+
+Find/Replace is a full dialog with editable fields, line-numbered context,
+replacement preview, total count, paged results and clickable actions. Literal,
+case-sensitive scans and prepared replacements run on bounded background
+workers. Revision/access checks precede application, each replace operation is
+one Undo step, and saving is explicit. See [SEARCH_REPLACE.md](SEARCH_REPLACE.md).
+
+## Previous workspace polish checkpoint
+
+At this checkpoint, navy canvas/panel/raised surfaces were preserved.
 The user clarified the warm accent as **honey amber, not orange**: true-color
 `#DBAD5B`, with indexed color 179 as the fallback. Numbers, modified states,
 file metadata and read-only badges use this accent.

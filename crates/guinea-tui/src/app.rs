@@ -16,6 +16,8 @@ use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
 #[path = "agent.rs"]
 mod agent;
+#[path = "search_app.rs"]
+mod search_ui;
 use crate::{
     file_info::FileInfo,
     file_picker::{Action as PickerAction, FilePicker},
@@ -62,10 +64,11 @@ pub struct HitRegions {
     pub editor_text: Rect,
     pub review: Rect,
     pub modal_actions: Vec<(Rect, &'static str)>,
+    pub modal: Rect,
     pub outline: Rect,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub id: u64,
@@ -76,6 +79,7 @@ pub struct Tab {
     pub review_source: Option<u64>,
     pub top: usize,
     pub left: usize,
+    pub follow_cursor: bool,
     pub review: Review,
 }
 
@@ -91,6 +95,7 @@ impl Tab {
             review_source: None,
             top: 0,
             left: 0,
+            follow_cursor: true,
             review: Review::default(),
         }
     }
@@ -118,9 +123,6 @@ pub enum InputKind {
     Open,
     Folder,
     SaveAs,
-    Find,
-    ReplaceNeedle,
-    ReplaceWith(String),
     Command,
 }
 
@@ -130,9 +132,6 @@ impl InputKind {
             Self::Open => "Open file or folder",
             Self::Folder => "Open folder",
             Self::SaveAs => "Save to NEW path",
-            Self::Find => "Find literal (case sensitive)",
-            Self::ReplaceNeedle => "Replace all: find literal",
-            Self::ReplaceWith(_) => "Replace all: replacement (Enter allows empty)",
             Self::Command => "Command (F1 lists commands)",
         }
     }
@@ -147,15 +146,34 @@ pub enum Action {
     OpenLarge { path: PathBuf, replace: Option<u64> },
 }
 
+#[derive(PartialEq, Eq)]
+enum ModalClick {
+    Tab(u64),
+    File(PathBuf),
+    Search(u64, usize),
+}
+
 pub enum Modal {
-    Input { kind: InputKind, value: String },
-    Confirm { action: Action, message: String },
+    Input {
+        kind: InputKind,
+        value: String,
+    },
+    Confirm {
+        action: Action,
+        message: String,
+        selected: bool,
+    },
     Help,
-    Settings { selected: Locale },
-    ReviewOptions { selected: usize },
+    Settings {
+        selected: Locale,
+    },
+    ReviewOptions {
+        selected: usize,
+    },
     FilePicker(Box<FilePicker>),
     FileInfo(FileInfo),
     Tabs(TabManager),
+    Search(crate::search::Search),
 }
 
 #[derive(Debug, Clone)]
@@ -195,12 +213,15 @@ pub struct App {
     pub focus: Focus,
     pub hits: HitRegions,
     pub preferences: Preferences,
+    mouse_selecting: Option<u64>,
+    last_modal_click: Option<(std::time::Instant, ModalClick)>,
     saving: bool,
     quit_after_settings: bool,
     readonly: bool,
     next_untitled: usize,
     clipboard: String,
     search: String,
+    replacement: String,
     pending: Option<Receiver<Completed>>,
     worker: Option<thread::JoinHandle<()>>,
     queued: VecDeque<PathBuf>,
@@ -252,12 +273,15 @@ impl App {
             },
             hits: HitRegions::default(),
             preferences: Preferences::default(),
+            mouse_selecting: None,
+            last_modal_click: None,
             readonly,
             next_untitled: 2,
             saving: false,
             quit_after_settings: false,
             clipboard: String::new(),
             search: String::new(),
+            replacement: String::new(),
             pending: None,
             worker: None,
             queued: files.into(),
@@ -271,6 +295,7 @@ impl App {
             || self.preferences.busy()
             || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
+            || matches!(&self.modal, Some(Modal::Search(p)) if p.busy())
             || self.explorer.scanning()
             || (self.explorer_visible && self.explorer.busy())
             || self.tabs[self.active]
@@ -398,6 +423,7 @@ impl App {
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
         self.poll_agent();
+        self.poll_search();
         let mut documents_changed = false;
         if let Some(result) = self.preferences.poll() {
             self.redraw = true;
@@ -478,6 +504,7 @@ impl App {
             Err(WorkerError::File(FileError::LargeFile { size, limit })) => {
                 if let Job::Open { path, replace, .. } = completed.job {
                     self.modal = Some(Modal::Confirm {
+                        selected: false,
                         action: Action::OpenLarge { path, replace },
                         message: format!(
                             "{size} bytes exceeds warning {limit}. Resident RAM may be much larger. Y open / N cancel"
@@ -573,6 +600,11 @@ impl App {
             }
             return;
         }
+        let before = (
+            self.document().id,
+            self.document().cursor(),
+            self.document().revision(),
+        );
         match event {
             Event::Paste(text) => {
                 self.redraw = true;
@@ -582,6 +614,10 @@ impl App {
                     picker.paste(&text);
                 } else if let Some(Modal::Tabs(manager)) = self.modal.as_mut() {
                     manager.paste(&text);
+                } else if let Some(Modal::Search(search)) = self.modal.as_mut() {
+                    search.paste(&text);
+                    self.search = search.query.clone();
+                    self.replacement = search.replacement.clone();
                 } else if self.modal.is_none()
                     && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode != ViewMode::Review
@@ -590,6 +626,7 @@ impl App {
                 }
             }
             Event::Key(key) if key.kind != KeyEventKind::Release => {
+                self.last_modal_click = None;
                 if self.modal.is_none()
                     && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode == ViewMode::Review
@@ -634,11 +671,17 @@ impl App {
             }
             _ => {}
         }
+        if self.document().id == before.0
+            && (self.document().cursor() != before.1 || self.document().revision() != before.2)
+        {
+            self.tabs[self.active].follow_cursor = true;
+        }
     }
 
     fn modal_key(&mut self, key: KeyEvent) {
         let modal = self.modal.take().expect("modal exists");
         match modal {
+            Modal::Search(search) => self.search_key(search, key),
             Modal::Tabs(mut manager) => {
                 let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
                 match key.code {
@@ -743,13 +786,36 @@ impl App {
                     self.modal = Some(Modal::Help);
                 }
             }
-            Modal::Confirm { action, message } => match key.code {
+            Modal::Confirm {
+                action,
+                message,
+                mut selected,
+            } => match key.code {
                 KeyCode::Char('y' | 'Y') => self.confirm(action),
+                KeyCode::Enter | KeyCode::Char(' ') => {
+                    if selected {
+                        self.confirm(action);
+                    } else {
+                        self.message = "Cancelled".into();
+                    }
+                }
+                KeyCode::Tab | KeyCode::BackTab | KeyCode::Left | KeyCode::Right => {
+                    selected = !selected;
+                    self.modal = Some(Modal::Confirm {
+                        action,
+                        message,
+                        selected,
+                    });
+                }
                 KeyCode::Esc | KeyCode::Char('n' | 'N') => {
                     self.message = "Cancelled".into();
                 }
                 _ => {
-                    self.modal = Some(Modal::Confirm { action, message });
+                    self.modal = Some(Modal::Confirm {
+                        action,
+                        message,
+                        selected,
+                    });
                 }
             },
             Modal::Input { kind, mut value } => {
@@ -795,21 +861,6 @@ impl App {
                 self.config.large_file_warning_bytes,
             ),
             InputKind::SaveAs if !value.is_empty() => self.start_save(PathBuf::from(value)),
-            InputKind::Find => {
-                self.search = value;
-                self.find_next();
-            }
-            InputKind::ReplaceNeedle if !value.is_empty() => {
-                self.prompt(InputKind::ReplaceWith(value))
-            }
-            InputKind::ReplaceWith(needle) => {
-                self.start_compute("Replacing", move |d| {
-                    let count = d.replace_all(&needle, &value)?;
-                    Ok(format!(
-                        "Replaced {count} occurrence(s); Ctrl+Z undoes the transaction"
-                    ))
-                });
-            }
             InputKind::Command => self.command(value.trim()),
             _ => {
                 self.message = "Empty input; cancelled".into();
@@ -818,6 +869,19 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
+        if matches!(
+            key.code,
+            KeyCode::Left
+                | KeyCode::Right
+                | KeyCode::Up
+                | KeyCode::Down
+                | KeyCode::Home
+                | KeyCode::End
+                | KeyCode::PageUp
+                | KeyCode::PageDown
+        ) {
+            self.tabs[self.active].follow_cursor = true;
+        }
         if key.code == KeyCode::F(10) {
             let review = &mut self.tabs[self.active].review;
             review.outline_visible = !review.outline_visible;
@@ -1043,8 +1107,34 @@ impl App {
 
     fn mouse(&mut self, mouse: MouseEvent) {
         let position = (mouse.column, mouse.row).into();
+        if mouse.kind == MouseEventKind::Up(MouseButton::Left) {
+            self.mouse_selecting = None;
+            return;
+        }
+        if mouse.kind == MouseEventKind::Drag(MouseButton::Left) {
+            if self.mouse_selecting == Some(self.document().id)
+                && self.hits.editor.contains(position)
+            {
+                self.place_cursor(mouse.column, mouse.row, true);
+                self.redraw = true;
+            }
+            return;
+        }
+        if matches!(mouse.kind, MouseEventKind::Down(_)) {
+            self.mouse_selecting = None;
+            self.last_modal_click = None;
+        }
         if self.hits.tab_strip.contains(position) {
             match mouse.kind {
+                MouseEventKind::Down(MouseButton::Middle) => {
+                    if let Some((_, index)) =
+                        self.hits.tabs.iter().find(|(r, _)| r.contains(position))
+                    {
+                        self.request_close_tab(*index);
+                        self.redraw = true;
+                    }
+                    return;
+                }
                 MouseEventKind::ScrollDown => {
                     self.command("next");
                     return;
@@ -1106,6 +1196,36 @@ impl App {
                 _ => return,
             }
             self.redraw = true;
+        } else if self.hits.editor.contains(position)
+            && matches!(
+                mouse.kind,
+                MouseEventKind::ScrollUp
+                    | MouseEventKind::ScrollDown
+                    | MouseEventKind::ScrollLeft
+                    | MouseEventKind::ScrollRight
+            )
+        {
+            let tab = &mut self.tabs[self.active];
+            tab.follow_cursor = false;
+            match mouse.kind {
+                MouseEventKind::ScrollUp if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
+                    tab.left = tab.left.saturating_sub(12)
+                }
+                MouseEventKind::ScrollDown if mouse.modifiers.contains(KeyModifiers::SHIFT) => {
+                    tab.left = tab.left.saturating_add(12)
+                }
+                MouseEventKind::ScrollLeft => tab.left = tab.left.saturating_sub(12),
+                MouseEventKind::ScrollRight => tab.left = tab.left.saturating_add(12),
+                MouseEventKind::ScrollUp => tab.top = tab.top.saturating_sub(3),
+                MouseEventKind::ScrollDown => {
+                    tab.top = tab
+                        .top
+                        .saturating_add(3)
+                        .min(tab.document.buffer().len_lines().saturating_sub(1))
+                }
+                _ => {}
+            }
+            self.redraw = true;
         } else if mouse.kind == MouseEventKind::Down(MouseButton::Left) {
             if let Some((_, index)) = self
                 .hits
@@ -1125,7 +1245,12 @@ impl App {
                 self.command(action);
             } else if self.hits.editor.contains(position) {
                 self.focus = Focus::Editor;
-                self.place_cursor(mouse.column, mouse.row);
+                self.place_cursor(
+                    mouse.column,
+                    mouse.row,
+                    mouse.modifiers.contains(KeyModifiers::SHIFT),
+                );
+                self.mouse_selecting = Some(self.document().id);
                 self.redraw = true;
             }
         }
@@ -1133,18 +1258,71 @@ impl App {
 
     fn modal_mouse(&mut self, mouse: MouseEvent) {
         self.redraw = true;
-        if let Some(Modal::Tabs(manager)) = &mut self.modal {
+        let point = (mouse.column, mouse.row).into();
+        if mouse.kind == MouseEventKind::Down(MouseButton::Left)
+            && self
+                .hits
+                .modal_actions
+                .iter()
+                .any(|(r, a)| *a == "cancel" && r.contains(point))
+        {
+            let search = matches!(&self.modal, Some(Modal::Search(_)));
+            self.modal = None;
+            self.last_modal_click = None;
+            self.message = if search { "Search closed" } else { "Cancelled" }.into();
+            return;
+        }
+        if matches!(&self.modal, Some(Modal::Search(_))) {
+            let Some(Modal::Search(mut search)) = self.modal.take() else {
+                unreachable!()
+            };
+            let mut go = false;
+            if search.list.contains(point) && search.ready() {
+                match mouse.kind {
+                    MouseEventKind::ScrollUp => search.navigate(true),
+                    MouseEventKind::ScrollDown => search.navigate(false),
+                    MouseEventKind::Down(MouseButton::Left) => {
+                        let at = search.top() + mouse.row.saturating_sub(search.list.y) as usize;
+                        if let Some(found) = search.entries.get(at) {
+                            go = self.double_click(ModalClick::Search(
+                                self.document().id,
+                                found.range.start,
+                            ));
+                            search.selected = at;
+                            search.focus = 2;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+            self.modal = Some(Modal::Search(search));
+            self.search_action(if go { "search-go" } else { "search-select" });
+            if go {
+                return;
+            }
+        }
+        if matches!(&self.modal, Some(Modal::Tabs(_))) {
+            let Some(Modal::Tabs(mut manager)) = self.modal.take() else {
+                unreachable!()
+            };
             match mouse.kind {
-                MouseEventKind::ScrollUp => manager.move_by(-3),
-                MouseEventKind::ScrollDown => manager.move_by(3),
-                MouseEventKind::Down(MouseButton::Left)
-                    if manager.list.contains((mouse.column, mouse.row).into()) =>
-                {
-                    manager.selected = (manager.top + (mouse.row - manager.list.y) as usize)
-                        .min(manager.filtered.len().saturating_sub(1));
+                MouseEventKind::ScrollUp if manager.list.contains(point) => manager.move_by(-3),
+                MouseEventKind::ScrollDown if manager.list.contains(point) => manager.move_by(3),
+                MouseEventKind::Down(MouseButton::Left) if manager.list.contains(point) => {
+                    let row = manager.top + (mouse.row - manager.list.y) as usize;
+                    if let Some(&entry) = manager.filtered.get(row) {
+                        manager.selected = row;
+                        let index = manager.entries[entry].index;
+                        if self.double_click(ModalClick::Tab(self.tabs[index].id)) {
+                            self.active = index;
+                            self.focus = Focus::Editor;
+                            return;
+                        }
+                    }
                 }
                 _ => {}
             }
+            self.modal = Some(Modal::Tabs(manager));
         }
         if matches!(&self.modal, Some(Modal::FilePicker(_))) {
             let Some(Modal::FilePicker(mut picker)) = self.modal.take() else {
@@ -1153,12 +1331,16 @@ impl App {
             let point = (mouse.column, mouse.row).into();
             let mut action = PickerAction::Keep;
             match mouse.kind {
-                MouseEventKind::ScrollUp => picker.move_by(-3),
-                MouseEventKind::ScrollDown => picker.move_by(3),
+                MouseEventKind::ScrollUp if picker.hits.list.contains(point) => picker.move_by(-3),
+                MouseEventKind::ScrollDown if picker.hits.list.contains(point) => picker.move_by(3),
                 MouseEventKind::Down(MouseButton::Left) if picker.hits.list.contains(point) => {
-                    picker.selected = (picker.top
-                        + mouse.row.saturating_sub(picker.hits.list.y) as usize)
-                        .min(picker.filtered.len().saturating_sub(1))
+                    let row = picker.top + mouse.row.saturating_sub(picker.hits.list.y) as usize;
+                    if let Some(&entry) = picker.filtered.get(row) {
+                        picker.selected = row;
+                        if self.double_click(ModalClick::File(picker.entries[entry].path.clone())) {
+                            action = picker.activate();
+                        }
+                    }
                 }
                 MouseEventKind::Down(MouseButton::Left) if picker.hits.parent.contains(point) => {
                     picker.parent()
@@ -1176,8 +1358,8 @@ impl App {
         }
         if let Some(Modal::FileInfo(info)) = &mut self.modal {
             match mouse.kind {
-                MouseEventKind::ScrollDown => info.scroll(3),
-                MouseEventKind::ScrollUp => info.scroll(-3),
+                MouseEventKind::ScrollDown if self.hits.modal.contains(point) => info.scroll(3),
+                MouseEventKind::ScrollUp if self.hits.modal.contains(point) => info.scroll(-3),
                 _ => {}
             }
         }
@@ -1190,6 +1372,17 @@ impl App {
                 .map(|(_, a)| *a)
         {
             match action {
+                action if action.starts_with("search-") => self.search_action(action),
+                "confirm-accept" => {
+                    if let Some(Modal::Confirm { action, .. }) = self.modal.take() {
+                        self.confirm(action);
+                    }
+                }
+                "input-submit" => {
+                    if let Some(Modal::Input { kind, value }) = self.modal.take() {
+                        self.submit(kind, value);
+                    }
+                }
                 "tabs-new" => {
                     self.modal = None;
                     self.command("new");
@@ -1243,7 +1436,22 @@ impl App {
         }
     }
 
-    fn place_cursor(&mut self, column: u16, row: u16) {
+    fn double_click(&mut self, target: ModalClick) -> bool {
+        let now = std::time::Instant::now();
+        let double = self
+            .last_modal_click
+            .take()
+            .is_some_and(|(time, previous)| {
+                previous == target
+                    && now.duration_since(time) < std::time::Duration::from_millis(450)
+            });
+        if !double {
+            self.last_modal_click = Some((now, target));
+        }
+        double
+    }
+
+    fn place_cursor(&mut self, column: u16, row: u16, extend: bool) {
         use guinea_core::coordinates::display_grapheme;
         let rect = self.hits.editor_text;
         if rect.height == 0 || row < rect.y || row >= rect.bottom() {
@@ -1273,7 +1481,13 @@ impl App {
             cell += width;
             offset += grapheme.chars().count();
         }
-        let _ = self.document_mut().select(start + offset, start + offset);
+        let anchor = if extend {
+            self.document().selection().anchor
+        } else {
+            start + offset
+        };
+        let _ = self.document_mut().select(anchor, start + offset);
+        self.tabs[self.active].follow_cursor = true;
     }
 
     fn confirm(&mut self, action: Action) {
@@ -1327,6 +1541,7 @@ impl App {
             self.message = "Background operation in progress; retry when complete".into();
         } else if self.tabs[index].review_source.is_none() && self.tabs[index].document.is_dirty() {
             self.modal = Some(Modal::Confirm {
+                selected: false,
                 action: Action::CloseTab(index),
                 message: format!(
                     "{}\n{}",
@@ -1531,18 +1746,18 @@ impl App {
             "save" => {
                 if let Some(path) = self.document().path.clone() { self.start_save(path); } else { self.prompt(InputKind::SaveAs); }
             }
-            "close" if self.tabs[self.active].review_source.is_none() && self.document().is_dirty() => self.modal = Some(Modal::Confirm { action: Action::Close, message: "Discard unsaved changes in this tab? Y discard / N cancel (Ctrl+S saves after cancel)".into() }),
+            "close" if self.tabs[self.active].review_source.is_none() && self.document().is_dirty() => self.modal = Some(Modal::Confirm { selected: false, action: Action::Close, message: "Discard unsaved changes in this tab? Y discard / N cancel (Ctrl+S saves after cancel)".into() }),
             "close" => self.close(),
-            "quit" if self.tabs.iter().any(|t| t.review_source.is_none() && t.document.is_dirty()) => self.modal = Some(Modal::Confirm { action: Action::Quit, message: "Discard ALL unsaved tabs and quit? Y discard / N cancel (save tabs after cancel)".into() }),
+            "quit" if self.tabs.iter().any(|t| t.review_source.is_none() && t.document.is_dirty()) => self.modal = Some(Modal::Confirm { selected: false, action: Action::Quit, message: "Discard ALL unsaved tabs and quit? Y discard / N cancel (save tabs after cancel)".into() }),
             "quit" => self.request_quit(),
-            "reload" if self.document().path.is_some() => self.modal = Some(Modal::Confirm { action: Action::Reload, message: "Reload from disk and discard this tab's edits/history? Y reload / N cancel".into() }),
+            "reload" if self.document().path.is_some() => self.modal = Some(Modal::Confirm { selected: false, action: Action::Reload, message: "Reload from disk and discard this tab's edits/history? Y reload / N cancel".into() }),
             "reload" => self.message = "Untitled buffer has no file to reload".into(),
             "next" => { self.active = (self.active + 1) % self.tabs.len(); self.focus = Focus::Editor; }
             "prev" => { self.active = (self.active + self.tabs.len() - 1) % self.tabs.len(); self.focus = Focus::Editor; }
             "help" => self.modal = Some(Modal::Help),
-            "find" => self.prompt(InputKind::Find),
+            "find" => self.open_search(false),
             "find-next" => self.find_next(),
-            "replace" => self.prompt(InputKind::ReplaceNeedle),
+            "replace" => self.open_search(true),
             "undo" => self.edit(|d| d.undo().map(|_| ())),
             "redo" => self.edit(|d| d.redo().map(|_| ())),
             "select-all" => self.document_mut().select_all(),
@@ -1927,10 +2142,13 @@ mod tests {
         assert_eq!(std::fs::read_to_string(&path_b).unwrap(), "changed 👩‍💻\n");
         a.command("prev");
         assert_eq!(a.document().text(), "Việt\r\n");
-        a.submit(InputKind::Find, "Việt".into());
+        a.search = "Việt".into();
+        a.find_next();
         drain_jobs(&mut a);
         assert_eq!(a.document().selected_text(), "Việt");
-        a.submit(InputKind::ReplaceWith("Việt".into()), "Vietnam".into());
+        a.start_compute("Replacing", |d| {
+            d.replace_all("Việt", "Vietnam").map(|_| "Replaced".into())
+        });
         drain_jobs(&mut a);
         assert_eq!(a.document().text(), "Vietnam\r\n");
         std::fs::write(&path_a, "external").unwrap();
