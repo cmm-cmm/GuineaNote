@@ -143,6 +143,16 @@ def main():
                 content = client.rpc("resources/read", {"uri": resource["uri"]})["result"]["contents"][0]["text"]
                 assert json.loads(content)["data"]["text"] == text
                 assert "do-not-expose" not in json.dumps(client.history)
+                if modern:
+                    for request_id, metadata in [(1000, None), (1001, {"io.modelcontextprotocol/protocolVersion": "1900-01-01", "io.modelcontextprotocol/clientInfo": {"name": "probe", "version": "1"}, "io.modelcontextprotocol/clientCapabilities": {}})]:
+                        params = {} if metadata is None else {"_meta": metadata}
+                        client.process.stdin.write(json.dumps({"jsonrpc": "2.0", "id": request_id, "method": "tools/list", "params": params}) + "\n")
+                        client.process.stdin.flush()
+                        assert "error" in client.read(request_id)
+                    # The SDK must discard an oversized frame and stay usable.
+                    client.process.stdin.write(json.dumps({"jsonrpc": "2.0", "id": 1002, "method": "tools/call", "params": {"padding": "x" * (2*1024*1024)}}) + "\n")
+                    client.process.stdin.flush()
+                    assert client.tool("get_capabilities")["error"] is None
             finally:
                 client.close()
         print(json.dumps({"cli_json_unicode_scope": "PASS", "mcp_2025_11_25": "PASS",

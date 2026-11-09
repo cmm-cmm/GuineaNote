@@ -19,6 +19,7 @@ struct Plan {
     document: String,
     revision: u64,
     prepared: Document,
+    changed: bool,
 }
 pub struct Service {
     pub policy: Policy,
@@ -52,10 +53,11 @@ impl Service {
                 )),
             );
         }
-        let result = if request.request_id.is_empty() || request.request_id.len() > 128 {
+        let valid_id = !request.request_id.is_empty() && request.request_id.len() <= 128;
+        let result = if !valid_id {
             Err(Error::new(
                 "INVALID_ARGUMENT",
-                "request_id must have 1..128 characters",
+                "request_id must have 1..128 UTF-8 bytes",
             ))
         } else if cancelled.load(Ordering::Acquire) {
             Err(Error::new(
@@ -70,8 +72,25 @@ impl Service {
         } else {
             self.execute(request.operation.clone(), &cancelled)
         };
-        let response = self.response(&request.request_id, result);
-        if request.operation.mutates() && self.completed.len() < 2048 {
+        let result = result.and_then(|value| {
+            if serde_json::to_vec(&value).map_or(true, |v| v.len() > RESPONSE_BYTES) {
+                Err(Error::new(
+                    "LIMIT_EXCEEDED",
+                    "Response exceeds 512 KiB; request a smaller page",
+                ))
+            } else {
+                Ok(value)
+            }
+        });
+        let response = self.response(
+            if valid_id {
+                &request.request_id
+            } else {
+                "invalid-request-id"
+            },
+            result,
+        );
+        if valid_id && request.operation.mutates() && self.completed.len() < 2048 {
             self.completed
                 .insert(request.request_id, (fingerprint, response.clone()));
         }
@@ -125,10 +144,11 @@ impl Service {
                 }
                 Ok((snapshot, Some(lease)))
             }
-            (None, Some(path)) => Ok((
-                guinea_io::open(&self.policy.path(path, false)?, true, MAX_FILE)?,
-                None,
-            )),
+            (None, Some(path)) => {
+                let snapshot = guinea_io::open(&self.policy.path(path, false)?, true, MAX_FILE)?;
+                self.policy.relative(snapshot.path.as_ref().unwrap())?;
+                Ok((snapshot, None))
+            }
             _ => Err(Error::new(
                 "INVALID_ARGUMENT",
                 "Provide exactly one of document or path",
@@ -154,8 +174,8 @@ impl Service {
         }
         self.live()?.parse_id(id, 't')
     }
-    fn ui_value(&self, command: UiCommand) -> Result<Value> {
-        match self.live()?.call(command)? {
+    fn ui_value(&self, cancelled: &AtomicBool, command: UiCommand) -> Result<Value> {
+        match self.live()?.call_cancelable(command, cancelled)? {
             UiReply::Value(v) => Ok(v),
             _ => Err(Error::new("INTERNAL", "Unexpected editor reply")),
         }
@@ -289,6 +309,9 @@ impl Service {
                     self.snapshot(document.as_deref(), path.as_deref(), "search")?;
                 let hash = check_hash(&snapshot, expected_hash.as_deref())?;
                 let text = snapshot.text();
+                if start > snapshot.buffer().len_chars() || !snapshot.is_grapheme_boundary(start) {
+                    return Err(Error::new("INVALID_ARGUMENT", "Invalid start boundary"));
+                }
                 let mut matches = Vec::new();
                 let mut next = None;
                 let mut previous_byte = 0;
@@ -312,7 +335,7 @@ impl Service {
                     }
                 }
                 Ok(
-                    json!({"document":document,"revision":snapshot.revision(),"hash":hash,"matches":matches,"truncated":next.is_some(),"next_start":next}),
+                    json!({"source":if document.is_some(){"live"}else{"disk"},"document":document,"revision":snapshot.revision(),"hash":hash,"matches":matches,"truncated":next.is_some(),"next_start":next}),
                 )
             }
             AnalyzeDocument {
@@ -333,6 +356,11 @@ impl Service {
                 )?;
                 result["revision"] = snapshot.revision().into();
                 result["hash"] = hash.into();
+                result["source"] = if document.is_some() { "live" } else { "disk" }.into();
+                result["document"] = json!(document);
+                if cancelled.load(Ordering::Acquire) {
+                    return Err(Error::new("CANCELLED", "Analysis cancelled"));
+                }
                 Ok(result)
             }
             ListTabs { offset, limit } => {
@@ -343,13 +371,17 @@ impl Service {
                     json!({"tabs":tabs.into_iter().skip(offset).take(limit).collect::<Vec<_>>(),"total":total,"truncated":offset.saturating_add(limit)<total,"next_offset":(offset.saturating_add(limit)<total).then_some(offset.saturating_add(limit))}),
                 )
             }
-            ActivateTab { tab } => self.ui_value(UiCommand::Activate {
-                tab: self.tab(&tab)?,
-            }),
-            NewDocument {} => self.ui_value(UiCommand::New),
+            ActivateTab { tab } => self.ui_value(
+                cancelled,
+                UiCommand::Activate {
+                    tab: self.tab(&tab)?,
+                },
+            ),
+            NewDocument {} => self.ui_value(cancelled, UiCommand::New),
             OpenDocument { path } => {
                 let document = guinea_io::open(&self.policy.path(&path, true)?, false, MAX_FILE)?;
-                self.ui_value(UiCommand::Open { document })
+                self.policy.relative(document.path.as_ref().unwrap())?;
+                self.ui_value(cancelled, UiCommand::Open { document })
             }
             PlanDocumentPatch {
                 document,
@@ -384,9 +416,21 @@ impl Service {
                         "Document changed since it was read",
                     ));
                 }
+                let original = snapshot.review_snapshot();
+                let edits = edits
+                    .into_iter()
+                    .map(|e| TextEdit {
+                        start: e.start,
+                        end: e.end,
+                        text: e.text,
+                    })
+                    .collect::<Vec<_>>();
+                snapshot.apply_edits(&edits)?;
                 let mut diff = String::new();
                 for edit in &edits {
-                    let old = snapshot.buffer().slice(edit.start..edit.end)?;
+                    let old = original
+                        .buffer()
+                        .slice(edit.start..edit.start.saturating_add(512).min(edit.end))?;
                     diff.push_str(&format!(
                         "@@ scalar {}..{} @@\n-{}\n+{}\n",
                         edit.start,
@@ -395,16 +439,6 @@ impl Service {
                         edit.text.chars().take(512).collect::<String>()
                     ));
                 }
-                snapshot.apply_edits(
-                    &edits
-                        .into_iter()
-                        .map(|e| TextEdit {
-                            start: e.start,
-                            end: e.end,
-                            text: e.text,
-                        })
-                        .collect::<Vec<_>>(),
-                )?;
                 if snapshot.buffer().len_bytes() as u64 > MAX_FILE {
                     return Err(Error::new(
                         "LIMIT_EXCEEDED",
@@ -415,7 +449,7 @@ impl Service {
                     return Err(Error::new("CANCELLED", "Plan cancelled before publication"));
                 }
                 let plan = id();
-                self.ui_value(UiCommand::Preview {
+                self.ui_value(cancelled, UiCommand::Preview {
                     title: format!("AI diff {}", &plan[..8]),
                     text: format!("AI PROPOSED CHANGES · EXCERPT\nSource is unchanged until apply. Ranges use original Unicode scalar offsets.\n\n{}",diff.chars().take(PAGE_BYTES).collect::<String>()),
                 })?;
@@ -424,6 +458,7 @@ impl Service {
                     Plan {
                         document: document.clone(),
                         revision: expected_revision,
+                        changed: snapshot.revision() != expected_revision,
                         prepared: snapshot,
                     },
                 );
@@ -446,15 +481,23 @@ impl Service {
                         "Patch base revision is stale",
                     ));
                 }
+                if !plan.changed {
+                    let result = json!({"document":plan.document,"revision":plan.revision,"applied":false,"changed":false});
+                    self.plans.remove(&plan_id);
+                    return Ok(result);
+                }
                 if cancelled.load(Ordering::Acquire) {
                     return Err(Error::new("CANCELLED", "Patch cancelled before commit"));
                 }
-                let value = self.ui_value(UiCommand::Apply {
-                    document: snapshot.id,
-                    lease: lease.as_ref().unwrap().id.clone(),
-                    expected_revision: plan.revision,
-                    prepared: plan.prepared.review_snapshot(),
-                })?;
+                let value = self.ui_value(
+                    cancelled,
+                    UiCommand::Apply {
+                        document: snapshot.id,
+                        lease: lease.as_ref().unwrap().id.clone(),
+                        expected_revision: plan.revision,
+                        prepared: plan.prepared.review_snapshot(),
+                    },
+                )?;
                 self.plans.remove(&plan_id);
                 Ok(value)
             }
@@ -478,26 +521,35 @@ impl Service {
                     return Err(Error::new("CANCELLED", "Save cancelled before I/O"));
                 }
                 let report = guinea_io::save(&mut snapshot, &target)?;
-                let mut value = self.ui_value(UiCommand::Saved {
-                    document: snapshot.id,
-                    lease: lease.as_ref().unwrap().id.clone(),
-                    expected_revision,
-                    saved: snapshot,
-                })?;
+                let mut value = self.ui_value(
+                    cancelled,
+                    UiCommand::Saved {
+                        document: snapshot.id,
+                        lease: lease.as_ref().unwrap().id.clone(),
+                        expected_revision,
+                        saved: snapshot,
+                    },
+                )?;
                 value["warning"] = json!(report.warning);
                 Ok(value)
             }
             OpenReview { document, split } => {
                 let (snapshot, lease) = self.snapshot(Some(&document), None, "review")?;
                 drop(lease);
-                self.ui_value(UiCommand::Review {
-                    document: snapshot.id,
-                    split,
-                })
+                self.ui_value(
+                    cancelled,
+                    UiCommand::Review {
+                        document: snapshot.id,
+                        split,
+                    },
+                )
             }
-            CloseTab { tab } => self.ui_value(UiCommand::Close {
-                tab: self.tab(&tab)?,
-            }),
+            CloseTab { tab } => self.ui_value(
+                cancelled,
+                UiCommand::Close {
+                    tab: self.tab(&tab)?,
+                },
+            ),
         }
     }
 }

@@ -1,0 +1,153 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "profile": "release",
+  "file_bytes": 10485760,
+  "workload": "MCP analyze live JSON array while human navigates, opens dialogs and edits another tab",
+  "samples": 28,
+  "concurrent_samples": 28,
+  "max_ms": 9.842,
+  "budget_ms_strict": 100,
+  "agent_analysis_completion_ms": 7678.205,
+  "results": [
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 4.443,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.047,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 4.274,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.154,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.027,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.082,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.25,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 2.966,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.102,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 3.072,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:blocked-edit-feedback",
+      "ms": 2.738,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-open",
+      "ms": 3.694,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-cancel",
+      "ms": 5.606,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:tabs-open",
+      "ms": 9.842,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:tabs-cancel",
+      "ms": 6.905,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:new-other-tab",
+      "ms": 7.427,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 3.089,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 2.759,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 2.802,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 2.947,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 3.572,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 3.057,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 2.826,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 3.42,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 4.716,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 3.328,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.671,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.817,
+      "AI_active_at_input": true
+    }
+  ]
+}

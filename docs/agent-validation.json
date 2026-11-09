@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-09",
+  "branch": "dev",
+  "native_platform": "Windows-11-10.0.26300-SP0 / x86_64-pc-windows-msvc",
+  "phases": {
+    "P0": "implemented and native Windows validated",
+    "P1": "implemented and native Windows validated",
+    "P2": "implemented and native Windows validated",
+    "P3": "implemented and native Windows validated",
+    "P4": "implemented and native Windows validated"
+  },
+  "rust_tests": {
+    "passed": 96,
+    "failed": 0,
+    "core": 19,
+    "io": 12,
+    "service": 8,
+    "syntax": 5,
+    "tui": 47,
+    "cli": 4,
+    "workflow": 1,
+    "note": "Full workspace passed; service tests rerun after lazy-excerpt optimization."
+  },
+  "checks": {
+    "fmt": "PASS",
+    "native_strict_clippy": "PASS",
+    "linux_cross_strict_clippy": "PASS",
+    "macos_cross_strict_clippy": "PASS",
+    "debug_workspace_build": "PASS",
+    "release_workspace_build": "PASS",
+    "locked_dependency_audit": "PASS"
+  },
+  "native_probes": {
+    "agent_smoke.py": "PASS",
+    "pty_agent_sessions.py": "PASS",
+    "pty_agent.py": "PASS",
+    "pty_agent_latency.py": "PASS",
+    "pty_responsiveness.py 10485760": "PASS",
+    "pty_tabs.py": "PASS"
+  },
+  "mcp_wire_versions": [
+    "2025-11-25",
+    "2026-07-28"
+  ],
+  "rustsec_snapshot": "899077d9d471b9fd3dbf4b2faea8ef26e83692e8",
+  "latency": {
+    "max_input_bytes": 10485760,
+    "strict_budget_ms": 100,
+    "general_samples": 196,
+    "general_max_ms": 98.483,
+    "tab_samples": 26,
+    "tab_max_ms": 25.432,
+    "concurrent_agent_samples": 28,
+    "concurrent_agent_max_ms": 27.395,
+    "agent_analysis_completion_ms": 1657.802
+  },
+  "limitations": [
+    "Finite native Windows corpus, not a universal latency guarantee",
+    "Linux/macOS runtime unverified",
+    "Named external MCP host applications unverified",
+    "JSON parser materializes the input tree; no constant-memory claim",
+    "Filesystem TOCTOU limits remain",
+    "No GitHub CI created"
+  ]
+}

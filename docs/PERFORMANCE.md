@@ -1,5 +1,42 @@
 # Performance measurements
 
+## Agent/MCP and AI read-only tabs, 2026-11-09
+
+Native Windows 11/MSVC release binaries, owned temporary fixtures, 10 MiB
+maximum input. No concurrent compilation, audit or other performance probe.
+Each UI sample waits for fresh screen output and includes PTY transport and
+Python screen parsing; physical display/font paint is outside this measurement.
+
+| Workload | Samples | Max ms |
+| --- | ---: | ---: |
+| Existing ASCII/Unicode/editor/review/dialog/tree corpus | 196 | 98.483 |
+| Mouse/tab controls, overflow and dirty-close protection | 26 | 25.432 |
+| Live 10 MiB JSON analysis with concurrent human UI actions | 28 | 27.395 |
+
+All **250 samples are strictly <100 ms**. The slowest existing-corpus sample
+is Unicode End navigation; its 98.483 ms has little headroom, so this is finite
+host/workload evidence, not a guarantee for arbitrary hardware or operations.
+The concurrent probe checks that all 28 inputs occur while analysis is active:
+locked-source navigation/edit feedback, Settings, tab manager, new tab and
+typing in another tab. The locked document's contents remain unchanged.
+
+Agent analysis completion: **1,657.802 ms**, including MCP/local IPC and hash,
+not part of the UI response budget. Before constructing excerpts only for the
+requested page, the same root-array workload took **7,678.205 ms** (28 UI
+samples, max 9.842 ms). This single before/after pair observes about 4.6× lower
+completion time; it is not a statistical throughput benchmark. The JSON parser
+still materializes its input tree; no constant-memory claim is made. Existing
+10 MiB JSON TUI review completes in **775.823 ms**, measured separately.
+
+Raw evidence: [general regression](responsiveness-agent-regression.json),
+[tab controls](responsiveness-agent-tabs.json), [Agent before](responsiveness-agent-before.json),
+[Agent final](responsiveness-agent.json). Reproduce after
+`cargo build --workspace --release` with `pty_responsiveness.py 10485760`,
+`pty_tabs.py` and `pty_agent_latency.py` in scripts. Run sequentially.
+Linux/macOS native latency remains unverified. General/tab probes ran before
+the final worker-only lazy-excerpt optimization; Agent and live functional
+probes were rerun afterward.
+
 ## Visible tab management, 2026-11-09
 
 The extended native release corpus adds All tabs opening, filtering and
@@ -17,8 +54,8 @@ below apply; these 222 passing samples do not certify every input or platform.
 Tab labels are generated only for the visible neighborhood, and All tabs caches
 metadata for filtering without reading file contents or the filesystem. Dirty
 counts exclude linked reviews to avoid counting a source twice. Existing TUI
-performance protections remain in place. No Agent/MCP runtime was introduced;
-its latency/queue proposals are unmeasured future work in AGENT_MCP_PLAN.md.
+performance protections remain in place. Agent/MCP was still a proposal at
+that previous checkpoint; its current evidence is recorded above.
 
 ## Green/brown/white details on the original navy, 2026-11-09
 

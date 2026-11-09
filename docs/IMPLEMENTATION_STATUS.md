@@ -15,7 +15,24 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — visible tab management and Agent/MCP assessment
+## Latest checkpoint — Agent CLI/MCP and AI read-only tabs
+
+P0–P3 now have a shared typed service, separate JSON CLI and MCP stdio binaries,
+explicit live-session IPC, workspace/capability policy, unsaved snapshots,
+patch plan/diff/apply, one-step undo, revision-checked save and bounded retry
+receipts. The source and linked review show AI and temporarily become read-only
+while leased; other tabs remain editable. P4 adds native Windows isolation,
+cancellation, overload, path/junction, secret and malformed-input checks.
+See AGENT_IMPLEMENTATION.md for current phase evidence and platform scope,
+and AGENT_USAGE.md for dev commands. No GitHub CI was added.
+
+P0–P4 pass native Windows validation: 96 Rust tests, strict native and
+Linux/macOS cross-target Clippy, builds and dependency audit. The 10 MiB
+release corpus has 250 UI samples, max 98.483 ms; its 28 concurrent Agent
+samples max at 27.395 ms. Native Linux/macOS and named external MCP host
+applications remain unverified. All work is on dev; main is unchanged.
+
+## Previous checkpoint — visible tab management and Agent/MCP assessment
 
 Added local New/Save/Close/Previous/Next/All tabs controls, active/total count,
 unsaved state, numbered blank names and per-tab close buttons. Ctrl+P opens

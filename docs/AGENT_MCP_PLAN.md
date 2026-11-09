@@ -1,8 +1,8 @@
 # Kế hoạch CLI và MCP cho AI Agent
 
-Ngày đánh giá: 2026-11-09. Trạng thái mới: **đang triển khai toàn bộ P0–P4 trên
-nhánh dev theo yêu cầu người dùng**. Xem AGENT_IMPLEMENTATION.md để biết chức
-năng đã kiểm chứng và phần P4 đang hoàn tất. Phần còn lại dưới đây là kế hoạch
+Ngày đánh giá: 2026-11-09. Trạng thái mới: **đã triển khai P0–P4 trên nhánh dev,
+kiểm chứng native Windows**. Xem AGENT_IMPLEMENTATION.md để biết bằng chứng,
+giới hạn và phần runtime Linux/macOS chưa kiểm chứng. Phần còn lại là kế hoạch
 thiết kế ban đầu. Kế hoạch này bổ sung cho việc quản lý
 thẻ đang triển khai, không thay thế phần cải thiện trải nghiệm người dùng.
 

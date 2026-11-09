@@ -12,6 +12,7 @@ pub use service::Service;
 pub const PAGE_BYTES: usize = 65_536;
 pub const MAX_FILE: u64 = 10 * 1024 * 1024;
 pub const MAX_MESSAGE: usize = 2 * 1024 * 1024;
+pub const RESPONSE_BYTES: usize = MAX_MESSAGE / 4;
 pub const PAGE_ITEMS: usize = 200;
 pub fn id() -> String {
     uuid::Uuid::new_v4().to_string()
@@ -180,9 +181,10 @@ pub struct Error {
 }
 impl Error {
     pub fn new(code: &str, message: impl Into<String>) -> Self {
+        let message = message.into();
         Self {
             code: code.into(),
-            message: message.into(),
+            message: message.chars().take(2048).collect(),
         }
     }
 }

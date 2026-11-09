@@ -54,7 +54,10 @@ impl App {
                 break;
             };
             let acquired = matches!(call.command, UiCommand::Acquire { .. });
-            if call.cancelled.load(Ordering::Acquire)
+            if call
+                .state
+                .compare_exchange(0, 1, Ordering::AcqRel, Ordering::Acquire)
+                .is_err()
                 && !matches!(
                     call.command,
                     UiCommand::Release { .. } | UiCommand::Saved { .. }
@@ -67,6 +70,7 @@ impl App {
                 continue;
             }
             let result = self.agent_command(call.command);
+            call.state.store(3, Ordering::Release);
             let _ = call.reply.send(result);
             // Paint the AI/read-only state before a very short worker can
             // enqueue its release in the same event-loop iteration.
@@ -139,10 +143,7 @@ impl App {
                                 .map(|p| p.to_string_lossy().into_owned()),
                             revision: t.document.revision(),
                             dirty: t.document.is_dirty(),
-                            readonly: self
-                                .agent_leases
-                                .get(&t.document.id)
-                                .map_or(t.document.readonly, |s| s.readonly),
+                            readonly: t.document.readonly,
                             review: t.review_source.is_some(),
                             ai: t.ai_action.is_some(),
                             active: index == self.active,
@@ -197,6 +198,9 @@ impl App {
                         }
                     }
                     self.redraw = true;
+                    if let Some(Modal::Tabs(manager)) = &mut self.modal {
+                        manager.refresh(&self.tabs, self.active, self.config.language);
+                    }
                 }
                 Ok(UiReply::Value(json!({"released":true})))
             }
@@ -262,6 +266,9 @@ impl App {
                     ));
                 }
                 self.tabs[index].document.accept_saved_snapshot(&saved);
+                if let Some(Modal::Tabs(manager)) = &mut self.modal {
+                    manager.refresh(&self.tabs, self.active, self.config.language);
+                }
                 self.redraw = true;
                 Ok(self.agent_value(index))
             }
@@ -348,6 +355,10 @@ mod tests {
             panic!("no snapshot")
         };
         assert!(!prepared.readonly);
+        let UiReply::Tabs(tabs) = a.agent_command(UiCommand::ListTabs).unwrap() else {
+            panic!("missing metadata")
+        };
+        assert!(tabs.iter().all(|t| t.ai && t.readonly));
         for tab in &a.tabs {
             assert!(tab.ai_action.is_some());
             assert!(tab.document.readonly);
@@ -409,5 +420,31 @@ mod tests {
             assert!(a.agent_leases.is_empty());
             assert_eq!(a.document().readonly, readonly);
         }
+    }
+    #[test]
+    fn open_tab_manager_refreshes_when_ai_releases_its_lock() {
+        let (mut a, _directory) = setup(false);
+        let source = a.document().id;
+        a.agent_command(UiCommand::Acquire {
+            document: source,
+            lease: "lease".into(),
+            action: "read".into(),
+        })
+        .unwrap();
+        a.command("tabs");
+        let Some(Modal::Tabs(manager)) = &a.modal else {
+            panic!("manager missing")
+        };
+        assert!(manager.entries[0].ai);
+        assert!(manager.entries[0].readonly);
+        a.agent_command(UiCommand::Release {
+            lease: "lease".into(),
+        })
+        .unwrap();
+        let Some(Modal::Tabs(manager)) = &a.modal else {
+            panic!("manager missing")
+        };
+        assert!(!manager.entries[0].ai);
+        assert!(!manager.entries[0].readonly);
     }
 }

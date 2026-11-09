@@ -36,6 +36,12 @@ impl Connection {
         let write = matches!(args.access, Access::Write);
         let backend = if let Some(session) = &args.session {
             let client = Client::connect(session)?;
+            if args.root.canonicalize()? != client.info().root {
+                return Err(Error::new(
+                    "OUT_OF_SCOPE",
+                    "Selected editor session belongs to a different workspace; pass its --root explicitly",
+                ));
+            }
             if write && !client.info().write {
                 return Err(Error::new(
                     "READ_ONLY",
@@ -58,8 +64,18 @@ impl Connection {
         Ok(Self { backend, write })
     }
     pub fn call(&self, request: Request, cancelled: std::sync::Arc<AtomicBool>) -> Response {
-        let request_id = request.request_id.clone();
-        let result = if request.operation.mutates() && !self.write {
+        let valid_id = !request.request_id.is_empty() && request.request_id.len() <= 128;
+        let request_id = if valid_id {
+            request.request_id.clone()
+        } else {
+            "invalid-request-id".into()
+        };
+        let result = if !valid_id {
+            Err(Error::new(
+                "INVALID_ARGUMENT",
+                "request_id must have 1..128 UTF-8 bytes",
+            ))
+        } else if request.operation.mutates() && !self.write {
             Err(Error::new(
                 "READ_ONLY",
                 "This connection is read-only; writes need explicit grants from both client and TUI",

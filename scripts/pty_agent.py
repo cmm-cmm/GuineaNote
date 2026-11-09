@@ -95,6 +95,24 @@ def main():
                             "expected_revision": current["revision"]}, session_id, True, "save-exact"))
             assert source.read_bytes() == b"\xef\xbb\xbf" + ("agent " + base).encode()
             assert data(cli(root, {"op": "get_transaction", "transaction_id": "save-exact"}, session_id))["state"] == "completed"
+            # A semantic no-op must not dirty or create a new revision.
+            noop = data(cli(root, {"op": "plan_document_patch", "document": document,
+                                  "expected_revision": current["revision"],
+                                  "edits": [{"start": 0, "end": 6, "text": "agent "}]}, session_id, True))
+            unchanged = data(cli(root, {"op": "apply_document_patch", "plan": noop["plan"]}, session_id, True))
+            assert unchanged["changed"] is False and unchanged["revision"] == current["revision"]
+            committed = source.read_bytes()
+            source.write_bytes(b"external change")
+            conflict = cli(root, {"op": "save_document", "document": document,
+                                 "expected_revision": current["revision"]}, session_id, True)
+            assert conflict["error"]["code"] == "DISK_CONFLICT"
+            assert source.read_bytes() == b"external change"
+            source.write_bytes(committed)
+            settle(ui)
+            ui.command("reload")
+            ui.wait("Reload from disk")
+            ui.send("y")
+            ui.wait("Reloaded")
 
             for modern in (False, True):
                 client = Mcp(root, modern, session_id, write=True)
@@ -143,6 +161,36 @@ def main():
                             "expected_revision": current["revision"]}, session_id, True))
             assert source.read_bytes() == b"\xef\xbb\xbf" + ("other agent " + base).encode()
 
+            # Cancellation while parsing must release the live-document lease
+            # and update a tab manager that was opened while the lease existed.
+            client = Mcp(root, True, session_id)
+            try:
+                cancel_id = client.send("tools/call", {"name": "analyze_document", "arguments": {"document": large_doc["document"]}})
+                ui.wait("AI 1")
+                ui.send("\x10")
+                ui.wait("OPEN TABS")
+                client.notify("notifications/cancelled", {"requestId": cancel_id, "reason": "local cancellation probe"})
+                ui.wait_until(lambda lines: "AI 1" not in "\n".join(lines) and "AI · READ ONLY" not in "\n".join(lines), timeout=20)
+                assert client.tool("get_capabilities")["error"] is None
+                assert not any(p.get("id") == cancel_id for p in client.history), "Response emitted after acknowledged cancellation"
+                ui.send("\x1b")
+                ui.wait_until(lambda lines: "OPEN TABS" not in "\n".join(lines))
+            finally:
+                client.close()
+
+            # One heavy request holds the worker while eight more exercise the
+            # MCP admission cap. Expected overload is a typed tool error.
+            client = Mcp(root, True, session_id)
+            try:
+                heavy = client.send("tools/call", {"name": "analyze_document", "arguments": {"document": large_doc["document"]}})
+                ui.wait("AI 1")
+                queued = [client.send("tools/call", {"name": "get_capabilities", "arguments": {}}) for _ in range(8)]
+                replies = [client.read(request) for request in queued]
+                assert any(packet.get("result", {}).get("structuredContent", {}).get("error", {}).get("code") == "BUSY" for packet in replies if packet.get("result", {}).get("isError")), replies
+                assert data(client.read(heavy)["result"]["structuredContent"])["format"] == "JSON"
+            finally:
+                client.close()
+
             data(cli(root, {"op": "activate_tab", "tab": large_doc["tab"]}, session_id))
             settle(ui)
             ui.send("\x1b[H\x1b[3~[")  # Replace one ASCII scalar, keeping exactly 10 MiB.
@@ -176,8 +224,10 @@ def main():
             ui.wait("CHILD_EXIT=0")
             assert not list((Path(runtime) / "sessions").glob("*.json"))
             print(json.dumps({"live_unsaved_read": "PASS", "patch_stale_idempotency_one_undo": "PASS",
+                              "noop_revision_and_external_disk_conflict": "PASS",
                               "unicode_bom_crlf_save": "PASS", "mcp_live_both_versions": "PASS",
                               "AI_badge_readonly_other_tab_edit": "PASS", "client_death_cleanup": "PASS",
+                              "mcp_cancel_tab_manager_and_overload": "PASS",
                               "save_client_death_modal_and_transaction": "PASS"}, indent=2))
         finally:
             (ROOT / "target/pty-agent.log").write_bytes(ui.output)

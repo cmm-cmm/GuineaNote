@@ -71,6 +71,40 @@ impl Policy {
                 ));
             };
             let name = name.to_string_lossy().to_lowercase();
+            #[cfg(windows)]
+            if name.ends_with(['.', ' '])
+                || matches!(
+                    name.split('.').next().unwrap_or(""),
+                    "con" | "prn" | "aux" | "nul" | "conin$" | "conout$"
+                )
+                || ["com", "lpt"].iter().any(|prefix| {
+                    name.split('.')
+                        .next()
+                        .unwrap_or("")
+                        .strip_prefix(prefix)
+                        .is_some_and(|n| {
+                            matches!(
+                                n,
+                                "1" | "2"
+                                    | "3"
+                                    | "4"
+                                    | "5"
+                                    | "6"
+                                    | "7"
+                                    | "8"
+                                    | "9"
+                                    | "¹"
+                                    | "²"
+                                    | "³"
+                            )
+                        })
+                })
+            {
+                return Err(Error::new(
+                    "OUT_OF_SCOPE",
+                    "Windows path aliases and device names are not allowed",
+                ));
+            }
             if !self.secrets
                 && (name == ".env"
                     || name.starts_with(".env.")

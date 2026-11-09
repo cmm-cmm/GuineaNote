@@ -181,5 +181,40 @@ The current general response probe has 196 samples; its previous 187-sample
 UX checkpoint remains historical. Rust tab tests cover path disambiguation,
 empty filters, preserved histories, save completion during the dialog, closing
 inactive sources/reviews, stable blank names and narrow/overflow hit regions.
-Agent/MCP is currently a plan, so no protocol conformance or Agent latency pass
-is claimed. See TAB_MANAGEMENT_PLAN.md and AGENT_MCP_PLAN.md.
+The Agent implementation and evidence are recorded in AGENT_IMPLEMENTATION.md.
+
+## Agent CLI / MCP / AI leases
+
+Build all binaries with `cargo build --workspace --release`, then run locally:
+
+```powershell
+python -X utf8 scripts/agent_smoke.py
+python -X utf8 scripts/pty_agent_sessions.py
+python -X utf8 scripts/pty_agent.py
+python -X utf8 scripts/pty_agent_latency.py
+```
+
+Functional probes accept `--debug`; latency evidence uses release. Fixtures,
+preferences and session credentials are owned temporary data. No real user
+document, host MCP configuration or external AI service is modified.
+
+Wire probes cover legacy initialize and modern discovery/per-request metadata,
+Unicode tools/resources, schema rejection, missing/unsupported metadata,
+oversized-frame recovery and EOF. Two native editor processes verify explicit
+session/root matching, same-basename isolation, cross-session handle rejection,
+server write grants and original read-only restoration.
+
+Live editing covers unsaved reads; plan/replay/conflict; invalid overlapping
+edits; no-op revisions; one undo; external disk conflict; exact BOM/CRLF/Unicode
+save; MCP writes; AI badge and blocked human edits with other tabs editable;
+client death; cancellation while tab manager is open; typed overload; save
+client death while Settings is open; transaction lookup and credential cleanup.
+Rust tests cover pre-start cancellation/timeout versus started commit results,
+full UI queues, worker unwind cleanup, source/review locks and Windows junction
+or Unix symlink escape rejection. No host-application certification is claimed.
+
+The concurrent probe times fresh PTY screen feedback for navigation, blocked
+edits, dialogs, switching/new tabs and editing another tab while MCP analyzes
+a 10 MiB JSON array. It requires at least 20 genuinely concurrent inputs and
+fails any response >=100 ms. API completion is measured separately. Run it
+without concurrent builds, audits or other performance probes.

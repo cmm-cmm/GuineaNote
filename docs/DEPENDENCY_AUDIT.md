@@ -80,3 +80,25 @@ preferences and time 0.3.55 with formatting (time-macros 0.2.32) for UTC file
 timestamps. Re-ran the locked workspace offline audit against the recorded
 snapshot: exit 0, advisories/bans/licenses/sources pass, only the existing Syn
 duplicate warning. No policy allowance or advisory exception was added.
+
+## Agent CLI / MCP / local IPC dependencies
+
+Added locked official rmcp 3.9.0 (server/transport-io only), Tokio 1.54.1,
+interprocess 2.4.8 with async local sockets, schemars 1.2.3, UUID 1.29.2 and
+Windows-only windows-permissions 0.2.4 / widestring. The TUI does not link rmcp;
+Agent IPC/runtime starts only with --agent. No remote HTTP transport, shell
+execution tool or model/client runtime is enabled.
+
+Read the 0BSD LICENSE files for interprocess' recvmsg 1.0.0 and doctest-file
+1.1.1: unrestricted use/copy/modify/distribute, with warranty disclaimer. Added
+allowances scoped to these two crates. No advisory was ignored and global
+license/source policy remains unchanged.
+
+Refetched RustSec on 2026-11-09: commit
+`899077d9d471b9fd3dbf4b2faea8ef26e83692e8`, timestamp
+`2026-11-09T11:48:10+01:00`. Locked offline workspace check: exit 0,
+**advisories ok, bans ok, licenses ok, sources ok**. Reviewed duplicate-version
+warnings now include bitflags, block-buffer, cpufeatures, crypto-common, digest,
+sha2 and syn. SDK and existing dependencies require both generations; no
+forced downgrade or weakened advisory policy was used. Native strict Clippy
+is a separate warnings-as-errors gate.

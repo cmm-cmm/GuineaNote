@@ -78,11 +78,21 @@ type to filter, use arrows and Enter to switch, Ctrl+S to save, Ctrl+W to close,
 or Ctrl+N to create. Unsaved source changes require confirmation before discard.
 Narrow windows retain compact controls and keyboard access. See the
 [tab improvement plan](docs/TAB_MANAGEMENT_PLAN.md) and
-[Agent CLI/MCP assessment](docs/AGENT_MCP_PLAN.md); Agent/MCP is currently a plan.
+[Agent CLI/MCP implementation](docs/AGENT_IMPLEMENTATION.md).
 The original navy backgrounds use green, walnut-brown and warm-white details
 and content. The theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
+
+Local Agent access is opt-in: `cargo build --workspace`, then
+`cargo run -- --agent --agent-write .` during development. Separate native
+`guineanote-agent` JSON CLI and `guineanote-mcp` stdio binaries can read live
+unsaved buffers, manage tabs and plan/apply/save revision-checked changes.
+While an Agent owns a document, its source and linked review tabs show **AI**
+and become read-only to the user; other tabs remain editable. Completion,
+failure or cancellation restores the original access state after safe cleanup.
+See the [Vietnamese CLI/MCP guide](docs/AGENT_USAGE.md) for session selection,
+permissions, patch examples and MCP host configuration.
 
 Use `--language vi` / `--language en`, or `language = "vi"` / `"en"` in the
 configuration, for Vietnamese / English. The default is English. F8 opens

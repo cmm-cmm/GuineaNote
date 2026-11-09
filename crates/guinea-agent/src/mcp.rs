@@ -50,10 +50,28 @@ impl Mcp {
         request: Request,
         context: RequestContext<RoleServer>,
     ) -> Result<guinea_service::Response, McpError> {
-        let permit =
-            self.slots.clone().try_acquire_owned().map_err(|_| {
-                McpError::internal_error("BUSY: MCP concurrency limit reached", None)
-            })?;
+        let permit = match self.slots.clone().try_acquire_owned() {
+            Ok(permit) => permit,
+            Err(_) => {
+                return Ok(guinea_service::Response {
+                    schema_version: 1,
+                    request_id: request.request_id,
+                    backend: if self.connection.live() {
+                        "live"
+                    } else {
+                        "disk"
+                    }
+                    .into(),
+                    session_id: self.connection.session(),
+                    revision: None,
+                    data: None,
+                    error: Some(guinea_service::Error::new(
+                        "BUSY",
+                        "MCP concurrency limit reached; retry later",
+                    )),
+                });
+            }
+        };
         let connection = self.connection.clone();
         let cancelled = Arc::new(AtomicBool::new(false));
         let guard = Cancel(cancelled.clone());

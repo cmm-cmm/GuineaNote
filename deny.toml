@@ -5,7 +5,12 @@ yanked = "deny"
 allow = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib", "BSL-1.0", "Apache-2.0 WITH LLVM-exception"]
 # YAML parser's encoding adapter includes WHATWG tables under BSD-3-Clause.
 # Keep the reviewed allowance scoped to encoding_rs; do not suppress advisories.
-exceptions = [{ crate = "encoding_rs", allow = ["MIT", "Apache-2.0", "BSD-3-Clause"] }]
+exceptions = [
+    { crate = "encoding_rs", allow = ["MIT", "Apache-2.0", "BSD-3-Clause"] },
+    # interprocess' recvmsg adapter and documentation helper: reviewed 0BSD.
+    { crate = "recvmsg", allow = ["0BSD"] },
+    { crate = "doctest-file", allow = ["0BSD"] },
+]
 
 [bans]
 multiple-versions = "warn"

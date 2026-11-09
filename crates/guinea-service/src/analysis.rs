@@ -14,12 +14,17 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
     }
     let mut entries = Vec::new();
     let mut count = 0;
-    let mut add = |entry| {
-        if count >= offset && entries.len() < limit {
-            entries.push(entry);
-        }
-        count += 1;
-    };
+    // Construct excerpts only for the requested page. A wide root array can
+    // contain millions of entries; allocating discarded row objects dominates
+    // analysis time even though the actual response contains at most 200.
+    macro_rules! add {
+        ($entry:expr $(,)?) => {{
+            if count >= offset && entries.len() < limit {
+                entries.push($entry);
+            }
+            count += 1;
+        }};
+    }
     match language {
         Language::Markdown => {
             use pulldown_cmark::{Event, Parser, Tag, TagEnd};
@@ -42,7 +47,7 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
                     }
                     Event::End(TagEnd::Heading(_)) => {
                         if let Some((level, byte, title)) = heading.take() {
-                            add(json!({"level":level,"start":byte,"title":title}));
+                            add!(json!({"level":level,"start":byte,"title":title}));
                         }
                     }
                     _ => {}
@@ -54,17 +59,17 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
             match value {
                 Value::Object(map) => {
                     for (key, value) in map {
-                        add(
+                        add!(
                             json!({"key":key.chars().take(512).collect::<String>(),"type":kind(&value),"value":bounded(value)}),
                         );
                     }
                 }
                 Value::Array(list) => {
                     for (index, value) in list.into_iter().enumerate() {
-                        add(json!({"index":index,"type":kind(&value),"value":bounded(value)}));
+                        add!(json!({"index":index,"type":kind(&value),"value":bounded(value)}));
                     }
                 }
-                value => add(json!({"type":kind(&value),"value":bounded(value)})),
+                value => add!(json!({"type":kind(&value),"value":bounded(value)})),
             }
         }
         Language::Csv | Language::Tsv => {
@@ -88,7 +93,7 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
                     .take(16)
                     .map(|v| v.chars().take(64).collect::<String>())
                     .collect::<Vec<_>>();
-                add(json!({"row":index+1,"values":fields}));
+                add!(json!({"row":index+1,"values":fields}));
             }
             return Ok(
                 json!({"format":language.label(),"headers":headers.iter().take(16).map(|s|s.chars().take(64).collect::<String>()).collect::<Vec<_>>(),"column_count":headers.len(),"values_are_excerpts":true,"displayed_columns_max":16,"cell_excerpt_scalars":64,"entries":entries,"total":count,"truncated":offset.saturating_add(limit)<count,"next_offset":(offset.saturating_add(limit)<count).then_some(offset.saturating_add(limit))}),
@@ -105,10 +110,15 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
                     .map_err(|_| Error::new("INVALID_DATA", "Invalid XML"))?
                 {
                     Event::Start(e) => {
+                        for attribute in e.attributes() {
+                            attribute.map_err(|_| {
+                                Error::new("INVALID_DATA", "Invalid XML attributes")
+                            })?;
+                        }
                         if depth == 0 {
                             roots += 1;
                         }
-                        add(
+                        add!(
                             json!({"depth":depth,"element":e.name().as_ref().chars().take(512).collect::<String>()}),
                         );
                         depth += 1;
@@ -117,10 +127,15 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
                         }
                     }
                     Event::Empty(e) => {
+                        for attribute in e.attributes() {
+                            attribute.map_err(|_| {
+                                Error::new("INVALID_DATA", "Invalid XML attributes")
+                            })?;
+                        }
                         if depth == 0 {
                             roots += 1;
                         }
-                        add(
+                        add!(
                             json!({"depth":depth,"element":e.name().as_ref().chars().take(512).collect::<String>()}),
                         );
                     }
@@ -147,7 +162,7 @@ pub fn analyze(text: &str, language: Language, offset: usize, limit: usize) -> R
         }
         _ => {
             for (index, line) in text.lines().enumerate() {
-                add(json!({"line":index+1,"text":line.chars().take(512).collect::<String>()}));
+                add!(json!({"line":index+1,"text":line.chars().take(512).collect::<String>()}));
             }
         }
     }

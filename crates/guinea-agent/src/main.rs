@@ -266,6 +266,8 @@ fn request(command: Command) -> guinea_service::Result<Request> {
 }
 fn main() -> std::process::ExitCode {
     let cli = Cli::parse();
+    let fallback_id = cli.request_id.clone().unwrap_or_else(guinea_service::id);
+    let fallback_session = cli.connect.session.clone();
     let result = (|| {
         let mut request = request(cli.command)?;
         if let Some(id) = cli.request_id {
@@ -276,7 +278,21 @@ fn main() -> std::process::ExitCode {
     })();
     let value = match result {
         Ok(response) => serde_json::to_value(response).unwrap(),
-        Err(error) => serde_json::json!({"schema_version":1,"error":error,"data":null}),
+        Err(error) => serde_json::to_value(guinea_service::Response {
+            schema_version: 1,
+            request_id: fallback_id,
+            backend: if fallback_session.is_some() {
+                "live"
+            } else {
+                "disk"
+            }
+            .into(),
+            session_id: fallback_session,
+            revision: None,
+            error: Some(error),
+            data: None,
+        })
+        .unwrap(),
     };
     println!("{}", serde_json::to_string(&value).unwrap());
     if value["error"].is_null() {

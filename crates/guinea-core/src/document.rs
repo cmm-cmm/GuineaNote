@@ -339,6 +339,13 @@ impl Document {
         if edits.is_empty() {
             return Ok(());
         }
+        if edits.iter().all(|e| {
+            self.buffer
+                .slice(e.start..e.end)
+                .is_ok_and(|text| text == e.text)
+        }) {
+            return Ok(());
+        }
         let mut prepared = self.review_snapshot();
         for edit in ordered.into_iter().rev() {
             prepared.buffer.delete(edit.start..edit.end)?;
@@ -632,6 +639,15 @@ mod tests {
         assert_eq!(d.text(), original);
         assert_eq!(d.revision(), revision);
         assert!(!d.is_dirty());
+        d.apply_edits(&[TextEdit {
+            start: 0,
+            end: 2,
+            text: "a\u{301}".into(),
+        }])
+        .unwrap();
+        assert_eq!(d.revision(), revision);
+        assert!(!d.is_dirty());
+        assert!(!d.undo().unwrap());
         d.apply_edits(&[
             TextEdit {
                 start: 2,

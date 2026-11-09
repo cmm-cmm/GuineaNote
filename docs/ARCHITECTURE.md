@@ -1,5 +1,17 @@
 # Architecture
 
+Current Agent extension: `guinea-service` holds typed operations, policy,
+bounded structured analysis and a live UI command channel; `guinea-agent`
+builds the separate JSON CLI and official rmcp stdio adapter. The TUI remains
+the sole document state owner. Service workers prepare shared snapshots and
+perform filesystem/parse/serialization work; UI commits swap shared buffers
+with revision checks and preserve existing histories. AI leases lock only the
+owned source and linked reviews and release through RAII. Local IPC is
+authenticated owner-only named pipes on Windows or Unix sockets, enabled only
+by --agent. See AGENT_IMPLEMENTATION.md for limits, cancellation and security
+scope. Earlier MVP worker/latency notes below describe their original stage;
+the current active-job loop polls at 8 ms and idle waits up to 250 ms.
+
 `guineanote` parses file/workspace-directory arguments using Clap, loads
 explicit TOML configuration and enters the TUI. Workspace crates:
 
