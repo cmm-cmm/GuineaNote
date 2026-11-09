@@ -71,7 +71,7 @@ fn button(frame: &mut Frame<'_>, rect: Rect, label: &str, theme: Theme, primary:
         rect,
         Line::from(label.to_owned()),
         Style::default()
-            .bg(if primary { theme.mint } else { theme.raised })
+            .bg(if primary { theme.accent } else { theme.raised })
             .fg(if primary { theme.canvas } else { theme.text })
             .add_modifier(Modifier::BOLD),
     );
@@ -94,7 +94,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 frame,
                 row(body, 1, 1),
                 Line::from(tr(locale, "GENERAL  /  LANGUAGE", "CHUNG  /  NGÔN NGỮ")),
-                bold(theme.blue),
+                bold(theme.secondary),
             );
             text(
                 frame,
@@ -131,7 +131,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     Paragraph::new(vec![
                         Line::styled(
                             format!("  {title}"),
-                            bold(if chosen { theme.mint } else { theme.text }),
+                            bold(if chosen { theme.accent } else { theme.text }),
                         ),
                         Line::styled(format!("  {subtitle}"), fg(theme.muted)),
                     ]),
@@ -240,7 +240,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     "↑↓ Choose · Enter Open · 1 / 2 Quick select · Esc Cancel",
                     "↑↓ Chọn · Enter Mở · 1 / 2 Chọn nhanh · Esc Hủy",
                 )),
-                fg(theme.blue),
+                fg(theme.secondary),
             );
         }
         Some(Modal::FilePicker(picker)) => {
@@ -281,7 +281,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 frame,
                 row(body, 4, 1),
                 Line::from(query),
-                Style::default().bg(theme.raised).fg(theme.mint),
+                Style::default().bg(theme.raised).fg(theme.accent),
             );
             let list = Rect::new(
                 body.x + 2,
@@ -320,7 +320,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                         bold(theme.text)
                     } else {
                         fg(if entry.directory {
-                            theme.blue
+                            theme.secondary
                         } else {
                             theme.muted
                         })
@@ -349,7 +349,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     ),
                     Line::from(clipped(kind, 14)),
                     fg(if entry.directory {
-                        theme.mint
+                        theme.accent
                     } else {
                         theme.faint
                     }),
@@ -385,7 +385,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 frame,
                 row(body, body.height - 4, 1),
                 Line::from(clipped(&status, body.width.saturating_sub(4) as usize)),
-                fg(theme.blue),
+                fg(theme.secondary),
             );
             let open = Rect::new(body.x + 2, body.bottom() - 2, 20, 1);
             let cancel = Rect::new(body.x + 25, body.bottom() - 2, 18, 1);
@@ -442,7 +442,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     frame,
                     row(body, 2, 1),
                     Line::from(format!("{} · UTF-8", details.language)),
-                    fg(theme.blue),
+                    fg(theme.secondary),
                 );
                 let summary = format!(
                     " {} {}    │    {} {}    │    {} ",
@@ -462,7 +462,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     Line::from(summary),
                     Style::default()
                         .bg(theme.raised)
-                        .fg(theme.mint)
+                        .fg(theme.accent)
                         .add_modifier(Modifier::BOLD),
                 );
                 let mut y = body.y + 7;
@@ -517,7 +517,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     "↑↓ / PgUp PgDn Scroll · Snapshot at open · Esc Close",
                     "↑↓ / PgUp PgDn Cuộn · Thống kê lúc mở dialog · Esc Đóng",
                 )),
-                fg(theme.blue),
+                fg(theme.secondary),
             );
         }
         _ => return false,

@@ -110,7 +110,7 @@ fn inline(events: &[Event<'_>], theme: Theme, meta: &Metadata) -> Line<'static> 
                     Tag::Emphasis => style = style.add_modifier(Modifier::ITALIC),
                     Tag::Strikethrough => style = style.add_modifier(Modifier::CROSSED_OUT),
                     Tag::Link { dest_url, .. } => {
-                        style = style.fg(theme.blue).add_modifier(Modifier::UNDERLINED);
+                        style = style.fg(theme.secondary).add_modifier(Modifier::UNDERLINED);
                         link_ids.push(meta.indices.get(dest_url.as_ref()).copied());
                     }
                     _ => {}
@@ -126,19 +126,19 @@ fn inline(events: &[Event<'_>], theme: Theme, meta: &Metadata) -> Line<'static> 
             }
             Event::Text(text) => spans.push(Span::styled(safe(text), style)),
             Event::Code(text) => {
-                spans.push(Span::styled(safe(text), fg(theme.amber).bg(theme.raised)))
+                spans.push(Span::styled(safe(text), fg(theme.warm).bg(theme.raised)))
             }
             Event::SoftBreak => spans.push(Span::raw(" ")),
             Event::HardBreak => spans.push(Span::raw("\n")),
             Event::TaskListMarker(done) => spans.push(Span::styled(
                 if *done { "[x] " } else { "[ ] " },
-                fg(theme.mint),
+                fg(theme.accent),
             )),
             Event::Html(text) | Event::InlineHtml(text) => {
                 spans.push(Span::styled(safe(text), fg(theme.muted)))
             }
             Event::FootnoteReference(name) => {
-                spans.push(Span::styled(format!("[{name}]"), fg(theme.purple)))
+                spans.push(Span::styled(format!("[{name}]"), fg(theme.keyword)))
             }
             _ => {}
         }
@@ -192,7 +192,7 @@ fn code_card(writer: &mut Writer, text: &str, alias: &str, theme: Theme) {
         code(writer, text, language, theme);
         return;
     }
-    border(writer, true, &title, theme.blue);
+    border(writer, true, &title, theme.secondary);
     let digits = count.max(1).to_string().len();
     let inner_width = writer.width.saturating_sub(4 + digits + 3).max(1);
     for (index, raw) in text.lines().enumerate() {
@@ -238,7 +238,7 @@ fn code_card(writer: &mut Writer, text: &str, alias: &str, theme: Theme) {
             box_line(writer, Line::from(spans), theme.line, theme);
         }
     }
-    border(writer, false, "", theme.blue);
+    border(writer, false, "", theme.secondary);
     writer.blank();
 }
 fn table(writer: &mut Writer, events: &[Event<'_>], theme: Theme, meta: &Metadata) {
@@ -334,7 +334,7 @@ fn table(writer: &mut Writer, events: &[Event<'_>], theme: Theme, meta: &Metadat
                 spans.push(Span::raw(" "));
                 spans.extend(line.spans.into_iter().map(|span| {
                     if row_index == 0 {
-                        span.style(bold(theme.mint))
+                        span.style(bold(theme.accent))
                     } else {
                         span
                     }
@@ -408,23 +408,23 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                         writer,
                         true,
                         label(writer.locale, "DOCUMENT", "TÀI LIỆU"),
-                        theme.mint,
+                        theme.accent,
                     );
                     for line in wrapped(
-                        Line::styled(title.clone(), bold(theme.mint)),
+                        Line::styled(title.clone(), bold(theme.accent)),
                         writer.width.saturating_sub(4),
                         writer.locale,
                     ) {
-                        box_line(writer, line, theme.mint, theme);
+                        box_line(writer, line, theme.accent, theme);
                     }
-                    border(writer, false, "", theme.mint);
+                    border(writer, false, "", theme.accent);
                 } else {
                     let prefix = format!("H{}  ", level as usize);
-                    writer.push(&prefix, bold(theme.blue));
+                    writer.push(&prefix, bold(theme.secondary));
                     writer.push(
                         &title,
                         bold(if level as usize == 2 {
-                            theme.mint
+                            theme.accent
                         } else {
                             theme.text
                         }),
@@ -465,9 +465,9 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                     .map(|k| format!("{k:?}").to_uppercase())
                     .unwrap_or_else(|| label(writer.locale, "QUOTE", "TRÍCH DẪN").into());
                 let color = if title == "WARNING" || title == "CAUTION" {
-                    theme.amber
+                    theme.warm
                 } else {
-                    theme.purple
+                    theme.keyword
                 };
                 writer.blank();
                 border(writer, true, &title, color);
@@ -489,7 +489,7 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                     writer,
                     true,
                     label(writer.locale, "IMAGE REFERENCE", "THAM CHIẾU ẢNH"),
-                    theme.blue,
+                    theme.secondary,
                 );
                 for line in wrapped(alt, writer.width.saturating_sub(4), writer.locale) {
                     box_line(writer, line, theme.line, theme);
@@ -501,7 +501,7 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                 ) {
                     box_line(writer, line, theme.line, theme);
                 }
-                border(writer, false, "", theme.blue);
+                border(writer, false, "", theme.secondary);
                 writer.blank();
             }
             Event::Start(tag) => {
@@ -526,15 +526,15 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                         } else {
                             "• ".into()
                         };
-                        writer.push(&format!("{indent}{bullet}"), fg(theme.blue));
+                        writer.push(&format!("{indent}{bullet}"), fg(theme.secondary));
                     }
                     Tag::Link { dest_url, .. } => {
-                        style = style.fg(theme.blue).add_modifier(Modifier::UNDERLINED);
+                        style = style.fg(theme.secondary).add_modifier(Modifier::UNDERLINED);
                         link_ids.push(meta.indices.get(dest_url.as_ref()).copied());
                     }
                     Tag::FootnoteDefinition(ref name) => {
                         writer.blank();
-                        writer.push(&format!("[{name}] "), bold(theme.purple));
+                        writer.push(&format!("[{name}] "), bold(theme.keyword));
                     }
                     _ => {}
                 }
@@ -557,9 +557,7 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
                 style = stack.pop().unwrap_or(fg(theme.text));
             }
             Event::Text(text) => prose(writer, &text, style),
-            Event::Code(text) => {
-                writer.push(&format!(" {text} "), fg(theme.amber).bg(theme.raised))
-            }
+            Event::Code(text) => writer.push(&format!(" {text} "), fg(theme.warm).bg(theme.raised)),
             Event::SoftBreak => prose(writer, " ", style),
             Event::HardBreak => writer.newline(),
             Event::Rule => {
@@ -569,10 +567,10 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
             }
             Event::TaskListMarker(done) => writer.push(
                 if done { "[x] " } else { "[ ] " },
-                fg(if done { theme.mint } else { theme.amber }),
+                fg(if done { theme.accent } else { theme.warm }),
             ),
             Event::Html(html) | Event::InlineHtml(html) => writer.push(&html, fg(theme.muted)),
-            Event::FootnoteReference(name) => writer.push(&format!("[{name}]"), fg(theme.purple)),
+            Event::FootnoteReference(name) => writer.push(&format!("[{name}]"), fg(theme.keyword)),
             _ => {}
         }
     }
@@ -580,7 +578,7 @@ pub(super) fn render(writer: &mut Writer, text: &str, theme: Theme) {
         writer.blank();
         writer.row(Line::styled(
             label(writer.locale, "LINK REFERENCES", "THAM CHIẾU LIÊN KẾT"),
-            bold(theme.blue),
+            bold(theme.secondary),
         ));
         for (index, url) in meta.links.iter().enumerate() {
             writer.push(&format!("[{}] {url}\n", index + 1), fg(theme.muted));

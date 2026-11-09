@@ -1,5 +1,16 @@
 # Performance measurements
 
+## Green/brown/white details on the original navy, 2026-11-09
+
+Updated foregrounds, syntax and border accents while preserving the original
+canvas, panel and raised backgrounds in true-color and indexed modes. The
+unchanged 10 MiB release probe passes **187 samples, max 53.321 ms, zero
+>=100 ms**. Background JSON review completion was 738.473 ms separately.
+Raw evidence: [palette run](responsiveness-palette.json). The same host and
+measurement limits below apply. Existing workspace tests (80) passed during
+the palette change, then all 40 TUI tests, strict Clippy, release build and the
+native dialogs/reader probe passed after restoring the original backgrounds.
+
 ## Current Settings and linked-reader UI: below 100 ms, 2026-11-09
 
 Two native release runs after the dialog/reader redesign: **187 samples per

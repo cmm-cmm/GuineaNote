@@ -64,7 +64,8 @@ and full-document search/replace run in the background. Open/search/replace
 temporarily pause edits with visible feedback. Saving allows continued editing;
 completion marks the committed snapshot saved and keeps later edits dirty.
 All actions also work without a mouse.
-The navy/mint theme uses true color on Windows and terminals reporting true
+The original navy backgrounds use green, walnut-brown and warm-white details
+and content. The theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
 

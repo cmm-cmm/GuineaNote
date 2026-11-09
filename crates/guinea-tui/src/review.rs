@@ -216,7 +216,7 @@ impl Review {
                         Content {
                             lines: vec![Line::styled(
                                 safe(&error),
-                                Style::default().fg(Theme::new(basic).red),
+                                Style::default().fg(Theme::new(basic).danger),
                             )],
                             outline: vec![],
                             stats: None,
@@ -368,7 +368,9 @@ fn render_content(
     column: usize,
 ) -> Result<Content, String> {
     let mut writer = Writer::new(width, locale);
-    let title = Style::default().fg(theme.mint).add_modifier(Modifier::BOLD);
+    let title = Style::default()
+        .fg(theme.accent)
+        .add_modifier(Modifier::BOLD);
     match language {
         Language::Markdown => markdown(&mut writer, text, theme),
         Language::Json => {
@@ -494,7 +496,9 @@ fn xml(writer: &mut Writer, text: &str, theme: Theme) -> Result<(), String> {
     let mut roots = 0;
     writer.push(
         &writer.locale.tr("XML · structure view\n\n"),
-        Style::default().fg(theme.mint).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     );
     loop {
         let event = reader
@@ -525,14 +529,14 @@ fn xml(writer: &mut Writer, text: &str, theme: Theme) -> Result<(), String> {
                 if matches!(event, Xml::Start(_)) {
                     depth += 1;
                 }
-                color = theme.blue;
+                color = theme.secondary;
             }
             Xml::End(e) => {
                 depth = depth
                     .checked_sub(1)
                     .ok_or("XML: unexpected closing element")?;
                 output = format!("{}</{}>", "  ".repeat(depth.min(40)), e.as_ref());
-                color = theme.blue;
+                color = theme.secondary;
             }
             Xml::Text(e) => {
                 let value = e.as_ref();
@@ -617,7 +621,9 @@ fn table(
         .min(12)
         .min((writer.width.saturating_sub(8) / 7).max(1));
     let field_width = (writer.width.saturating_sub(9 + columns * 3) / columns.max(1)).clamp(3, 48);
-    let style = Style::default().fg(theme.mint).add_modifier(Modifier::BOLD);
+    let style = Style::default()
+        .fg(theme.accent)
+        .add_modifier(Modifier::BOLD);
     writer.push(
         &format!(
             "{} · {} · {count} {}\n",
@@ -650,7 +656,7 @@ fn table(
                     column + columns
                 )
             },
-            Style::default().fg(theme.amber),
+            Style::default().fg(theme.warm),
         );
     }
     let table_row = |fields: &csv::StringRecord, label: String| -> String {

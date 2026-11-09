@@ -68,20 +68,20 @@ pub(crate) fn panel(title: &str, theme: Theme, focused: bool) -> Block<'static> 
     Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
-        .border_style(text_style(if focused { theme.mint } else { theme.line }))
+        .border_style(text_style(if focused { theme.accent } else { theme.line }))
         .style(Style::default().bg(theme.panel).fg(theme.text))
         .title(Line::styled(
             format!(" {title} "),
-            bold(if focused { theme.mint } else { theme.muted }),
+            bold(if focused { theme.accent } else { theme.muted }),
         ))
 }
 
 fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
     let brand = Line::from(vec![
-        Span::styled(" G/ ", bold(theme.mint)),
+        Span::styled(" G/ ", bold(theme.accent)),
         Span::styled("GUINEA", bold(theme.text)),
-        Span::styled("NOTE", bold(theme.mint)),
+        Span::styled("NOTE", bold(theme.accent)),
         Span::styled(
             locale.tr("    A little more focused.").into_owned(),
             text_style(theme.muted),
@@ -129,7 +129,7 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.right().saturating_sub(x) >= 25 {
         frame.render_widget(
             Paragraph::new(locale.tr("F1 Help   F2 Commands ").into_owned())
-                .style(text_style(theme.blue))
+                .style(text_style(theme.secondary))
                 .alignment(Alignment::Right),
             Rect::new(area.right() - 25, area.y + 1, 25, 1),
         );
@@ -193,15 +193,19 @@ fn explorer(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         let mut spans = vec![
             Span::styled(
                 if selected { "▌" } else { " " },
-                text_style(if focused { theme.mint } else { theme.blue }),
+                text_style(if focused {
+                    theme.accent
+                } else {
+                    theme.secondary
+                }),
             ),
             Span::styled(guides, text_style(theme.faint)),
             Span::styled(
                 format!("{icon} "),
                 text_style(if row.entry.directory {
-                    theme.mint
+                    theme.accent
                 } else {
-                    theme.blue
+                    theme.secondary
                 }),
             ),
             Span::styled(
@@ -214,7 +218,7 @@ fn explorer(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             ),
         ];
         if active_path == Some(row.entry.path.as_path()) {
-            spans.push(Span::styled(" ●", text_style(theme.mint)));
+            spans.push(Span::styled(" ●", text_style(theme.accent)));
         }
         let style = Style::default().bg(if selected { theme.raised } else { theme.panel });
         frame.render_widget(
@@ -333,7 +337,7 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         if area.height > 1 {
             frame.render_widget(
                 Paragraph::new("─".repeat(width as usize)).style(text_style(if selected {
-                    theme.mint
+                    theme.accent
                 } else {
                     theme.line
                 })),
@@ -354,7 +358,7 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Paragraph::new(
                 locale.tr("GUINEANOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document").into_owned(),
             )
-            .style(text_style(theme.mint))
+            .style(text_style(theme.accent))
             .alignment(Alignment::Center),
             area,
         );
@@ -365,16 +369,16 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let large = area.height >= 17 && area.width >= 42;
     let logo = if large {
         vec![
-            Line::styled(r"  ____ _   _ ___ _   _ _____    _    ", bold(theme.mint)),
-            Line::styled(r" / ___| | | |_ _| \ | | ____|  / \   ", bold(theme.mint)),
-            Line::styled(r"| |  _| | | || ||  \| |  _|   / _ \  ", bold(theme.mint)),
-            Line::styled(r"| |_| | |_| || || |\  | |___ / ___ \ ", bold(theme.mint)),
-            Line::styled(r" \____|\___/|___|_| \_|_____/_/   \_\", bold(theme.mint)),
+            Line::styled(r"  ____ _   _ ___ _   _ _____    _    ", bold(theme.accent)),
+            Line::styled(r" / ___| | | |_ _| \ | | ____|  / \   ", bold(theme.accent)),
+            Line::styled(r"| |  _| | | || ||  \| |  _|   / _ \  ", bold(theme.accent)),
+            Line::styled(r"| |_| | |_| || || |\  | |___ / ___ \ ", bold(theme.accent)),
+            Line::styled(r" \____|\___/|___|_| \_|_____/_/   \_\", bold(theme.accent)),
             Line::styled("N O T E", bold(theme.text)),
         ]
     } else {
         vec![
-            Line::styled("G U I N E A N O T E", bold(theme.mint)),
+            Line::styled("G U I N E A N O T E", bold(theme.accent)),
             Line::styled(
                 "T E R M I N A L   W O R K S P A C E",
                 text_style(theme.muted),
@@ -419,7 +423,7 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 format!("  {:<25}", locale.tr(label)),
                 text_style(theme.text),
             ),
-            Span::styled(format!("{shortcut:>9}  ›"), text_style(theme.mint)),
+            Span::styled(format!("{shortcut:>9}  ›"), text_style(theme.accent)),
         ]);
         frame.render_widget(
             Paragraph::new(line).style(Style::default().bg(theme.raised)),
@@ -542,7 +546,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             let label = format!("{:>digits$} │ ", line_idx + 1, digits = gutter - 3);
             frame.render_widget(
                 Paragraph::new(label).style(text_style(if active_line {
-                    theme.mint
+                    theme.accent
                 } else {
                     theme.faint
                 })),
@@ -635,7 +639,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
         };
         frame.render_widget(
             Paragraph::new(Line::from(vec![
-                Span::styled(reader_title, bold(theme.mint)),
+                Span::styled(reader_title, bold(theme.accent)),
                 Span::styled(live, text_style(theme.muted)),
             ])),
             Rect::new(body.x + 1, body.y, body.width.saturating_sub(2), 1),
@@ -666,7 +670,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
             };
             frame.render_widget(
                 Paragraph::new(clipped(&text, body.width.saturating_sub(2) as usize))
-                    .style(text_style(theme.blue)),
+                    .style(text_style(theme.secondary)),
                 Rect::new(body.x + 1, body.y + 1, body.width.saturating_sub(2), 1),
             );
         }
@@ -689,7 +693,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     } else {
         frame.render_widget(
             Paragraph::new(locale.tr(hint).into_owned()).style(text_style(if review.error() {
-                theme.red
+                theme.danger
             } else {
                 theme.muted
             })),
@@ -745,7 +749,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
             frame.render_widget(
                 Paragraph::new(clipped(&label, inner.width as usize)).style(
                     Style::default()
-                        .fg(if selected { theme.mint } else { theme.muted })
+                        .fg(if selected { theme.accent } else { theme.muted })
                         .bg(if selected { theme.raised } else { theme.panel }),
                 ),
                 Rect::new(inner.x, inner.y + offset as u16, inner.width, 1),
@@ -772,7 +776,7 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         Paragraph::new(Line::from(vec![
             Span::styled(
                 if app.busy() { " ◌ " } else { " ● " },
-                text_style(if error { theme.red } else { theme.mint }),
+                text_style(if error { theme.danger } else { theme.accent }),
             ),
             Span::styled(safe(&locale.message(message)), text_style(theme.muted)),
         ])),
@@ -796,9 +800,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         locale.tr(mode).into_owned(),
         Style::default()
             .bg(if document.readonly {
-                theme.amber
+                theme.warm
             } else {
-                theme.mint
+                theme.accent
             })
             .fg(theme.canvas)
             .add_modifier(Modifier::BOLD),
@@ -833,9 +837,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
                 })
                 .into_owned(),
             text_style(if document.is_dirty() {
-                theme.amber
+                theme.warm
             } else {
-                theme.mint
+                theme.accent
             }),
         ),
     ]);
@@ -856,13 +860,13 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
 
 fn modal(frame: &mut Frame<'_>, modal: &Modal, area: Rect, theme: Theme, locale: Locale) {
     let (title, height, border) = match modal {
-        Modal::Help => ("KEYBOARD GUIDE", 31, theme.blue),
-        Modal::Confirm { .. } => ("UNSAVED CHANGES / CONFIRM", 10, theme.amber),
+        Modal::Help => ("KEYBOARD GUIDE", 31, theme.secondary),
+        Modal::Confirm { .. } => ("UNSAVED CHANGES / CONFIRM", 10, theme.warm),
         Modal::Input {
             kind: InputKind::Command,
             ..
-        } => ("COMMANDS", 15, theme.mint),
-        Modal::Input { .. } => ("OPEN / SEARCH / SAVE", 10, theme.mint),
+        } => ("COMMANDS", 15, theme.accent),
+        Modal::Input { .. } => ("OPEN / SEARCH / SAVE", 10, theme.accent),
         _ => return,
     };
     let width = area.width.saturating_sub(4).min(84);
@@ -946,7 +950,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
                     .tr("GUINEANOTE\nResize to at least 30 × 9\nCtrl+Q to quit")
                     .into_owned(),
             )
-            .style(text_style(theme.mint)),
+            .style(text_style(theme.accent)),
             area,
         );
         return;

@@ -106,20 +106,22 @@ pub(crate) fn styled_line(
             let mut style = token.map_or(Style::default().fg(paint.theme.text), |span| {
                 let base = Style::default();
                 match span.kind {
-                    TokenKind::Keyword => base.fg(paint.theme.purple).add_modifier(Modifier::BOLD),
-                    TokenKind::String => base.fg(paint.theme.mint),
-                    TokenKind::Number | TokenKind::Constant => base.fg(paint.theme.amber),
+                    TokenKind::Keyword => base.fg(paint.theme.keyword).add_modifier(Modifier::BOLD),
+                    TokenKind::String => base.fg(paint.theme.accent),
+                    TokenKind::Number | TokenKind::Constant => base.fg(paint.theme.warm),
                     TokenKind::Comment => base.fg(paint.theme.muted).add_modifier(Modifier::ITALIC),
-                    TokenKind::Heading => base.fg(paint.theme.mint).add_modifier(Modifier::BOLD),
-                    TokenKind::Key | TokenKind::Property => base.fg(paint.theme.blue),
-                    TokenKind::Function => base.fg(paint.theme.blue).add_modifier(Modifier::BOLD),
-                    TokenKind::Type => base.fg(paint.theme.amber).add_modifier(Modifier::ITALIC),
-                    TokenKind::Operator => base.fg(paint.theme.red),
+                    TokenKind::Heading => base.fg(paint.theme.accent).add_modifier(Modifier::BOLD),
+                    TokenKind::Key | TokenKind::Property => base.fg(paint.theme.secondary),
+                    TokenKind::Function => {
+                        base.fg(paint.theme.secondary).add_modifier(Modifier::BOLD)
+                    }
+                    TokenKind::Type => base.fg(paint.theme.warm).add_modifier(Modifier::ITALIC),
+                    TokenKind::Operator => base.fg(paint.theme.warm),
                     TokenKind::Punctuation => base.fg(paint.theme.muted),
                     TokenKind::Attribute => {
-                        base.fg(paint.theme.purple).add_modifier(Modifier::ITALIC)
+                        base.fg(paint.theme.keyword).add_modifier(Modifier::ITALIC)
                     }
-                    TokenKind::Escape => base.fg(paint.theme.amber).add_modifier(Modifier::BOLD),
+                    TokenKind::Escape => base.fg(paint.theme.warm).add_modifier(Modifier::BOLD),
                 }
             });
             if char_idx < selection.end && char_idx + count > selection.start {

@@ -11,11 +11,11 @@ from pty_smoke import ROOT, Session
 from PIL import Image, ImageDraw, ImageFont
 
 PALETTE = {
-    "default": "#d8e2f0", "black": "#0c111c", "red": "#ff7e90", "green": "#5ee7b7",
-    "brown": "#f0be6a", "yellow": "#f0be6a", "blue": "#83b5ff", "magenta": "#b99eff",
-    "cyan": "#5ee7b7", "white": "#d8e2f0", "brightblack": "#41536c",
-    "brightred": "#ff7e90", "brightgreen": "#5ee7b7", "brightyellow": "#f0be6a",
-    "brightblue": "#83b5ff", "brightmagenta": "#b99eff", "brightcyan": "#5ee7b7", "brightwhite": "#ffffff",
+    "default": "#f8f5ec", "black": "#0c111c", "red": "#efaa91", "green": "#86d38a",
+    "brown": "#dab58a", "yellow": "#dab58a", "blue": "#bdd9b3", "magenta": "#bad68a",
+    "cyan": "#86d38a", "white": "#f8f5ec", "brightblack": "#91816b",
+    "brightred": "#efaa91", "brightgreen": "#86d38a", "brightyellow": "#dab58a",
+    "brightblue": "#bdd9b3", "brightmagenta": "#bad68a", "brightcyan": "#86d38a", "brightwhite": "#ffffff",
 }
 
 
@@ -47,14 +47,14 @@ def snapshot(session, name):
         for column in range(session.screen.columns):
             char = session.screen.buffer[row][column]
             x, y = pad + column * cell_width, pad + row * cell_height
-            fg, bg = color(char.fg, "#d8e2f0"), color(char.bg, "#0c111c")
+            fg, bg = color(char.fg, "#f8f5ec"), color(char.bg, "#0c111c")
             if char.reverse:
                 fg, bg = bg, fg
             draw.rectangle((x, y, x + cell_width - 1, y + cell_height - 1), fill=bg)
     for row in range(session.screen.lines):
         for column in range(session.screen.columns):
             char = session.screen.buffer[row][column]
-            fg = color(char.bg if char.reverse else char.fg, "#d8e2f0")
+            fg = color(char.bg if char.reverse else char.fg, "#f8f5ec")
             if char.data and char.data != " ":
                 draw.text((pad + column * cell_width, pad + row * cell_height), char.data, font=strong if char.bold else font, fill=fg)
     image.save(folder / f"{name}.png")

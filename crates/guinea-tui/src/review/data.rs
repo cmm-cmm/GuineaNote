@@ -9,7 +9,9 @@ use ratatui::style::{Modifier, Style};
 fn heading(writer: &mut Writer, en: &str, vi: &str, theme: Theme) {
     writer.push(
         if writer.locale == Locale::Vi { vi } else { en },
-        Style::default().fg(theme.mint).add_modifier(Modifier::BOLD),
+        Style::default()
+            .fg(theme.accent)
+            .add_modifier(Modifier::BOLD),
     );
     writer.newline();
     writer.blank();
@@ -207,7 +209,7 @@ pub(super) fn notebook(writer: &mut Writer, text: &str, theme: Theme) -> Result<
                                 .unwrap_or("Error"),
                             output.get("evalue").and_then(|v| v.as_str()).unwrap_or("")
                         ),
-                        Style::default().fg(theme.red),
+                        Style::default().fg(theme.danger),
                     );
                 } else if output.get("data").is_some() {
                     writer.push(
@@ -471,7 +473,9 @@ pub(super) fn config(
                 writer.blank();
                 writer.push(
                     &format!("▾ [{}]\n", field.section),
-                    Style::default().fg(theme.blue).add_modifier(Modifier::BOLD),
+                    Style::default()
+                        .fg(theme.secondary)
+                        .add_modifier(Modifier::BOLD),
                 );
             }
             section = Some(field.section);
@@ -482,9 +486,9 @@ pub(super) fn config(
         );
         writer.push(
             &format!("{} = ", field.key),
-            Style::default().fg(theme.purple),
+            Style::default().fg(theme.keyword),
         );
-        writer.push(&field.value, Style::default().fg(theme.mint));
+        writer.push(&field.value, Style::default().fg(theme.accent));
         writer.newline();
     }
     Ok(())

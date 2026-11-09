@@ -25,9 +25,10 @@ Unix uses Crossterm. Mouse capture is configurable and keyboard paths remain.
 Cleanup attempts mouse restoration separately so a mouse-state error cannot
 skip alternate-screen/cursor/raw-mode restoration.
 
-The navy/mint theme has true-color and 256-color variants, honors NO_COLOR and
-needs no patched font. At narrow sizes the sidebar hides and the editor switches
-to a compact layout. The welcome wordmark is ASCII for font portability.
+The navy theme with green/walnut/warm-white content has true-color and 256-color
+variants, honors NO_COLOR and needs no patched font. At narrow sizes the sidebar
+hides and the editor switches to a compact layout. The welcome wordmark is ASCII
+for font portability.
 
 UI code cannot access a `ropey::Rope`. Document exposes an immutable buffer
 interface and editing commands. TextBuffer uses scalar indices and checked
