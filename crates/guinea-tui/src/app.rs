@@ -324,8 +324,13 @@ impl App {
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
         self.message = format!("Opening {}… edits paused", path.display());
+        let tab_width = self.config.tab_width;
         self.worker = Some(thread::spawn(move || {
-            let result = guinea_io::open(&path, readonly, limit).map_err(Into::into);
+            let result = guinea_io::open(&path, readonly, limit)
+                .inspect(|document| {
+                    document.prepare_view(tab_width);
+                })
+                .map_err(Into::into);
             let _ = sender.send(Completed {
                 job,
                 result,

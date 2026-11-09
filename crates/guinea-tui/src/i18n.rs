@@ -12,6 +12,18 @@ pub enum Locale {
 }
 
 impl Locale {
+    pub fn ai_action(self, action: &str) -> Cow<'static, str> {
+        self.tr(match action {
+            "read" => "Reading",
+            "search" => "Searching",
+            "analyze" => "Analyzing",
+            "plan patch" => "Planning changes",
+            "apply patch" => "Applying changes",
+            "save" => "Saving",
+            "review" => "Opening review",
+            _ => "Working",
+        })
+    }
     pub fn toggle(self) -> Self {
         if self == Self::Vi { Self::En } else { Self::Vi }
     }
@@ -23,6 +35,23 @@ impl Locale {
             "EXPLORER" => "THƯ MỤC",
             "EDITOR" => "SOẠN THẢO",
             "START HERE" => "BẮT ĐẦU",
+            "SOURCE" => "NGUỒN",
+            "SPLIT" => "SONG SONG",
+            "REVIEW" => "XEM TRƯỚC",
+            "Reading" => "Đang đọc",
+            "Searching" => "Đang tìm",
+            "Analyzing" => "Đang phân tích",
+            "Planning changes" => "Lập thay đổi",
+            "Applying changes" => "Áp dụng thay đổi",
+            "Saving" => "Đang lưu",
+            "Opening review" => "Đang mở xem trước",
+            "Working" => "Đang xử lý",
+            "AI released this tab; original access restored" => {
+                "AI đã trả quyền thẻ; khôi phục trạng thái truy cập ban đầu"
+            }
+            " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings" => {
+                " ↑↓ Di chuyển   ^C Sao chép   F6 Thẻ khác   ^T Thẻ mới   F8 Thiết lập"
+            }
             "REVIEW · F7" => "XEM TRƯỚC · F7",
             "Welcome" => "Chào bạn",
             "Untitled" => "Chưa đặt tên",

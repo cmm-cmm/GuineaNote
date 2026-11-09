@@ -198,6 +198,9 @@ impl App {
                         }
                     }
                     self.redraw = true;
+                    if self.message == "AI is working in this tab; read-only until it finishes" {
+                        self.message = "AI released this tab; original access restored".into();
+                    }
                     if let Some(Modal::Tabs(manager)) = &mut self.modal {
                         manager.refresh(&self.tabs, self.active, self.config.language);
                     }

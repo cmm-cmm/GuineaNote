@@ -1,0 +1,111 @@
+{
+  "sample_count": 26,
+  "max_ms": 56.564,
+  "samples": [
+    {
+      "action": "tabs:mouse-new",
+      "ms": 12.938
+    },
+    {
+      "action": "tabs:mouse-save-prompt",
+      "ms": 8.13
+    },
+    {
+      "action": "tabs:save-feedback",
+      "ms": 41.621
+    },
+    {
+      "action": "tabs:mouse-previous",
+      "ms": 19.843
+    },
+    {
+      "action": "tabs:mouse-next",
+      "ms": 19.559
+    },
+    {
+      "action": "tabs:individual-close",
+      "ms": 10.978
+    },
+    {
+      "action": "tabs:mouse-all",
+      "ms": 25.25
+    },
+    {
+      "action": "tabs:filter-alpha",
+      "ms": 16.558
+    },
+    {
+      "action": "tabs:activate-alpha",
+      "ms": 12.385
+    },
+    {
+      "action": "tabs:inactive-dirty-close",
+      "ms": 43.773
+    },
+    {
+      "action": "tabs:cancel-dirty-close",
+      "ms": 8.93
+    },
+    {
+      "action": "tabs:confirm-inactive-close",
+      "ms": 25.848
+    },
+    {
+      "action": "tabs:manager-open",
+      "ms": 28.214
+    },
+    {
+      "action": "tabs:filter-hidden-tab",
+      "ms": 33.465
+    },
+    {
+      "action": "tabs:mouse-switch-hidden",
+      "ms": 17.403
+    },
+    {
+      "action": "tabs:close-review-from-list",
+      "ms": 29.655
+    },
+    {
+      "action": "tabs:close-clean-11",
+      "ms": 56.564
+    },
+    {
+      "action": "tabs:close-clean-10",
+      "ms": 15.605
+    },
+    {
+      "action": "tabs:close-clean-9",
+      "ms": 17.622
+    },
+    {
+      "action": "tabs:close-clean-8",
+      "ms": 14.195
+    },
+    {
+      "action": "tabs:close-clean-7",
+      "ms": 15.972
+    },
+    {
+      "action": "tabs:close-clean-6",
+      "ms": 15.708
+    },
+    {
+      "action": "tabs:close-clean-5",
+      "ms": 12.787
+    },
+    {
+      "action": "tabs:close-clean-4",
+      "ms": 16.819
+    },
+    {
+      "action": "tabs:close-clean-3",
+      "ms": 15.749
+    },
+    {
+      "action": "tabs:close-clean-2",
+      "ms": 16.228
+    }
+  ],
+  "failures": []
+}

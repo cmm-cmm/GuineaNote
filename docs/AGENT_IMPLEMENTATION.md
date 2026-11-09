@@ -90,7 +90,7 @@ been tested yet. Resources return a bounded JSON page; use read_document for
 continuation. No prompts, sampling, remote HTTP or subscription capability is
 advertised.
 
-Evidence: 96 Rust tests pass (core 19, I/O 12, service 8, syntax 5, TUI 47,
+Evidence: 99 Rust tests pass (core 21, I/O 12, service 8, syntax 5, TUI 48,
 CLI 4, workflow 1). Service tests were rerun after the analysis optimization.
 Fmt, native and Linux/macOS cross-target strict Clippy, debug/release workspace
 builds and locked dependency audit pass. Native release wire and live probes
@@ -105,9 +105,11 @@ are owned temporary data.
 | P3 | Plan/diff/apply/save, stale/invalid edits, no-op revisions, one undo, replay/conflict, byte-exact BOM/CRLF/Unicode save, external disk conflict |
 | P4 | Junction/device/secret scope tests, queue/timeout/commit races, worker/client death cleanup, dialog-safe metadata, audit, integration guide and concurrent latency |
 
-Latest release corpus: 196 general UI samples, max **98.483 ms**; 26 tab
-control samples, max **25.432 ms**; 28 samples while MCP analyzes a 10 MiB live
-JSON array, max **27.395 ms**. All 250 are strictly below 100 ms on the recorded
-Windows host. Agent analysis completion is **1,657.802 ms**, separately.
+Latest release corpus: 196 general UI samples, max **71.884 ms**; 26 tab
+control samples, max **56.564 ms**; 28 samples while MCP analyzes a 10 MiB live
+JSON array, max **22.443 ms**; 32 fresh-session navigation samples, max
+**43.349 ms**. All 282 are strictly below 100 ms on the recorded Windows host.
+Agent analysis completion is **2,270.936 ms**, separately. The UI now shows
+localized AI operation details and muted close controls using an amber accent.
 See [raw evidence and limits](PERFORMANCE.md) and [Vietnamese guide](AGENT_USAGE.md).
 These finite samples do not certify all operations, workloads or platforms.

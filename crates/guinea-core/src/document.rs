@@ -118,7 +118,8 @@ pub struct Document {
     revision: u64,
     preferred_column: Option<usize>,
     newline_policy: LineEnding,
-    pub(crate) layout_cache: std::cell::RefCell<Option<std::sync::Arc<crate::view::LineLayout>>>,
+    pub(crate) layout_cache:
+        std::cell::RefCell<Option<std::sync::Arc<crate::view::LineLayout<'static>>>>,
 }
 
 impl Default for Document {

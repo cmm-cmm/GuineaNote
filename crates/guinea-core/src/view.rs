@@ -2,7 +2,7 @@ use crate::{
     Document, EditError, TextBuffer,
     coordinates::{CharIndex, cell_column, display_grapheme},
 };
-use std::sync::Arc;
+use std::{borrow::Cow, sync::Arc};
 use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Clone)]
@@ -16,12 +16,12 @@ struct Checkpoint {
 /// Sparse display index for long Unicode lines. Printable ASCII takes the
 /// allocation-free path below. The cached text and index are shared by clones.
 #[derive(Debug, Clone)]
-pub(crate) struct LineLayout {
+pub(crate) struct LineLayout<'a> {
     line: usize,
     revision: u64,
     tab: usize,
     start: usize,
-    text: String,
+    text: Cow<'a, str>,
     checkpoints: Vec<Checkpoint>,
     scanned: Checkpoint,
     first_tab: Option<(usize, usize)>,
@@ -46,22 +46,32 @@ fn cells(g: &str, cell: usize, tab: usize) -> usize {
     }
 }
 
-impl LineLayout {
+impl LineLayout<'_> {
     fn scan_to(&mut self, through_char: usize, through_cell: usize) {
         while self.scanned.byte < self.text.len()
             && (self.scanned.chars < through_char || self.scanned.cells < through_cell)
         {
             let point = &mut self.scanned;
             let tail = &self.text[point.byte..];
-            let ascii = tail.bytes().take_while(u8::is_ascii).count();
+            // Inspect only the needed prefix plus one lookahead byte. A long
+            // hidden ASCII suffix must not be scanned for a small viewport.
+            let needed = through_char
+                .saturating_sub(point.chars)
+                .max(through_cell.saturating_sub(point.cells))
+                .saturating_add(1);
+            let ascii = tail
+                .bytes()
+                .take(needed)
+                .take_while(|b| b.is_ascii() && *b != b'\r')
+                .count();
             // The last ASCII scalar can combine with the following Unicode
             // scalar (e + combining accent); leave it to segmentation.
-            let ascii = if ascii < tail.len() {
+            let ascii = if ascii < tail.len() && !tail.as_bytes()[ascii].is_ascii() {
                 ascii.saturating_sub(1)
             } else {
                 ascii
             };
-            if ascii > 0 && !tail[..ascii].contains('\r') {
+            if ascii > 0 {
                 for byte in tail[..ascii].bytes() {
                     if point.chars >= through_char && point.cells >= through_cell {
                         break;
@@ -117,11 +127,12 @@ impl LineLayout {
         }
         boundaries.push(self.text.len());
         let tab = self.tab;
+        let text = self.text.as_ref();
         let segments = std::thread::scope(|scope| {
             let jobs = boundaries
                 .windows(2)
                 .map(|range| {
-                    let text = &self.text[range[0]..range[1]];
+                    let text = &text[range[0]..range[1]];
                     scope.spawn(move || {
                         let zero = Checkpoint {
                             chars: 0,
@@ -134,7 +145,9 @@ impl LineLayout {
                             revision: 0,
                             tab,
                             start: 0,
-                            text: text.to_owned(),
+                            // Scoped workers borrow disjoint ranges of the
+                            // existing line; only the sparse index is allocated.
+                            text: Cow::Borrowed(text),
                             checkpoints: vec![zero.clone()],
                             scanned: zero,
                             first_tab: None,
@@ -155,7 +168,13 @@ impl LineLayout {
             graphemes: 0,
         };
         self.checkpoints.clear();
+        let mut first_tab = None;
         for segment in segments {
+            if first_tab.is_none() {
+                first_tab = segment
+                    .first_tab
+                    .map(|(chars, cell)| (base.chars + chars, base.cells + cell));
+            }
             let offset = |point: &Checkpoint| {
                 let cells = if let Some((chars, before)) =
                     segment.first_tab.filter(|(chars, _)| point.chars > *chars)
@@ -180,6 +199,7 @@ impl LineLayout {
             base = offset(&segment.scanned);
         }
         self.scanned = base;
+        self.first_tab = first_tab;
     }
     pub(crate) fn tab_width(&self) -> usize {
         self.tab
@@ -250,6 +270,13 @@ pub struct LineWindow {
 }
 
 impl Document {
+    /// Prepare the first visible line off the UI thread. Bound the extra work
+    /// to the supported interactive file budget; other lines remain lazy.
+    pub fn prepare_view(&self, tab_width: usize) {
+        if self.buffer().len_bytes() <= 10 * 1024 * 1024 {
+            let _ = self.indexed_line(0, tab_width, self.line_bounds(0).map_or(0, |r| r.len()), 0);
+        }
+    }
     pub(crate) fn prepare_layout_edit(
         &self,
         range: &std::ops::Range<usize>,
@@ -287,7 +314,46 @@ impl Document {
             return;
         };
         let layout = Arc::make_mut(layout);
-        layout.text.replace_range(bytes, text);
+        // A complete, tab-free index survives small printable-ASCII edits
+        // between ASCII neighbors. All four coordinate units shift equally.
+        // Unicode joins, controls, tabs and incomplete indexes use the normal
+        // conservative rebuild path below.
+        let printable = |b: &u8| matches!(b, 0x20..=0x7e);
+        let retain_index = layout.scanned.byte == layout.text.len()
+            && layout.first_tab.is_none()
+            && bytes.len().max(text.len()) <= 4096
+            && text.as_bytes().iter().all(printable)
+            && layout.text.as_bytes()[bytes.clone()].iter().all(printable)
+            && (bytes.start == 0
+                || layout
+                    .text
+                    .as_bytes()
+                    .get(bytes.start - 1)
+                    .is_some_and(printable))
+            && layout.text.as_bytes().get(bytes.end).is_none_or(printable);
+        let old_end = bytes.end;
+        let edit_start = bytes.start;
+        let delta = text.len() as isize - bytes.len() as isize;
+        layout.text.to_mut().replace_range(bytes, text);
+        if retain_index {
+            layout
+                .checkpoints
+                .retain(|p| p.byte <= edit_start || p.byte >= old_end);
+            let shift = |p: &mut Checkpoint| {
+                if p.byte >= old_end && p.byte > edit_start {
+                    p.byte = p.byte.saturating_add_signed(delta);
+                    p.chars = p.chars.saturating_add_signed(delta);
+                    p.cells = p.cells.saturating_add_signed(delta);
+                    p.graphemes = p.graphemes.saturating_add_signed(delta);
+                }
+            };
+            for point in &mut layout.checkpoints {
+                shift(point);
+            }
+            shift(&mut layout.scanned);
+            layout.revision = self.revision();
+            return;
+        }
         // Resume before the edit so joining accents/ZWJ/RI clusters are rebuilt.
         let retain = layout
             .checkpoints
@@ -303,7 +369,7 @@ impl Document {
         tab: usize,
         through_char: usize,
         through_cell: usize,
-    ) -> Option<Arc<LineLayout>> {
+    ) -> Option<Arc<LineLayout<'static>>> {
         let mut cache = self.layout_cache.borrow_mut();
         if cache
             .as_ref()
@@ -323,7 +389,7 @@ impl Document {
                 revision: self.revision(),
                 tab,
                 start: range.start,
-                text: self.buffer().slice(range).ok()?,
+                text: Cow::Owned(self.buffer().slice(range).ok()?),
                 checkpoints: vec![Checkpoint {
                     chars: 0,
                     byte: 0,
@@ -492,6 +558,99 @@ impl Document {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn prepared_indexes_survive_ascii_edits_and_rebuild_for_unicode_and_tabs() {
+        for unit in ["ascii Việt e\u{301} 👩‍💻 ", "ascii\tViệt e\u{301} 👩‍💻 "] {
+            let mut d = Document::from_text(&unit.repeat(50000));
+            d.prepare_view(4);
+            assert!(
+                d.layout_cache
+                    .borrow()
+                    .as_ref()
+                    .is_some_and(|l| l.scanned.byte == l.text.len())
+            );
+            for text in ["x", "longer", "e\u{301}"] {
+                d.move_cursor(crate::Movement::Start, false);
+                d.insert(text).unwrap();
+                if !unit.contains('\t') && text.is_ascii() {
+                    assert!(
+                        d.layout_cache
+                            .borrow()
+                            .as_ref()
+                            .is_some_and(|l| l.scanned.byte == l.text.len()),
+                        "ASCII edit lost its prepared index"
+                    );
+                }
+                let full = d.text();
+                d.move_cursor(crate::Movement::Finish, false);
+                assert_eq!(d.position().1, full.graphemes(true).count());
+                assert_eq!(
+                    d.cursor_cell(4),
+                    cell_column(&full, CharIndex(full.chars().count()), 4)
+                        .unwrap()
+                        .0
+                );
+                d.undo().unwrap();
+                d.move_cursor(crate::Movement::Finish, false);
+                let full = d.text();
+                assert_eq!(
+                    d.cursor_cell(4),
+                    cell_column(&full, CharIndex(full.chars().count()), 4)
+                        .unwrap()
+                        .0
+                );
+            }
+            // ASCII removal in the middle must shift later checkpoints safely.
+            d.select(2, 4).unwrap();
+            d.insert("z").unwrap();
+            d.move_cursor(crate::Movement::Finish, false);
+            let full = d.text();
+            assert_eq!(d.position().1, full.graphemes(true).count());
+            assert_eq!(
+                d.cursor_cell(4),
+                cell_column(&full, CharIndex(full.chars().count()), 4)
+                    .unwrap()
+                    .0
+            );
+        }
+    }
+    #[test]
+    fn partial_ascii_scan_preserves_joining_accents_crlf_and_tabs() {
+        for text in [
+            "abcde\u{301}\r\n\t界",
+            "long ascii\rbare\t👩‍💻 tail",
+            "ae\u{301}x",
+        ] {
+            let zero = Checkpoint {
+                chars: 0,
+                byte: 0,
+                cells: 0,
+                graphemes: 0,
+            };
+            let mut layout = LineLayout {
+                line: 0,
+                revision: 0,
+                tab: 3,
+                start: 0,
+                text: Cow::Borrowed(text),
+                checkpoints: vec![zero.clone()],
+                scanned: zero,
+                first_tab: None,
+            };
+            let mut chars = 0;
+            for (column, g) in text.graphemes(true).enumerate() {
+                chars += g.chars().count();
+                layout.scan_to(chars, 0);
+                assert_eq!(
+                    layout.position(chars),
+                    (
+                        column + 1,
+                        cell_column(text, CharIndex(chars), 3).unwrap().0
+                    )
+                );
+            }
+        }
+    }
     #[test]
     fn parallel_index_preserves_global_tab_stops_and_cluster_boundaries() {
         let text = "e\u{301}\t界 🇻🇳 👩‍💻 A".repeat(60_000);

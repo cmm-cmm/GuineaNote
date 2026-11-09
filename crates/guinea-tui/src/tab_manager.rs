@@ -1,5 +1,6 @@
 //! A metadata-only snapshot; filtering never reads file contents or the disk.
 use crate::{app::Tab, i18n::Locale};
+use guinea_core::TextBuffer;
 use ratatui::layout::Rect;
 use unicode_segmentation::UnicodeSegmentation;
 
@@ -11,6 +12,10 @@ pub struct Entry {
     pub review: bool,
     pub readonly: bool,
     pub ai: bool,
+    pub ai_action: Option<String>,
+    pub format: &'static str,
+    pub bytes: usize,
+    pub lines: usize,
     folded: String,
 }
 pub struct TabManager {
@@ -35,6 +40,14 @@ impl TabManager {
                     .as_ref()
                     .map(|p| p.to_string_lossy().into_owned())
                     .unwrap_or_default();
+                // Hide Windows' internal verbatim prefix in display metadata.
+                // The document and all filesystem operations keep their path.
+                #[cfg(windows)]
+                let path = if let Some(unc) = path.strip_prefix(r"\\?\UNC\") {
+                    format!(r"\\{unc}")
+                } else {
+                    path.strip_prefix(r"\\?\").unwrap_or(&path).to_owned()
+                };
                 Entry {
                     index,
                     folded: format!("{title}\n{path}").to_lowercase(),
@@ -44,6 +57,10 @@ impl TabManager {
                     review: tab.review_source.is_some(),
                     readonly: tab.document.readonly,
                     ai: tab.ai_action.is_some(),
+                    ai_action: tab.ai_action.clone(),
+                    format: crate::app::document_language(&tab.document).label(),
+                    bytes: tab.document.buffer().len_bytes(),
+                    lines: tab.document.buffer().len_lines(),
                 }
             })
             .collect::<Vec<_>>();

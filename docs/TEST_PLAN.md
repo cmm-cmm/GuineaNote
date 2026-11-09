@@ -1,5 +1,23 @@
 # Test plan and reproduction
 
+## Continuing UI and navigation performance
+
+After `cargo build --workspace --release`, run
+`python -X utf8 scripts/pty_navigation.py`. It opens six fresh Unicode editor
+sessions and two sessions with a 10 MiB ASCII prefix followed by bare CR/CJK.
+The 32 samples cover initial typing, first End and cached left/right movement.
+The editor prepares its first-line index in the open worker; process startup,
+file loading and index preparation are reported separately, before timing keys.
+`--record-only` retains exploratory pre-change data without enforcing the
+100 ms budget. Normal runs fail any measured response >=100 ms.
+
+Core tests compare prepared/reused indexes with full Unicode segmentation and
+cell positions through ASCII insert/delete, Unicode joins, undo, CRLF and tab
+stops. UI tests check English/Vietnamese AI actions, linked-review lock status,
+disabled close hit regions, cached manager details and small-window safety.
+Run the general 10 MiB, tab, concurrent-Agent, live-Agent and dialogs/reader
+probes sequentially after builds. Screenshots use the actual PTY cell colors.
+
 Use current Rust stable with native build tools. Required commands:
 
 ```sh

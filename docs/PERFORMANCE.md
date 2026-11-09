@@ -1,5 +1,51 @@
 # Performance measurements
 
+## Prepared navigation and amber workspace, 2026-11-09
+
+Native Windows 11/MSVC release, sequential local probes after all builds.
+Navy surfaces remain unchanged; the warm foreground is now honey amber.
+
+| Workload | Samples | Max UI ms |
+| --- | ---: | ---: |
+| General editor/review/dialog/tree corpus, up to 10 MiB | 196 | 71.884 |
+| Tab controls and overflow manager | 26 | 56.564 |
+| Human UI while MCP analyzes a 10 MiB live JSON array | 28 | 22.443 |
+| Eight fresh sessions, typing and first End/cached movement | 32 | 43.349 |
+
+All **282 UI responses are strictly <100 ms** on this finite native corpus.
+Raw data: [general](responsiveness-workspace-amber.json),
+[tabs](responsiveness-tabs-amber.json), [concurrent Agent](responsiveness-agent-amber.json),
+[prepared navigation](responsiveness-navigation-prepared.json).
+General JSON review completion is **871.494 ms**; Agent JSON analysis completion
+is **2,270.936 ms**, both separately from initial UI feedback. These values do
+not establish a universal latency guarantee or a parse-time speedup.
+
+Six fresh Unicode sessions previously had first-End responses of 35.945–68.894
+ms. An initial lazy-index change still reached 98.888 ms in the expanded probe,
+so it was followed by preparing the first-line index in the file-open worker
+and preserving it across safe small ASCII edits. The final six first-End
+responses are **3.146–10.768 ms**. The index work happens during opening;
+process startup through Opened, including PTY/Python-wrapper startup, loading
+and preparation, takes **219.765–898.510 ms** in this probe. That interval is
+reported separately and is not a filesystem-only measurement.
+
+The final 32 samples also include two 10 MiB ASCII-prefix files ending with
+bare CR/CJK, initial typing and cached movement. The scanner now inspects only
+the needed ASCII prefix plus lookahead and stops at CR, avoiding repeated
+full-tail scans. Parallel workers borrow their segments instead of allocating
+another full line across workers. Unicode joins, controls/tabs and incomplete
+indexes retain conservative invalidation; only verified printable-ASCII cases
+reuse a complete tab-free index. Preparation covers the first line of TUI
+file opens <=10 MiB; other lines and Agent-created buffers retain lazy indexing.
+
+Exploratory data is retained: [original navigation](responsiveness-navigation-before.json),
+[lazy iteration](responsiveness-navigation-lazy.json). Reproduce with
+`scripts/pty_navigation.py`, `scripts/pty_responsiveness.py 10485760`,
+`scripts/pty_tabs.py` and `scripts/pty_agent_latency.py` after
+`cargo build --workspace --release`. No concurrent build/audit/performance probe.
+Measurements include PTY transport and Python screen parsing, exclude physical
+display paint, and do not verify native Linux/macOS performance.
+
 ## Agent/MCP and AI read-only tabs, 2026-11-09
 
 Native Windows 11/MSVC release binaries, owned temporary fixtures, 10 MiB

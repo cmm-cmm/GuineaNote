@@ -1,0 +1,138 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "input_bytes_max": 10485760,
+  "cold_sessions": 8,
+  "samples": [
+    {
+      "action": "unicode:type-start",
+      "ms": 23.436
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 89.722
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 4.901
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 4.683
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 25.814
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 93.942
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 5.364
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 5.453
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 25.762
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 98.888
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 4.463
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 5.649
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.961
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 34.605
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.839
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 5.789
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.52
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 39.353
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.734
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.901
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 12.655
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 46.111
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.458
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.479
+    },
+    {
+      "action": "ascii-prefix-bare-cr:type-start",
+      "ms": 12.772
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cold-end",
+      "ms": 10.147
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-left",
+      "ms": 3.189
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-right",
+      "ms": 3.128
+    },
+    {
+      "action": "ascii-prefix-bare-cr:type-start",
+      "ms": 12.649
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cold-end",
+      "ms": 9.126
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-left",
+      "ms": 3.362
+    },
+    {
+      "action": "ascii-prefix-bare-cr:cached-right",
+      "ms": 3.14
+    }
+  ],
+  "sample_count": 32,
+  "max_ms": 98.888,
+  "failures": []
+}

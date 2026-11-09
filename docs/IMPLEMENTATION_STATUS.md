@@ -17,6 +17,17 @@ milestone notes, not the current development policy.
 
 ## Latest checkpoint — Agent CLI/MCP and AI read-only tabs
 
+Continuing polish: 99 Rust tests pass; native and Linux/macOS cross-target
+strict Clippy, debug/release builds and native UI/Agent regression probes pass.
+The new release corpus has **282 UI responses, max 71.884 ms**, up to 10 MiB.
+Six prepared first-End responses span 3.146–10.768 ms, with opening/preparation
+reported separately. Core prepares the first-line display index in the open
+worker and preserves complete tab-free indexes across safe small ASCII edits.
+The warm accent is honey amber; navy backgrounds are unchanged. Context badges,
+localized AI operation, disabled close affordances, cached tab metadata and
+selection/progress status are implemented. See UX_IMPROVEMENTS.md and
+PERFORMANCE.md for current details; the P0–P4 checkpoint below is historical.
+
 P0–P3 now have a shared typed service, separate JSON CLI and MCP stdio binaries,
 explicit live-session IPC, workspace/capability policy, unsaved snapshots,
 patch plan/diff/apply, one-step undo, revision-checked save and bounded retry

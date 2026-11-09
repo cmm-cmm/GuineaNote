@@ -79,10 +79,17 @@ or Ctrl+N to create. Unsaved source changes require confirmation before discard.
 Narrow windows retain compact controls and keyboard access. See the
 [tab improvement plan](docs/TAB_MANAGEMENT_PLAN.md) and
 [Agent CLI/MCP implementation](docs/AGENT_IMPLEMENTATION.md).
-The original navy backgrounds use green, walnut-brown and warm-white details
+The original navy backgrounds use green, honey-amber and warm-white details
 and content. The theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
+
+The file context strip shows source/split/review mode, format and buffer size;
+long paths keep the filename visible. During AI work it shows the current
+operation in Vietnamese or English. Locked tabs have a muted close indicator,
+and navigation/copy/other-tab shortcuts remain visible. Ctrl+P includes cached
+file format, size, line count and AI activity. Wide status bars show selection
+size (Unicode scalars) and caret progress without hiding save status.
 
 Local Agent access is opt-in: `cargo build --workspace`, then
 `cargo run -- --agent --agent-write .` during development. Separate native

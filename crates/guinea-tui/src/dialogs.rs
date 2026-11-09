@@ -130,7 +130,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 )),
                 fg(theme.text),
             );
-            let list = row(body, 5, body.height.saturating_sub(12));
+            let list = row(body, 5, body.height.saturating_sub(14));
             manager.list = list;
             manager.height = list.height.max(1) as usize;
             if manager.selected < manager.top {
@@ -204,6 +204,38 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             }
             if let Some(index) = manager.filtered.get(manager.selected) {
                 let entry = &manager.entries[*index];
+                text(
+                    frame,
+                    row(body, body.height.saturating_sub(8), 1),
+                    Line::from(format!(
+                        "{} · {} · {} {}",
+                        entry.format,
+                        crate::file_info::bytes(entry.bytes),
+                        entry.lines,
+                        tr(
+                            locale,
+                            if entry.lines == 1 { "line" } else { "lines" },
+                            "dòng"
+                        )
+                    )),
+                    bold(theme.warm),
+                );
+                if let Some(action) = &entry.ai_action {
+                    text(
+                        frame,
+                        row(body, body.height.saturating_sub(7), 1),
+                        Line::from(format!(
+                            "AI · {} · {}",
+                            locale.ai_action(action),
+                            tr(
+                                locale,
+                                "Other tabs remain editable",
+                                "Các thẻ khác vẫn chỉnh sửa được"
+                            )
+                        )),
+                        fg(theme.accent),
+                    );
+                }
                 let path = if entry.path.is_empty() {
                     tr(
                         locale,

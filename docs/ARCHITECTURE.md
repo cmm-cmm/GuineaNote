@@ -1,5 +1,13 @@
 # Architecture
 
+Current view optimization: the TUI file-open worker prepares the first-line
+display index for buffers <=10 MiB. Its parallel workers borrow UTF-8 segments;
+sparse checkpoints stay shared with snapshots. A complete tab-free index can
+shift byte/scalar/cell/grapheme checkpoints after small printable-ASCII edits
+between ASCII neighbors. Unicode joins, controls, tabs and incomplete indexes
+follow conservative invalidation. Other lines remain lazy; preparation and
+file-open completion have separate timing from UI key response.
+
 Current Agent extension: `guinea-service` holds typed operations, policy,
 bounded structured analysis and a live UI command channel; `guinea-agent`
 builds the separate JSON CLI and official rmcp stdio adapter. The TUI remains

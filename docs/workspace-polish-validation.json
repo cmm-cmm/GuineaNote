@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-09",
+  "branch": "dev",
+  "base_commit": "dc3792bcbae1bcee3cfd3222270bf0dde84c6a0a",
+  "native_platform": "Windows-11-10.0.26300-SP0",
+  "palette": {
+    "canvas": "#0C111C",
+    "panel": "#111827",
+    "raised": "#192436",
+    "accent": "#86D38A",
+    "amber": "#DBAD5B",
+    "warm_white": "#F8F5EC"
+  },
+  "checks": {
+    "rust_tests": {
+      "passed": 99,
+      "failed": 0,
+      "core": 21,
+      "io": 12,
+      "service": 8,
+      "syntax": 5,
+      "tui": 48,
+      "cli": 4,
+      "workflow": 1
+    },
+    "fmt": "PASS",
+    "native_strict_clippy": "PASS",
+    "linux_cross_strict_clippy": "PASS",
+    "macos_cross_strict_clippy": "PASS",
+    "debug_workspace_build": "PASS",
+    "release_workspace_build": "PASS",
+    "native_live_agent": "PASS",
+    "native_dialogs_reader": "PASS"
+  },
+  "ui_performance": {
+    "input_bytes_max": 10485760,
+    "strict_budget_ms": 100,
+    "sample_count": 282,
+    "max_ms": 71.884,
+    "reports": [
+      "responsiveness-workspace-amber.json",
+      "responsiveness-tabs-amber.json",
+      "responsiveness-agent-amber.json",
+      "responsiveness-navigation-prepared.json"
+    ],
+    "unicode_first_end_ms": [
+      4.205,
+      3.146,
+      4.237,
+      6.892,
+      9.536,
+      10.768
+    ],
+    "agent_analysis_completion_ms": 2270.936,
+    "json_review_completion_ms": 871.494,
+    "open_and_prepare_includes_process_and_pty_startup": true
+  },
+  "limits": [
+    "Finite Windows release corpus; no universal latency guarantee",
+    "Native Linux/macOS runtime remains unverified",
+    "Preparation covers first line of TUI opens up to 10 MiB; other lines and Agent-created buffers remain lazy",
+    "File/open/parse completion measured separately",
+    "No GitHub CI added"
+  ]
+}

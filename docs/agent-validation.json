@@ -61,5 +61,6 @@
     "JSON parser materializes the input tree; no constant-memory claim",
     "Filesystem TOCTOU limits remain",
     "No GitHub CI created"
-  ]
+  ],
+  "checkpoint_commit": "dc3792bcbae1bcee3cfd3222270bf0dde84c6a0a"
 }

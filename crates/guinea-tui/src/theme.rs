@@ -29,14 +29,14 @@ impl Theme {
                 faint: Color::Indexed(101),
                 accent: Color::Indexed(114),
                 secondary: Color::Indexed(151),
-                warm: Color::Indexed(180),
+                warm: Color::Indexed(179),
                 keyword: Color::Indexed(150),
                 danger: Color::Indexed(216),
             }
         } else {
             Self {
-                // Preserve the original navy surfaces. Green, walnut and
-                // warm white belong to content and details; danger is clay.
+                // Preserve the original navy surfaces. Green, amber and warm
+                // white belong to content/details; use honey amber, not orange.
                 canvas: Color::Rgb(12, 17, 28),
                 panel: Color::Rgb(17, 24, 39),
                 raised: Color::Rgb(25, 36, 54),
@@ -46,7 +46,7 @@ impl Theme {
                 faint: Color::Rgb(145, 129, 107),
                 accent: Color::Rgb(134, 211, 138),
                 secondary: Color::Rgb(189, 217, 179),
-                warm: Color::Rgb(218, 181, 138),
+                warm: Color::Rgb(219, 173, 91),
                 keyword: Color::Rgb(186, 214, 138),
                 danger: Color::Rgb(239, 170, 145),
             }

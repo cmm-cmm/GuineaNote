@@ -119,8 +119,13 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         }
         let rect = Rect::new(x, area.y + 1, width, 1);
         frame.render_widget(
-            Paragraph::new(label.into_owned())
-                .style(Style::default().bg(theme.raised).fg(theme.muted)),
+            Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
+                if app.tabs[app.active].ai_action.is_some() && command == "save" {
+                    theme.faint
+                } else {
+                    theme.muted
+                },
+            )),
             rect,
         );
         app.hits.actions.push((rect, command));
@@ -351,6 +356,10 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
                 if action == "new" {
                     theme.accent
+                } else if app.tabs[app.active].ai_action.is_some()
+                    && matches!(action, "save" | "close")
+                {
+                    theme.faint
                 } else {
                     theme.text
                 },
@@ -422,16 +431,19 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             rect,
         );
         app.hits.tabs.push((rect, index));
+        let locked = app.tabs[index].ai_action.is_some();
         let close = Rect::new(rect.right() - 3, rect.y, 3, 1);
         frame.render_widget(
-            Paragraph::new(" x ").style(
+            Paragraph::new(if locked { " · " } else { " x " }).style(
                 Style::default()
                     .bg(if selected { theme.raised } else { theme.panel })
-                    .fg(theme.warm),
+                    .fg(if locked { theme.faint } else { theme.warm }),
             ),
             close,
         );
-        app.hits.tab_closes.push((close, index));
+        if !locked {
+            app.hits.tab_closes.push((close, index));
+        }
         if area.height > 2 {
             frame.render_widget(
                 Paragraph::new("─".repeat(width as usize)).style(text_style(if selected {
@@ -564,14 +576,57 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 .tr("Welcome / your next idea starts here")
                 .into_owned()
         });
+    let tab = &app.tabs[app.active];
+    let context = if let Some(action) = &tab.ai_action {
+        format!(" AI · {} ", locale.ai_action(action))
+    } else {
+        let mode = match tab.review.mode {
+            ViewMode::Source => "SOURCE",
+            ViewMode::Split => "SPLIT",
+            ViewMode::Review => "REVIEW",
+        };
+        format!(
+            " {} · {} · {} ",
+            locale.tr(mode),
+            crate::app::document_language(&tab.document).label(),
+            crate::file_info::bytes(tab.document.buffer().len_bytes())
+        )
+    };
+    let context_width = if regions[1].width >= 60 && !app.welcome() {
+        (Line::from(context.as_str()).width() as u16).min(regions[1].width / 2)
+    } else {
+        0
+    };
     frame.render_widget(
         Paragraph::new(format!(
             "  {}",
-            clipped(&path, regions[1].width.saturating_sub(3) as usize)
+            input_tail(
+                &path,
+                regions[1].width.saturating_sub(context_width + 3) as usize
+            )
         ))
         .style(text_style(theme.muted)),
         regions[1],
     );
+    if context_width > 0 {
+        frame.render_widget(
+            Paragraph::new(clipped(&context, context_width as usize)).style(
+                Style::default()
+                    .bg(theme.raised)
+                    .fg(if tab.ai_action.is_some() {
+                        theme.warm
+                    } else {
+                        theme.secondary
+                    }),
+            ),
+            Rect::new(
+                regions[1].right() - context_width,
+                regions[1].y,
+                context_width,
+                regions[1].height,
+            ),
+        );
+    }
     let mut editor_area = regions[2];
     let mode = app.tabs[app.active].review.mode;
     if mode != ViewMode::Source && !app.welcome() {
@@ -882,10 +937,10 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     );
     let document = app.document();
     let (line, column) = document.position();
-    let mode = if app.tabs[app.active].review_source.is_some() {
-        " REVIEW "
-    } else if app.tabs[app.active].ai_action.is_some() {
+    let mode = if app.tabs[app.active].ai_action.is_some() {
         " AI · READ ONLY "
+    } else if app.tabs[app.active].review_source.is_some() {
+        " REVIEW "
     } else if document.readonly {
         " READ ONLY "
     } else if app.tabs[app.active].review.mode == ViewMode::Review {
@@ -943,11 +998,43 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             }),
         ),
     ]);
+    let status_width = line.width();
     frame.render_widget(
         Paragraph::new(line).style(Style::default().bg(theme.raised)),
         areas[1],
     );
-    let hints = if app.focus == Focus::Explorer {
+    if areas[1].width >= 100 {
+        let selected = document.selection().range().len();
+        let progress = document.cursor().saturating_mul(100) / document.buffer().len_chars().max(1);
+        let detail = if selected > 0 {
+            format!(
+                " {} {selected} · {progress:>3}% ",
+                if locale == Locale::Vi {
+                    "CHỌN"
+                } else {
+                    "SEL"
+                }
+            )
+        } else {
+            format!(" {progress:>3}% ")
+        };
+        let width = Line::from(detail.as_str()).width() as u16;
+        if status_width + width as usize <= areas[1].width as usize {
+            frame.render_widget(
+                Paragraph::new(detail).style(Style::default().bg(theme.raised).fg(
+                    if selected > 0 {
+                        theme.warm
+                    } else {
+                        theme.faint
+                    },
+                )),
+                Rect::new(areas[1].right() - width, areas[1].y, width, 1),
+            );
+        }
+    }
+    let hints = if app.tabs[app.active].ai_action.is_some() {
+        " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings"
+    } else if app.focus == Focus::Explorer {
         " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files"
     } else {
         " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F7 Review   F2 Commands   ^Q Quit"

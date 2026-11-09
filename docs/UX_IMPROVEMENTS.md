@@ -1,5 +1,36 @@
 # Settings, file navigation and reader redesign
 
+## Continuing workspace polish
+
+Preserve navy canvas/panel/raised surfaces, green details and warm white.
+The user clarified the warm accent as **honey amber, not orange**: true-color
+`#DBAD5B`, with indexed color 179 as the fallback. Numbers, modified states,
+file metadata and read-only badges use this accent.
+
+The breadcrumb retains the filename at the end of long paths and adds a
+compact source/split/review, language and buffer-size badge when space allows.
+AI ownership replaces that badge with its current localized operation.
+Leased source/review tabs prioritize AI read-only status, mute Save/Close and
+remove the close mouse target; navigation/copy/new/other-tab hints remain.
+Releasing the lease clears stale "AI is working" feedback and restores access.
+
+Ctrl+P adds a cached format/size/line summary and AI operation beside the
+selected file's path. Windows verbatim prefixes are hidden for presentation;
+filesystem paths are unchanged. The status bar adds scalar selection count
+and caret percentage only when there is enough room, preserving existing
+position, encoding and save information. These surfaces read buffer metadata,
+not the filesystem or complete document text.
+
+Long first-line display indexes are prepared in the existing open worker for
+buffers <=10 MiB. Parallel index workers borrow their line segments. Small
+printable-ASCII edits between ASCII neighbors preserve a complete tab-free
+index; Unicode/control/tab edits retain conservative invalidation. This moves
+index preparation out of key handling without changing document revisions,
+selection semantics or undo. Later lines remain lazy. See PERFORMANCE.md for
+measurements, preparation completion time and the finite verification scope.
+
+## Previous Settings and reader checkpoint
+
 Requested: F8 Settings (Vietnamese/English initially), file details, a file-list
 open dialog, richer syntax styling and a polished Markdown reader. Review must
 offer split view and a separate synchronized read-only tab. User confirmed

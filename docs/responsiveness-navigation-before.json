@@ -1,0 +1,82 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "input_bytes": 10485747,
+  "cold_sessions": 6,
+  "samples": [
+    {
+      "action": "unicode:cold-end",
+      "ms": 54.662
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.467
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.003
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 68.894
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.704
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.163
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 44.013
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 5.076
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 4.702
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 35.945
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 3.239
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.084
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 46.169
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 4.725
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.299
+    },
+    {
+      "action": "unicode:cold-end",
+      "ms": 38.337
+    },
+    {
+      "action": "unicode:cached-left",
+      "ms": 2.932
+    },
+    {
+      "action": "unicode:cached-right",
+      "ms": 3.289
+    }
+  ],
+  "sample_count": 18,
+  "max_ms": 68.894,
+  "failures": []
+}

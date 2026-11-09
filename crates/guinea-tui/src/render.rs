@@ -143,6 +143,62 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
 mod tests {
     use super::*;
     #[test]
+    fn ai_context_and_manager_details_follow_linked_review_and_locale() {
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0].document.insert("{\"name\":\"Việt\"}").unwrap();
+        app.tabs[0].document.path = Some("data.json".into());
+        app.tabs[0].ai_action = Some("analyze".into());
+        app.tabs[0].document.readonly = true;
+        app.command("review-tab");
+        let mut terminal = Terminal::new(TestBackend::new(148, 42)).unwrap();
+        for locale in [crate::i18n::Locale::En, crate::i18n::Locale::Vi] {
+            app.config.language = locale;
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            let screen = terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|c| c.symbol())
+                .collect::<String>();
+            assert!(screen.contains(if locale == crate::i18n::Locale::En {
+                "AI · Analyzing"
+            } else {
+                "AI · Đang phân tích"
+            }));
+            assert!(screen.contains(if locale == crate::i18n::Locale::En {
+                "AI · READ ONLY"
+            } else {
+                "AI · CHỈ ĐỌC"
+            }));
+            assert!(
+                app.hits.tab_closes.is_empty(),
+                "Leased tabs must not expose an enabled close target"
+            );
+            app.command("tabs");
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            let screen = terminal
+                .backend()
+                .buffer()
+                .content
+                .iter()
+                .map(|c| c.symbol())
+                .collect::<String>();
+            assert!(screen.contains("JSON · 17 B"));
+            assert!(screen.contains(if locale == crate::i18n::Locale::En {
+                "Other tabs remain editable"
+            } else {
+                "Các thẻ khác vẫn chỉnh sửa được"
+            }));
+            app.handle(crossterm::event::Event::Key(
+                crossterm::event::KeyEvent::new(
+                    crossterm::event::KeyCode::Esc,
+                    crossterm::event::KeyModifiers::NONE,
+                ),
+            ));
+        }
+    }
+    #[test]
     fn new_dialogs_are_visible_and_safe_when_resized() {
         let mut app = App::new(vec![], false, Config::default());
         for command in ["settings", "preview", "info", "open", "tabs"] {
