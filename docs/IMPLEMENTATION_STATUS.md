@@ -15,7 +15,44 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — visual workspace redesign, 2026-11-09
+## Latest checkpoint — responsiveness, review and Vietnamese/English, 2026-11-09
+
+The confirmed benchmark scope is UTF-8 text up to 10 MiB. The user's final
+interaction target is **strictly below 100 ms**, superseding the initial 150 ms
+request. Local release PTY probes fail at or above 100 ms. Actual disk sync and
+full review parsing have separately reported completion times; no universal
+bound is claimed for arbitrary files, clusters, filesystems or hardware.
+
+Delivered: chunk-aware grapheme navigation; O(1) history-state dirty queries;
+bounded viewport extraction; sparse, incrementally invalidated display indices
+for long Unicode lines; parallel cold-index construction over grapheme-safe
+segments with correct global tab stops; 8 ms polling while workers are active;
+bounded input batching to avoid a redraw per character in bursts. Idle work
+returns to 250 ms waits and does not redraw. Saved-snapshot metadata merges
+without dropping edits made during I/O.
+
+F7 cycles source/split/read-only review. Markdown renders styled content;
+JSON/JSONL, XML, CSV/TSV and TOML have structured/formatted review. YAML/INI
+have highlighted source review. Parsing/wrapping is asynchronous, revision-
+and viewport-keyed, stale results are discarded, and source bytes/history are
+never replaced by preview output. CSV/TSV supports later columns via Left/Right.
+Textual programming/data detection now spans 30+ language/format categories.
+See FORMATS.md for exact capabilities and parser/display limits.
+
+Vietnamese and English UI are selected with `--language vi|en`, configuration
+`language`, F8, or `language-vi`/`language-en` commands. OS/parser diagnostic
+technical details can retain their original language. Filenames, source and
+command identifiers are not translated. Screenshots come from actual PTY
+sessions via scripts/tui_review_preview.py; no runtime image/font dependency.
+
+Final validation: 64 Rust tests passed, required fmt/Clippy/release build passed,
+and two native 10 MiB budget runs passed (214 samples, max 49.018 ms).
+Full JSON review completion was 790.227 / 778.185 ms in background. Normal
+workspace/edit and panic cleanup PTY probes passed; Linux/macOS cross-Clippy
+passed, native runtime there remains unverified. Exact latency evidence is in PERFORMANCE.md and
+DEPENDENCY_AUDIT.md. GitHub CI remains disabled as requested.
+
+## Previous checkpoint — visual workspace redesign, 2026-11-09
 
 The user explicitly requested a more visual TUI and both folder/file modes.
 This authorizes directory browsing earlier than the original post-MVP scope;

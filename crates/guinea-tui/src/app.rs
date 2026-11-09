@@ -13,6 +13,7 @@ use unicode_segmentation::UnicodeSegmentation;
 
 use crate::config::Config;
 use crate::explorer::Explorer;
+use crate::review::{Review, ViewMode};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Focus {
@@ -27,14 +28,16 @@ pub struct HitRegions {
     pub actions: Vec<(Rect, &'static str)>,
     pub editor: Rect,
     pub editor_text: Rect,
+    pub review: Rect,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H replace all\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nF7 source / split / review (Markdown and data)\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Vietnamese / English\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review, source, split, language-vi, language-en, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub document: Document,
     pub top: usize,
     pub left: usize,
+    pub review: Review,
 }
 
 impl Tab {
@@ -43,6 +46,7 @@ impl Tab {
             document,
             top: 0,
             left: 0,
+            review: Review::default(),
         }
     }
 }
@@ -120,6 +124,7 @@ pub struct App {
     pub explorer_visible: bool,
     pub focus: Focus,
     pub hits: HitRegions,
+    saving: bool,
     readonly: bool,
     clipboard: String,
     search: String,
@@ -172,12 +177,22 @@ impl App {
             },
             hits: HitRegions::default(),
             readonly,
+            saving: false,
             clipboard: String::new(),
             search: String::new(),
             pending: None,
             worker: None,
             queued: files.into(),
         }
+    }
+
+    pub fn background_work(&self) -> bool {
+        self.busy()
+            || self.explorer.scanning()
+            || (self.explorer_visible && self.explorer.busy())
+            || self.tabs[self.active]
+                .review
+                .needs_poll(self.document(), self.config.language)
     }
 
     pub fn busy(&self) -> bool {
@@ -204,6 +219,10 @@ impl App {
     }
 
     fn edit(&mut self, command: impl FnOnce(&mut Document) -> Result<(), guinea_core::EditError>) {
+        if self.tabs[self.active].review.mode == ViewMode::Review {
+            self.message = "Review is read-only; F7 or Esc returns to source".into();
+            return;
+        }
         if let Err(error) = command(self.document_mut()) {
             self.message = error.to_string();
         }
@@ -237,7 +256,8 @@ impl App {
         let job = Job::Save { id: document.id };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
-        self.message = format!("Saving {}… edits paused", path.display());
+        self.saving = true;
+        self.message = format!("Saving {}… you can keep editing", path.display());
         self.worker = Some(thread::spawn(move || {
             let report = guinea_io::save(&mut document, &path);
             let (result, warning) = match report {
@@ -285,6 +305,14 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        let tab = &mut self.tabs[self.active];
+        if tab.review.poll(
+            &tab.document,
+            self.config.basic_colors,
+            self.config.language,
+        ) {
+            self.redraw = true;
+        }
         if (self.explorer_visible || self.explorer.scanning()) && self.explorer.poll() {
             self.redraw = true;
         }
@@ -293,12 +321,14 @@ impl App {
             match result {
                 Ok(completed) => {
                     self.pending = None;
+                    self.saving = false;
                     self.join_worker();
                     self.redraw = true;
                     self.finish_job(completed);
                 }
                 Err(TryRecvError::Disconnected) => {
                     self.pending = None;
+                    self.saving = false;
                     self.join_worker();
                     self.redraw = true;
                     self.message =
@@ -333,7 +363,13 @@ impl App {
                 self.message = error.to_string();
             }
             Ok(mut document) => match completed.job {
-                Job::Save { id } | Job::Compute { id } => {
+                Job::Save { id } => {
+                    if let Some(tab) = self.tabs.iter_mut().find(|t| t.document.id == id) {
+                        tab.document.accept_saved_snapshot(&document);
+                    }
+                    self.message = completed.warning.unwrap_or_else(|| "Saved".into());
+                }
+                Job::Compute { id } => {
                     if let Some(tab) = self.tabs.iter_mut().find(|t| t.document.id == id) {
                         tab.document = document;
                     }
@@ -383,7 +419,7 @@ impl App {
             self.redraw = true;
             return;
         }
-        if self.busy() {
+        if self.busy() && !self.saving {
             if matches!(event, Event::Key(_)) {
                 self.message =
                     "Background operation in progress; edits paused until it completes".into();
@@ -396,7 +432,10 @@ impl App {
                 self.redraw = true;
                 if let Some(Modal::Input { value, .. }) = self.modal.as_mut() {
                     value.push_str(&text.replace(['\r', '\n'], ""));
-                } else if self.modal.is_none() && self.focus == Focus::Editor {
+                } else if self.modal.is_none()
+                    && self.focus == Focus::Editor
+                    && self.tabs[self.active].review.mode != ViewMode::Review
+                {
                     self.edit(|d| d.insert(&text));
                 }
             }
@@ -496,7 +535,23 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
+        if key.code == KeyCode::F(8) {
+            self.command("language");
+            return;
+        }
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
+        if ctrl
+            && self.tabs[self.active].review.mode == ViewMode::Review
+            && matches!(key.code, KeyCode::Home | KeyCode::End)
+        {
+            if key.code == KeyCode::Home {
+                self.tabs[self.active].review.top = 0;
+            } else {
+                let height = self.page_height;
+                self.tabs[self.active].review.scroll(isize::MAX, height);
+            }
+            return;
+        }
         let shift = key.modifiers.contains(KeyModifiers::SHIFT);
         if ctrl {
             match key.code {
@@ -526,6 +581,10 @@ impl App {
             return;
         }
         match key.code {
+            KeyCode::F(7) => {
+                self.command("preview");
+                return;
+            }
             KeyCode::F(4) => {
                 self.command("focus");
                 return;
@@ -540,6 +599,27 @@ impl App {
                 return;
             }
             _ => {}
+        }
+        if self.tabs[self.active].review.mode == ViewMode::Review {
+            let height = self.page_height;
+            let review = &mut self.tabs[self.active].review;
+            match key.code {
+                KeyCode::Left => review.column = review.column.saturating_sub(1),
+                KeyCode::Right => review.column = review.column.saturating_add(1),
+                KeyCode::Up => review.scroll(-1, height),
+                KeyCode::Down | KeyCode::Char('j') => review.scroll(1, height),
+                KeyCode::Char('k') => review.scroll(-1, height),
+                KeyCode::PageUp => review.scroll(-(height as isize), height),
+                KeyCode::PageDown | KeyCode::Char(' ') => review.scroll(height as isize, height),
+                KeyCode::Home => review.top = 0,
+                KeyCode::End => review.scroll(isize::MAX, height),
+                KeyCode::Esc => review.mode = ViewMode::Source,
+                KeyCode::F(1) => self.command("help"),
+                KeyCode::F(2) => self.prompt(InputKind::Command),
+                KeyCode::F(6) => self.command(if shift { "prev" } else { "next" }),
+                _ => {}
+            }
+            return;
         }
         let movement = match key.code {
             KeyCode::Left => Some(Movement::Left),
@@ -632,7 +712,15 @@ impl App {
 
     fn mouse(&mut self, mouse: MouseEvent) {
         let position = (mouse.column, mouse.row).into();
-        if self.hits.tree.contains(position) {
+        if self.hits.review.contains(position) {
+            let height = self.page_height;
+            match mouse.kind {
+                MouseEventKind::ScrollDown => self.tabs[self.active].review.scroll(3, height),
+                MouseEventKind::ScrollUp => self.tabs[self.active].review.scroll(-3, height),
+                _ => {}
+            }
+            self.redraw = true;
+        } else if self.hits.tree.contains(position) {
             match mouse.kind {
                 MouseEventKind::ScrollDown => self.explorer.move_by(3),
                 MouseEventKind::ScrollUp => self.explorer.move_by(-3),
@@ -680,20 +768,16 @@ impl App {
         }
         let tab = &self.tabs[self.active];
         let line = tab.top + (row - rect.y) as usize;
-        let Some(raw) = tab.document.buffer().line(line) else {
+        let Ok(window) =
+            tab.document
+                .line_window(line, tab.left, rect.width as usize, self.config.tab_width)
+        else {
             return;
         };
-        let text = raw
-            .strip_suffix("\r\n")
-            .or_else(|| raw.strip_suffix('\n'))
-            .unwrap_or(&raw);
-        let start = tab
-            .document
-            .buffer()
-            .line_to_char(line)
-            .expect("visible line");
+        let text = window.text.as_str();
+        let start = window.char_start;
         let target = tab.left + column.saturating_sub(rect.x) as usize;
-        let mut cell = 0;
+        let mut cell = window.cell_start;
         let mut offset = 0;
         for grapheme in text.graphemes(true) {
             let width = display_grapheme(grapheme, cell, self.config.tab_width).1;
@@ -737,7 +821,36 @@ impl App {
     }
 
     pub fn command(&mut self, command: &str) {
+        if self.busy()
+            && matches!(
+                command,
+                "save"
+                    | "save-as"
+                    | "open"
+                    | "reload"
+                    | "close"
+                    | "quit"
+                    | "find"
+                    | "find-next"
+                    | "replace"
+            )
+        {
+            self.message = "Background operation in progress; retry when complete".into();
+            self.redraw = true;
+            return;
+        }
         match command {
+            "language" | "language-vi" | "language-en" => {
+                self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
+            }
+            "preview" | "review" | "source" | "split" => {
+                if crate::review::supported(guinea_syntax::Language::detect(self.document().path.as_deref())) {
+                    let review = &mut self.tabs[self.active].review;
+                    review.mode = match command { "source" => ViewMode::Source, "split" => ViewMode::Split, "review" => ViewMode::Review, _ => review.mode.next() };
+                    self.focus = Focus::Editor;
+                    self.message = "F7 Source / Split / Review · review never changes the source".into();
+                } else { self.message = "Review supports Markdown, JSON/JSONL, XML, CSV/TSV, TOML, YAML and INI".into(); }
+            }
             "new" => {
                 let mut document = Document::default(); document.readonly = self.readonly;
                 self.tabs.push(Tab::new(document)); self.active = self.tabs.len() - 1;
@@ -947,7 +1060,7 @@ mod tests {
         assert_eq!(a.tabs.len(), 2);
         a.handle(Event::Paste("changed ".into()));
         a.command("save");
-        a.handle(Event::Paste("must not arrive while busy".into()));
+        a.handle(Event::Paste("typed during save ".into()));
         drain_jobs(&mut a);
         assert_eq!(std::fs::read_to_string(&path_b).unwrap(), "changed 👩‍💻\n");
         a.command("prev");
@@ -964,7 +1077,8 @@ mod tests {
         assert!(a.document().is_dirty());
         assert!(a.message.contains("changed outside"));
         assert_eq!(std::fs::read_to_string(path_a).unwrap(), "external");
-        assert_eq!(a.tabs[1].document.text(), "changed 👩‍💻\n");
+        assert_eq!(a.tabs[1].document.text(), "changed typed during save 👩‍💻\n");
+        assert!(a.tabs[1].document.is_dirty());
     }
 
     #[test]

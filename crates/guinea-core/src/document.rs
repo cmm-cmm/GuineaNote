@@ -5,10 +5,7 @@ use std::{
     time::SystemTime,
 };
 
-use crate::{
-    EditError, RopeyBuffer, TextBuffer,
-    coordinates::{CharIndex, char_to_byte},
-};
+use crate::{EditError, RopeyBuffer, TextBuffer, coordinates::CharIndex};
 use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
@@ -84,12 +81,16 @@ pub enum Movement {
 struct Snapshot {
     buffer: RopeyBuffer,
     selection: Selection,
+    content_state: u64,
 }
 
 #[derive(Debug, Clone)]
 struct Transaction {
     before: Snapshot,
     after: Snapshot,
+    start: usize,
+    removed: usize,
+    inserted: usize,
 }
 
 #[derive(Debug, Clone)]
@@ -100,7 +101,9 @@ pub struct Document {
     pub bom: bool,
     pub fingerprint: Option<Fingerprint>,
     buffer: RopeyBuffer,
-    saved: RopeyBuffer,
+    content_state: u64,
+    saved_state: u64,
+    next_content_state: u64,
     saved_bom: bool,
     selection: Selection,
     undo: Vec<Transaction>,
@@ -108,6 +111,7 @@ pub struct Document {
     revision: u64,
     preferred_column: Option<usize>,
     newline_policy: LineEnding,
+    pub(crate) layout_cache: std::cell::RefCell<Option<std::sync::Arc<crate::view::LineLayout>>>,
 }
 
 impl Default for Document {
@@ -125,7 +129,9 @@ impl Document {
             readonly: false,
             bom: false,
             fingerprint: None,
-            saved: buffer.clone(),
+            content_state: 0,
+            saved_state: 0,
+            next_content_state: 1,
             saved_bom: false,
             buffer,
             selection: Selection::default(),
@@ -134,6 +140,7 @@ impl Document {
             revision: 0,
             preferred_column: None,
             newline_policy: LineEnding::detect(text),
+            layout_cache: std::cell::RefCell::new(None),
         }
     }
 
@@ -142,6 +149,10 @@ impl Document {
     }
     pub fn text(&self) -> String {
         self.buffer.text()
+    }
+    /// Cheap immutable content snapshot for background rendering.
+    pub fn snapshot_buffer(&self) -> RopeyBuffer {
+        self.buffer.clone()
     }
     pub fn selection(&self) -> Selection {
         self.selection
@@ -153,15 +164,25 @@ impl Document {
         self.revision
     }
     pub fn is_dirty(&self) -> bool {
-        self.bom != self.saved_bom || self.buffer != self.saved
+        self.bom != self.saved_bom || self.content_state != self.saved_state
     }
     pub fn line_ending(&self) -> LineEnding {
         self.newline_policy
     }
 
     pub fn mark_saved(&mut self) {
-        self.saved = self.buffer.clone();
+        self.saved_state = self.content_state;
         self.saved_bom = self.bom;
+    }
+
+    /// Merge only metadata from the snapshot committed by a background save.
+    /// Edits and selection made while I/O was running remain in this document.
+    pub fn accept_saved_snapshot(&mut self, saved: &Self) {
+        assert_eq!(self.id, saved.id);
+        self.path = saved.path.clone();
+        self.fingerprint = saved.fingerprint.clone();
+        self.saved_state = saved.saved_state;
+        self.saved_bom = saved.saved_bom;
     }
 
     pub fn selected_text(&self) -> String {
@@ -174,45 +195,28 @@ impl Document {
         Snapshot {
             buffer: self.buffer.clone(),
             selection: self.selection,
+            content_state: self.content_state,
         }
     }
 
     fn restore(&mut self, snapshot: &Snapshot) {
         self.buffer = snapshot.buffer.clone();
         self.selection = snapshot.selection;
+        self.content_state = snapshot.content_state;
         self.revision += 1;
         self.preferred_column = None;
     }
 
-    fn local_text(&self, idx: usize) -> Result<(usize, String), EditError> {
-        let line = self.buffer.char_to_line(idx)?;
-        let start = self.buffer.line_to_char(line)?;
-        let text = self.buffer.line(line).expect("valid line");
-        Ok((start, text))
-    }
-
     pub fn is_grapheme_boundary(&self, idx: usize) -> bool {
-        self.local_text(idx).is_ok_and(|(start, text)| {
-            let byte = char_to_byte(&text, CharIndex(idx - start))
-                .expect("checked scalar index")
-                .0;
-            byte_is_grapheme_boundary(&text, byte)
-        })
+        crate::graphemes::is_boundary(&self.buffer, idx)
     }
 
     fn snap_forward(&self, idx: usize) -> usize {
-        let (start, text) = self.local_text(idx).expect("valid index");
-        let byte = char_to_byte(&text, CharIndex(idx - start))
-            .expect("valid scalar index")
-            .0;
-        if byte_is_grapheme_boundary(&text, byte) {
-            return idx;
+        if self.is_grapheme_boundary(idx) {
+            idx
+        } else {
+            crate::graphemes::next(&self.buffer, idx).expect("valid index")
         }
-        let next = GraphemeCursor::new(byte, text.len(), true)
-            .next_boundary(&text, 0)
-            .expect("complete line supplies context")
-            .unwrap_or(text.len());
-        start + text[..next].chars().count()
     }
 
     pub fn select(&mut self, anchor: usize, head: usize) -> Result<(), EditError> {
@@ -243,6 +247,7 @@ impl Document {
             return Err(EditError::GraphemeBoundary);
         }
         let before = self.snapshot();
+        let layout_edit = self.prepare_layout_edit(&range, text);
         let changed = self.buffer.slice(range.clone())? != text;
         self.buffer.delete(range.clone())?;
         self.buffer.insert(range.start, text)?;
@@ -253,11 +258,17 @@ impl Document {
         };
         self.preferred_column = None;
         if changed {
+            self.content_state = self.next_content_state;
+            self.next_content_state += 1;
             self.revision += 1;
+            self.apply_layout_edit(layout_edit, text);
             self.redo.clear();
             self.undo.push(Transaction {
                 before,
                 after: self.snapshot(),
+                start: range.start,
+                removed: range.len(),
+                inserted: text.chars().count(),
             });
         }
         Ok(())
@@ -272,35 +283,11 @@ impl Document {
     }
 
     fn previous(&self, idx: usize) -> usize {
-        if idx == 0 {
-            return 0;
-        }
-        let (mut start, mut text) = self.local_text(idx).expect("valid cursor");
-        if idx == start {
-            let line = self.buffer.char_to_line(idx).expect("valid cursor") - 1;
-            start = self.buffer.line_to_char(line).expect("previous line");
-            text = self.buffer.line(line).expect("previous line");
-        }
-        let byte = char_to_byte(&text, CharIndex(idx - start))
-            .expect("valid scalar index")
-            .0;
-        let previous = GraphemeCursor::new(byte, text.len(), true)
-            .prev_boundary(&text, 0)
-            .expect("complete line supplies context")
-            .unwrap_or(0);
-        start + text[..previous].chars().count()
+        crate::graphemes::previous(&self.buffer, idx).expect("valid cursor")
     }
 
     fn next(&self, idx: usize) -> usize {
-        let (start, text) = self.local_text(idx).expect("valid cursor");
-        let byte = char_to_byte(&text, CharIndex(idx - start))
-            .expect("valid scalar index")
-            .0;
-        let next = GraphemeCursor::new(byte, text.len(), true)
-            .next_boundary(&text, 0)
-            .expect("complete line supplies context")
-            .unwrap_or(byte);
-        start + text[..next].chars().count()
+        crate::graphemes::next(&self.buffer, idx).expect("valid cursor")
     }
 
     pub fn backspace(&mut self) -> Result<(), EditError> {
@@ -328,11 +315,29 @@ impl Document {
             .char_to_line(self.cursor())
             .expect("valid cursor");
         let start = self.buffer.line_to_char(line).expect("valid line");
-        let prefix = self
+        let tab_width = self
+            .layout_cache
+            .borrow()
+            .as_ref()
+            .map_or(4, |cache| cache.tab_width());
+        if let Some(layout) = self.indexed_line(line, tab_width, self.cursor() - start, 0) {
+            return (line, layout.position(self.cursor()).0);
+        }
+        let bytes = self
             .buffer
-            .slice(start..self.cursor())
-            .expect("valid cursor prefix");
-        let column = prefix.graphemes(true).count();
+            .char_to_byte(CharIndex(self.cursor()))
+            .unwrap()
+            .0
+            - self.buffer.char_to_byte(CharIndex(start)).unwrap().0;
+        let column = if bytes == self.cursor() - start {
+            bytes
+        } else {
+            self.buffer
+                .slice(start..self.cursor())
+                .unwrap()
+                .graphemes(true)
+                .count()
+        };
         (line, column)
     }
 
@@ -360,13 +365,22 @@ impl Document {
                     (line + 1).min(self.buffer.len_lines() - 1)
                 };
                 let start = self.buffer.line_to_char(target).expect("valid line");
-                let text = self.buffer.line(target).expect("valid line");
-                start
-                    + without_line_ending(&text)
-                        .graphemes(true)
-                        .take(goal)
-                        .map(|g| g.chars().count())
-                        .sum::<usize>()
+                let end = self.line_end(target);
+                let bytes = self.buffer.char_to_byte(CharIndex(end)).unwrap().0
+                    - self.buffer.char_to_byte(CharIndex(start)).unwrap().0;
+                if bytes == end - start {
+                    start + goal.min(end - start)
+                } else {
+                    start
+                        + self
+                            .buffer
+                            .slice(start..end)
+                            .unwrap()
+                            .graphemes(true)
+                            .take(goal)
+                            .map(|g| g.chars().count())
+                            .sum::<usize>()
+                }
             }
         };
         self.selection.head = idx;
@@ -379,9 +393,7 @@ impl Document {
     }
 
     fn line_end(&self, line: usize) -> usize {
-        let text = self.buffer.line(line).expect("valid line");
-        self.buffer.line_to_char(line).expect("valid line")
-            + without_line_ending(&text).chars().count()
+        self.line_bounds(line).expect("valid line").end
     }
 
     pub fn undo(&mut self) -> Result<bool, EditError> {
@@ -389,7 +401,17 @@ impl Document {
             return Err(EditError::ReadOnly);
         }
         if let Some(tx) = self.undo.pop() {
+            let replacement = self.layout_cache.borrow().as_ref().map(|_| {
+                tx.before
+                    .buffer
+                    .slice(tx.start..tx.start + tx.removed)
+                    .expect("history range")
+            });
+            let layout_edit = replacement.as_ref().and_then(|text| {
+                self.prepare_layout_edit(&(tx.start..tx.start + tx.inserted), text)
+            });
             self.restore(&tx.before);
+            self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.redo.push(tx);
             Ok(true)
         } else {
@@ -402,7 +424,17 @@ impl Document {
             return Err(EditError::ReadOnly);
         }
         if let Some(tx) = self.redo.pop() {
+            let replacement = self.layout_cache.borrow().as_ref().map(|_| {
+                tx.after
+                    .buffer
+                    .slice(tx.start..tx.start + tx.inserted)
+                    .expect("history range")
+            });
+            let layout_edit = replacement.as_ref().and_then(|text| {
+                self.prepare_layout_edit(&(tx.start..tx.start + tx.removed), text)
+            });
             self.restore(&tx.after);
+            self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.undo.push(tx);
             Ok(true)
         } else {
@@ -472,12 +504,6 @@ impl Document {
     }
 }
 
-fn without_line_ending(text: &str) -> &str {
-    text.strip_suffix("\r\n")
-        .or_else(|| text.strip_suffix('\n'))
-        .unwrap_or(text)
-}
-
 fn byte_is_grapheme_boundary(text: &str, byte: usize) -> bool {
     GraphemeCursor::new(byte, text.len(), true)
         .is_boundary(text, 0)
@@ -531,6 +557,58 @@ mod tests {
         d.undo().unwrap();
         d.insert("branch").unwrap();
         assert!(!d.redo().unwrap());
+    }
+
+    #[test]
+    fn chunk_edges_match_extended_graphemes() {
+        for sequence in [
+            "e\u{301}",
+            "👩‍💻",
+            "🇻🇳",
+            "\r\n",
+            "\u{600}a",
+            "a\u{301}\u{302}",
+        ] {
+            for prefix in [990, 1000, 1010, 1020, 2030] {
+                let text = format!("{}{}tail", "x".repeat(prefix), sequence.repeat(12));
+                let mut d = Document::from_text(&text);
+                let mut chars = prefix;
+                d.select(prefix, prefix).unwrap();
+                for g in text[prefix..].graphemes(true) {
+                    chars += g.chars().count();
+                    d.move_cursor(Movement::Right, false);
+                    assert_eq!(d.cursor(), chars, "{sequence:?} at {prefix}");
+                    assert!(d.is_grapheme_boundary(chars));
+                }
+                for g in text[prefix..].graphemes(true).rev() {
+                    chars -= g.chars().count();
+                    d.move_cursor(Movement::Left, false);
+                    assert_eq!(d.cursor(), chars);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn save_snapshot_preserves_later_edits_selection_and_history() {
+        let mut d = Document::from_text("original");
+        d.insert("first ").unwrap();
+        let mut saved = d.clone();
+        saved.mark_saved();
+        saved.path = Some("saved.txt".into());
+        d.insert("later ").unwrap();
+        let selection = d.selection();
+        d.accept_saved_snapshot(&saved);
+        assert_eq!(d.text(), "first later original");
+        assert_eq!(d.selection(), selection);
+        assert!(d.is_dirty());
+        d.undo().unwrap();
+        assert!(!d.is_dirty());
+        d.undo().unwrap();
+        d.insert("first ").unwrap();
+        // A new history branch gets a distinct state even with identical bytes.
+        assert_eq!(d.text(), saved.text());
+        assert!(d.is_dirty());
     }
 
     #[test]

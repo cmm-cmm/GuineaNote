@@ -35,7 +35,7 @@ def measure(size, samples=31):
             for index in range(samples):
                 start = time.perf_counter()
                 session.send("x")
-                session.wait(f"Ln 1, Col {index + 2} |")
+                session.wait(f"Ln 1, Col {index + 2} ")
                 latencies.append((time.perf_counter() - start) * 1000)
                 rss_samples.append(editor.memory_info().rss)
             session.send("\x13")

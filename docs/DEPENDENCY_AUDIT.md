@@ -39,3 +39,13 @@ GitHub CI is intentionally disabled during development at the user's request.
 Run the commands above locally to refresh this evidence when dependencies or
 advisories change. The previous workflow was removed before the initial push;
 no GitHub Actions run is part of this verification evidence.
+
+## Review dependencies, 2026-11-09
+
+Added locked pulldown-cmark 0.13.6, quick-xml 0.42.0, csv 1.4.0 and
+serde_json 1.0.154 (order/arbitrary precision preservation), plus their small
+transitive dependencies. Re-ran the workspace offline audit against the same
+fetched RustSec snapshot: exit 0, advisories/bans/licenses/sources all pass;
+the existing Syn duplicate warning remains. No license allowance, advisory
+ignore or source-policy exception was added. These are parsers, not runtimes
+for executing source, HTML, XML external entities or links.

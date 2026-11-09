@@ -11,12 +11,25 @@ fn help_and_version_need_no_terminal() {
     let text = String::from_utf8(help.stdout).unwrap();
     assert!(text.contains("--readonly"));
     assert!(text.contains("--config"));
+    assert!(text.contains("--language"));
     let version = binary().arg("--version").output().unwrap();
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8(version.stdout).unwrap().trim(),
         "guineanote 0.1.0"
     );
+}
+
+#[test]
+fn unsupported_language_fails_before_entering_terminal() {
+    let output = binary().args(["--language", "fr"]).output().unwrap();
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8(output.stderr)
+            .unwrap()
+            .contains("invalid value")
+    );
+    assert!(!output.stdout.contains(&0x1b));
 }
 
 #[test]

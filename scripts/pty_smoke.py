@@ -80,7 +80,26 @@ class Session:
             self.resize(28, 100)
         self.output = b""
         import pyte
-        self.screen = pyte.Screen(100, 28)
+        class TerminalScreen(pyte.Screen):
+            @property
+            def display(self):
+                from wcwidth import wcwidth
+                rows = []
+                for y in range(self.lines):
+                    out, skip = [], False
+                    for x in range(self.columns):
+                        if skip:
+                            skip = False
+                            continue
+                        text = self.buffer[y][x].data
+                        if not text:  # pyte can leave a stub after a ZWJ overwrite.
+                            out.append(" ")
+                            continue
+                        skip = wcwidth(text[0]) == 2
+                        out.append(text)
+                    rows.append("".join(out))
+                return rows
+        self.screen = TerminalScreen(100, 28)
         self.stream = pyte.Stream(self.screen)
         self.decoder = codecs.getincrementaldecoder("utf-8")("replace")
 
@@ -114,6 +133,13 @@ class Session:
         else:
             os.write(self.fd, text.encode())
 
+    def wait_until(self, predicate, timeout=10):
+        deadline = time.monotonic() + timeout
+        while not predicate(self.screen.display):
+            if time.monotonic() >= deadline:
+                raise AssertionError("Timed out waiting for screen predicate")
+            self.read(0.005)
+
     def write(self, text):
         self.send(text)
         self.read(0.25)
@@ -146,6 +172,13 @@ class Session:
 
     def close(self):
         if os.name == "nt":
+            # The probe prints CHILD_EXIT just before its Python wrapper exits.
+            # Let that normal exit finish before pywinpty attempts TerminateProcess;
+            # Windows may deny termination during this short exit race.
+            if b"CHILD_EXIT=" in self.output:
+                deadline = time.monotonic() + 2
+                while self.process.isalive() and time.monotonic() < deadline:
+                    time.sleep(0.01)
             try:
                 self.process.close(force=True)
             except PermissionError:

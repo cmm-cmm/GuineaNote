@@ -1,5 +1,83 @@
 # Performance measurements
 
+## Current interaction budget: below 100 ms, 2026-11-09
+
+The user's final requirement supersedes the initial 150 ms target. Scope:
+UTF-8 inputs up to 10 MiB on this Windows/MSVC development host (hardware below),
+release profile. Native ConPTY + real editor input/output + pyte parsing;
+physical monitor/font latency is not included. Build/test processes were allowed
+to finish before the final two runs. OS scheduling, antivirus and unrelated host
+load are not controlled; these measurements are not universal certification.
+
+Reproduce locally (no GitHub CI):
+
+```powershell
+cargo build --release
+python -X utf8 scripts/pty_responsiveness.py 10485760
+```
+
+The script fails if **any** measured interaction is >=100 ms. Two final runs:
+107 fresh screen transitions each, **214 total, maximum 49.018 ms**, no failures.
+Raw samples: [run 1](responsiveness-10m-run1.json),
+[run 2](responsiveness-10m-run2.json). Sorted sample-rank percentiles:
+
+| Workload | Samples | p50 ms | p95 ms | Max ms |
+| --- | ---: | ---: | ---: | ---: |
+| ascii | 60 | 20.621 | 28.984 | 39.009 |
+| unicode | 60 | 3.463 | 7.320 | 42.170 |
+| note.md | 6 | 6.953 | 7.355 | 7.355 |
+| data.json | 6 | 7.959 | 10.802 | 10.802 |
+| data.xml | 6 | 6.286 | 12.703 | 12.703 |
+| data.csv | 6 | 9.518 | 11.672 | 11.672 |
+| data.tsv | 6 | 9.531 | 10.781 | 10.781 |
+| data.toml | 6 | 8.615 | 10.109 | 10.109 |
+| broken.json | 6 | 8.961 | 10.209 | 10.209 |
+| large-json | 14 | 5.472 | 7.031 | 7.031 |
+| workflow | 38 | 8.879 | 35.601 | 49.018 |
+
+ASCII is one 10 MiB line. Unicode repeats Vietnamese, NFD accents, CJK and ZWJ
+emoji in one line up to 10 MiB; the fixture has 11 graphemes per unit. Operations
+cover typing at start, End, Left/Right at end, insert/undo/redo/backspace at end,
+Home, help/dismissal and locale switches. Review cases include Markdown,
+JSON, XML, CSV, TSV, TOML and invalid JSON. Large JSON runs background review
+while switching locales. Workflow cases cover tabs, clipboard, history, dirty
+close/cancellation, prompts, find feedback, sidebar/focus, opening a folder,
+expanding a directory and dirty quit. Saves check exact bytes and clean terminal
+exit. These samples do not cover every possible command/content/terminal.
+
+Full 10 MiB JSON review completion, including repeated locale changes, took
+**790.227 / 778.185 ms** in the two runs. Interactive review feedback and locale
+switches remained within the table's budget. Parse completion, disk sync,
+network filesystems, cold filesystem cache and arbitrary Unicode clusters do
+not have a universal 100 ms completion guarantee. Review display is capped at
+100,000 rows; full source remains editable.
+
+The probe found real regressions before the final implementation:
+
+- Before parallel indexing, cold End on the Unicode line took 153.8 ms:
+  [raw earlier run](responsiveness-before-parallel.json).
+- A pasted/rapidly typed path caused one redraw per character, giving a
+  222.728 ms folder response: [raw earlier run](responsiveness-before-input-batch.json).
+- The four-worker cold index showed a 133.078 ms sample during variable host
+  load: [raw variance run](responsiveness-cold-index-variance.json).
+
+Fixes: borrowed chunk grapheme navigation, constant-time history savepoints,
+bounded visible strings, sparse display checkpoints with incremental edit/undo/
+redo invalidation, cold indices split at verified grapheme boundaries across up
+to eight available workers (tab stops recombined exactly), and bounded input
+batches (128 events or 4 ms) before drawing. File/review worker delivery polls
+at 8 ms while active; idle waits return to 250 ms and do not redraw. Background
+save completion preserves typing made after the committed snapshot.
+
+64 Rust tests, fmt and strict Clippy pass. Linux x64 and macOS ARM64 Clippy
+cross-checks pass; native runtime/latency on those OSes is still unverified.
+Normal edit/workspace PTY and panic terminal restoration pass on Windows.
+
+The measurements below are historical checkpoints and retain their original
+limitations and implementation descriptions.
+
+## Earlier baseline
+
 Measured locally 2026-11-08 on Windows 11 Home Single Language 10.0.26300,
 Intel Core i5-1235U (10 cores / 12 logical processors), approximately 15.7 GiB
 visible RAM, x86_64-pc-windows-msvc, rustc 1.98.1. Release/bench profile, default

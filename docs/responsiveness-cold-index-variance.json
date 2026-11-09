@@ -1,0 +1,449 @@
+{
+  "budget_ms": 100,
+  "input_bytes_max": 10485760,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "sample_count": 107,
+  "samples": [
+    {
+      "action": "ascii:type-start",
+      "ms": 5.149
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 5.174
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 4.614
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 4.766
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 5.278
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 4.703
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 7.172
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 7.222
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 4.692
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 6.634
+    },
+    {
+      "action": "ascii:end",
+      "ms": 37.667
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 35.621
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 49.408
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 33.89
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 46.808
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 33.613
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 37.375
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 38.093
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 35.19
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 42.9
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 48.653
+    },
+    {
+      "action": "ascii:insert-end",
+      "ms": 41.963
+    },
+    {
+      "action": "ascii:undo-end",
+      "ms": 34.18
+    },
+    {
+      "action": "ascii:redo-end",
+      "ms": 33.285
+    },
+    {
+      "action": "ascii:backspace-end",
+      "ms": 33.4
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.103
+    },
+    {
+      "action": "ascii:language-vi",
+      "ms": 6.275
+    },
+    {
+      "action": "ascii:language-en",
+      "ms": 5.804
+    },
+    {
+      "action": "ascii:help",
+      "ms": 7.015
+    },
+    {
+      "action": "ascii:dismiss-help",
+      "ms": 15.233
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 8.131
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 8.325
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 6.769
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 7.62
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 6.736
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 5.987
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 7.723
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 5.004
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 5.484
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 6.016
+    },
+    {
+      "action": "unicode:end",
+      "ms": 133.078
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.666
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 4.658
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.384
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.383
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.877
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 4.496
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.511
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 5.072
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.653
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 4.715
+    },
+    {
+      "action": "unicode:insert-end",
+      "ms": 5.246
+    },
+    {
+      "action": "unicode:undo-end",
+      "ms": 2.976
+    },
+    {
+      "action": "unicode:redo-end",
+      "ms": 5.004
+    },
+    {
+      "action": "unicode:backspace-end",
+      "ms": 4.985
+    },
+    {
+      "action": "unicode:home",
+      "ms": 5.17
+    },
+    {
+      "action": "unicode:language-vi",
+      "ms": 4.464
+    },
+    {
+      "action": "unicode:language-en",
+      "ms": 5.833
+    },
+    {
+      "action": "unicode:help",
+      "ms": 6.106
+    },
+    {
+      "action": "unicode:dismiss-help",
+      "ms": 6.843
+    },
+    {
+      "action": "note.md:split-feedback",
+      "ms": 7.853
+    },
+    {
+      "action": "note.md:full-review",
+      "ms": 6.488
+    },
+    {
+      "action": "note.md:source",
+      "ms": 6.389
+    },
+    {
+      "action": "data.json:split-feedback",
+      "ms": 5.421
+    },
+    {
+      "action": "data.json:full-review",
+      "ms": 5.777
+    },
+    {
+      "action": "data.json:source",
+      "ms": 9.541
+    },
+    {
+      "action": "data.xml:split-feedback",
+      "ms": 8.13
+    },
+    {
+      "action": "data.xml:full-review",
+      "ms": 7.415
+    },
+    {
+      "action": "data.xml:source",
+      "ms": 7.226
+    },
+    {
+      "action": "data.csv:split-feedback",
+      "ms": 6.837
+    },
+    {
+      "action": "data.csv:full-review",
+      "ms": 8.138
+    },
+    {
+      "action": "data.csv:source",
+      "ms": 4.904
+    },
+    {
+      "action": "data.tsv:split-feedback",
+      "ms": 8.139
+    },
+    {
+      "action": "data.tsv:full-review",
+      "ms": 9.741
+    },
+    {
+      "action": "data.tsv:source",
+      "ms": 6.014
+    },
+    {
+      "action": "data.toml:split-feedback",
+      "ms": 7.188
+    },
+    {
+      "action": "data.toml:full-review",
+      "ms": 7.005
+    },
+    {
+      "action": "data.toml:source",
+      "ms": 7.863
+    },
+    {
+      "action": "broken.json:split-feedback",
+      "ms": 11.31
+    },
+    {
+      "action": "broken.json:full-review",
+      "ms": 18.873
+    },
+    {
+      "action": "broken.json:source",
+      "ms": 11.409
+    },
+    {
+      "action": "large-json:review-feedback",
+      "ms": 8.233
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 9.882
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 10.513
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 12.138
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 14.647
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 12.363
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 12.668
+    },
+    {
+      "action": "workflow:next-tab",
+      "ms": 13.153
+    },
+    {
+      "action": "workflow:copy",
+      "ms": 7.544
+    },
+    {
+      "action": "workflow:new-tab",
+      "ms": 13.847
+    },
+    {
+      "action": "workflow:paste",
+      "ms": 10.698
+    },
+    {
+      "action": "workflow:undo",
+      "ms": 11.364
+    },
+    {
+      "action": "workflow:redo",
+      "ms": 11.185
+    },
+    {
+      "action": "workflow:dirty-close",
+      "ms": 9.593
+    },
+    {
+      "action": "workflow:cancel-close",
+      "ms": 21.063
+    },
+    {
+      "action": "workflow:open-prompt",
+      "ms": 19.05
+    },
+    {
+      "action": "workflow:dismiss-prompt",
+      "ms": 18.489
+    },
+    {
+      "action": "workflow:find-prompt",
+      "ms": 14.853
+    },
+    {
+      "action": "workflow:find-response",
+      "ms": 12.136
+    },
+    {
+      "action": "workflow:show-tree",
+      "ms": 18.502
+    },
+    {
+      "action": "workflow:focus-editor",
+      "ms": 2.738
+    },
+    {
+      "action": "workflow:hide-tree",
+      "ms": 50.869
+    },
+    {
+      "action": "workflow:folder-prompt",
+      "ms": 2.755
+    },
+    {
+      "action": "workflow:folder-response",
+      "ms": 51.309
+    },
+    {
+      "action": "workflow:expand-tree",
+      "ms": 27.965
+    },
+    {
+      "action": "workflow:quit-prompt",
+      "ms": 13.031
+    }
+  ],
+  "background_completion": [
+    {
+      "operation": "10MiB JSON review completion including locale changes",
+      "ms": 1613.486
+    }
+  ],
+  "max_ms": 133.078,
+  "failures": [
+    {
+      "action": "unicode:end",
+      "ms": 133.078
+    }
+  ]
+}

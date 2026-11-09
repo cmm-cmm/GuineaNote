@@ -1,7 +1,13 @@
 use std::ops::Range;
 
+use crate::coordinates::{ByteOffset, CharIndex};
 use ropey::Rope;
 use thiserror::Error;
+
+pub struct TextChunk<'a> {
+    pub text: &'a str,
+    pub byte_start: usize,
+}
 
 #[derive(Debug, Clone, PartialEq, Eq, Error)]
 pub enum EditError {
@@ -17,6 +23,7 @@ pub enum EditError {
 /// Returned strings are owned. Rope edits/indexing are logarithmic plus copied
 /// text; line/slice cost also includes the returned text length.
 pub trait TextBuffer {
+    fn len_bytes(&self) -> usize;
     fn len_chars(&self) -> usize;
     fn len_lines(&self) -> usize;
     fn line(&self, line_idx: usize) -> Option<String>;
@@ -25,6 +32,14 @@ pub trait TextBuffer {
     fn slice(&self, range: Range<usize>) -> Result<String, EditError>;
     fn char_to_line(&self, char_idx: usize) -> Result<usize, EditError>;
     fn line_to_char(&self, line_idx: usize) -> Result<usize, EditError>;
+    fn char_to_byte(&self, idx: CharIndex) -> Result<ByteOffset, EditError>;
+    fn byte_to_char(&self, idx: ByteOffset) -> Result<CharIndex, EditError>;
+    fn chunk_at_byte(&self, idx: ByteOffset) -> Result<TextChunk<'_>, EditError>;
+    fn visit_chunks(
+        &self,
+        range: Range<usize>,
+        visitor: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(), EditError>;
     fn text(&self) -> String {
         self.slice(0..self.len_chars()).expect("valid full range")
     }
@@ -50,6 +65,9 @@ impl RopeyBuffer {
 }
 
 impl TextBuffer for RopeyBuffer {
+    fn len_bytes(&self) -> usize {
+        self.0.len_bytes()
+    }
     fn len_chars(&self) -> usize {
         self.0.len_chars()
     }
@@ -82,6 +100,37 @@ impl TextBuffer for RopeyBuffer {
             return Err(EditError::OutOfBounds);
         }
         Ok(self.0.line_to_char(idx))
+    }
+    fn char_to_byte(&self, idx: CharIndex) -> Result<ByteOffset, EditError> {
+        self.check(&(idx.0..idx.0))?;
+        Ok(ByteOffset(self.0.char_to_byte(idx.0)))
+    }
+    fn byte_to_char(&self, idx: ByteOffset) -> Result<CharIndex, EditError> {
+        let chunk = self.chunk_at_byte(idx)?;
+        if !chunk.text.is_char_boundary(idx.0 - chunk.byte_start) {
+            return Err(EditError::OutOfBounds);
+        }
+        Ok(CharIndex(self.0.byte_to_char(idx.0)))
+    }
+    fn chunk_at_byte(&self, idx: ByteOffset) -> Result<TextChunk<'_>, EditError> {
+        let (text, byte_start, _, _) = self
+            .0
+            .get_chunk_at_byte(idx.0)
+            .ok_or(EditError::OutOfBounds)?;
+        Ok(TextChunk { text, byte_start })
+    }
+    fn visit_chunks(
+        &self,
+        range: Range<usize>,
+        visitor: &mut dyn FnMut(&str) -> bool,
+    ) -> Result<(), EditError> {
+        self.check(&range)?;
+        for chunk in self.0.slice(range).chunks() {
+            if !visitor(chunk) {
+                break;
+            }
+        }
+        Ok(())
     }
 }
 

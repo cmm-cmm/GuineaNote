@@ -120,3 +120,26 @@ disk full, kill during the replacement syscall/power loss, unusual
 symlinks/reparse points, network filesystems, terminal/font Unicode variations,
 Linux/macOS native runs and long-line responsiveness. Record NOT TESTED until
 there is actual evidence. See the acceptance matrix in IMPLEMENTATION_STATUS.
+
+## Review, localization and response budget
+
+Run `python -X utf8 scripts/pty_responsiveness.py 10485760` after the release
+build. It fails when any measured interaction reaches 100 ms. It uses owned
+temporary files, fresh screen state changes, exact saved-byte checks and normal
+terminal cleanup, including 10 MiB ASCII/Unicode single lines, end movement,
+edits/history, F7 review, F8 localization, 10 MiB background JSON parsing, and
+tab/clipboard/prompt/search/folder/tree/quit workflows. Full JSON parse completion
+is separate from interactive feedback. Raw output is target/responsiveness.json.
+Run without concurrent compilation for comparable local measurements.
+
+Review unit tests cover malformed JSON/XML, quoted/multiline and unequal-width
+CSV records, TSV, source integrity, stale worker revisions, locale/resize cache
+keys, later table columns and cell widths. Core tests cover grapheme chunk
+boundaries, sparse index edits/history and parallel index/tab-stop equivalence.
+CLI tests reject unsupported locale values before terminal entry.
+
+`python -X utf8 scripts/tui_review_preview.py` captures actual Markdown/CSV/JSON
+panes in Vietnamese and English under target/previews. pyte 0.8.2's display
+adapter tolerates orphaned wide-cell stubs after ZWJ redraw; the parser/cell
+buffer and actual key/output transport are retained. Byte-exact saves and native
+Unicode input tests remain independent checks.

@@ -17,6 +17,7 @@ pub(crate) fn safe(text: &str) -> String {
 
 // Lex only the prefix needed for this viewport. Starting at byte zero keeps
 // the line-local string/comment context correct while avoiding hidden suffixes.
+#[cfg(test)]
 pub(crate) fn prefix_through_cell(text: &str, right: usize, tab_width: usize) -> &str {
     let mut cell = 0;
     let mut end = 0;
@@ -49,6 +50,7 @@ fn visible_line(
         width,
         tab_width,
         LinePaint {
+            cell_start: 0,
             theme: Theme::new(false),
             highlights: &[],
         },
@@ -56,6 +58,7 @@ fn visible_line(
 }
 
 pub(crate) struct LinePaint<'a> {
+    pub cell_start: usize,
     pub theme: Theme,
     pub highlights: &'a [HighlightSpan],
 }
@@ -70,7 +73,7 @@ pub(crate) fn styled_line(
     paint: LinePaint<'_>,
 ) -> Line<'static> {
     let mut spans = Vec::new();
-    let mut cell = 0;
+    let mut cell = paint.cell_start;
     let mut char_idx = start_char;
     for g in text.graphemes(true) {
         let count = g.chars().count();
@@ -97,7 +100,7 @@ pub(crate) fn styled_line(
                     TokenKind::String => paint.theme.mint,
                     TokenKind::Number => paint.theme.amber,
                     TokenKind::Comment => paint.theme.muted,
-                    TokenKind::Heading => paint.theme.purple,
+                    TokenKind::Heading | TokenKind::Key => paint.theme.purple,
                 })
             });
             if char_idx < selection.end && char_idx + count > selection.start {

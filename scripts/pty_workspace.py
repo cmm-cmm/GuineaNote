@@ -45,7 +45,7 @@ def run():
             session.wait_file(source, "// edited " + original)
             session.write("\x1bOS")  # F4 returns to tree.
             session.write("\x1b[D\x1b[D")  # Parent, collapse.
-            assert "main.rs" not in "\n".join(line[:30] for line in session.screen.display)
+            session.wait_until(lambda lines: "main.rs" not in "\n".join(line[:30] for line in lines))
             session.write("\x1b[B\r")
             session.wait("workspace smoke")
             session.write("\x02")  # Ctrl+B hides explorer.

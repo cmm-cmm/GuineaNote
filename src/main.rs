@@ -17,11 +17,19 @@ struct Args {
     /// Read editor configuration from a TOML file.
     #[arg(long, value_name = "PATH")]
     config: Option<PathBuf>,
+    /// Interface language: Vietnamese or English (F8 switches while running).
+    #[arg(long, value_parser = ["vi", "en"])]
+    language: Option<String>,
 }
 
 fn main() -> std::process::ExitCode {
     let args = Args::parse();
-    match guinea_tui::run(args.files, args.readonly, args.config) {
+    match guinea_tui::run(
+        args.files,
+        args.readonly,
+        args.config,
+        args.language.as_deref(),
+    ) {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(error) => {
             eprintln!("GuineaNote: {error}");

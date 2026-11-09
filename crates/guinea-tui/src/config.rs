@@ -4,6 +4,7 @@ use std::{fs, path::Path};
 #[derive(Debug, Clone, Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct Config {
+    pub language: crate::i18n::Locale,
     pub tab_width: usize,
     pub large_file_warning_bytes: u64,
     pub syntax: bool,
@@ -15,6 +16,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Self {
         Self {
+            language: crate::i18n::Locale::En,
             tab_width: 4,
             large_file_warning_bytes: 10 * 1024 * 1024,
             syntax: true,

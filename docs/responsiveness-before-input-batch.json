@@ -1,0 +1,449 @@
+{
+  "budget_ms": 100,
+  "input_bytes_max": 10485760,
+  "platform": "Windows-11-10.0.26300-SP0",
+  "sample_count": 107,
+  "samples": [
+    {
+      "action": "ascii:type-start",
+      "ms": 3.729
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.122
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.526
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.313
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.178
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.406
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 2.89
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.306
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.69
+    },
+    {
+      "action": "ascii:type-start",
+      "ms": 3.174
+    },
+    {
+      "action": "ascii:end",
+      "ms": 22.176
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 20.526
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 26.89
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 22.055
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 20.365
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 21.135
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 20.89
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 29.711
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 35.836
+    },
+    {
+      "action": "ascii:left-at-end",
+      "ms": 40.343
+    },
+    {
+      "action": "ascii:right-at-end",
+      "ms": 39.83
+    },
+    {
+      "action": "ascii:insert-end",
+      "ms": 22.198
+    },
+    {
+      "action": "ascii:undo-end",
+      "ms": 23.611
+    },
+    {
+      "action": "ascii:redo-end",
+      "ms": 21.539
+    },
+    {
+      "action": "ascii:backspace-end",
+      "ms": 22.184
+    },
+    {
+      "action": "ascii:home",
+      "ms": 3.527
+    },
+    {
+      "action": "ascii:language-vi",
+      "ms": 3.626
+    },
+    {
+      "action": "ascii:language-en",
+      "ms": 4.209
+    },
+    {
+      "action": "ascii:help",
+      "ms": 4.082
+    },
+    {
+      "action": "ascii:dismiss-help",
+      "ms": 6.764
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.09
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 2.95
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.555
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.583
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.89
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 5.118
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.405
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.092
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 4.578
+    },
+    {
+      "action": "unicode:type-start",
+      "ms": 3.542
+    },
+    {
+      "action": "unicode:end",
+      "ms": 64.022
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.206
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 2.984
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.4
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 2.898
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.068
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.094
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 3.369
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 2.933
+    },
+    {
+      "action": "unicode:left-at-end",
+      "ms": 4.091
+    },
+    {
+      "action": "unicode:right-at-end",
+      "ms": 3.028
+    },
+    {
+      "action": "unicode:insert-end",
+      "ms": 3.609
+    },
+    {
+      "action": "unicode:undo-end",
+      "ms": 3.324
+    },
+    {
+      "action": "unicode:redo-end",
+      "ms": 3.3
+    },
+    {
+      "action": "unicode:backspace-end",
+      "ms": 4.183
+    },
+    {
+      "action": "unicode:home",
+      "ms": 4.334
+    },
+    {
+      "action": "unicode:language-vi",
+      "ms": 3.584
+    },
+    {
+      "action": "unicode:language-en",
+      "ms": 3.419
+    },
+    {
+      "action": "unicode:help",
+      "ms": 4.649
+    },
+    {
+      "action": "unicode:dismiss-help",
+      "ms": 6.207
+    },
+    {
+      "action": "note.md:split-feedback",
+      "ms": 5.152
+    },
+    {
+      "action": "note.md:full-review",
+      "ms": 3.806
+    },
+    {
+      "action": "note.md:source",
+      "ms": 6.193
+    },
+    {
+      "action": "data.json:split-feedback",
+      "ms": 6.618
+    },
+    {
+      "action": "data.json:full-review",
+      "ms": 8.071
+    },
+    {
+      "action": "data.json:source",
+      "ms": 11.78
+    },
+    {
+      "action": "data.xml:split-feedback",
+      "ms": 17.397
+    },
+    {
+      "action": "data.xml:full-review",
+      "ms": 13.57
+    },
+    {
+      "action": "data.xml:source",
+      "ms": 5.857
+    },
+    {
+      "action": "data.csv:split-feedback",
+      "ms": 10.167
+    },
+    {
+      "action": "data.csv:full-review",
+      "ms": 15.34
+    },
+    {
+      "action": "data.csv:source",
+      "ms": 8.208
+    },
+    {
+      "action": "data.tsv:split-feedback",
+      "ms": 12.975
+    },
+    {
+      "action": "data.tsv:full-review",
+      "ms": 10.994
+    },
+    {
+      "action": "data.tsv:source",
+      "ms": 10.616
+    },
+    {
+      "action": "data.toml:split-feedback",
+      "ms": 6.822
+    },
+    {
+      "action": "data.toml:full-review",
+      "ms": 10.544
+    },
+    {
+      "action": "data.toml:source",
+      "ms": 8.944
+    },
+    {
+      "action": "broken.json:split-feedback",
+      "ms": 12.146
+    },
+    {
+      "action": "broken.json:full-review",
+      "ms": 10.023
+    },
+    {
+      "action": "broken.json:source",
+      "ms": 8.252
+    },
+    {
+      "action": "large-json:review-feedback",
+      "ms": 8.057
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 6.67
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 10.128
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 5.699
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 7.625
+    },
+    {
+      "action": "large-json:vi-during-render",
+      "ms": 11.072
+    },
+    {
+      "action": "large-json:en-during-render",
+      "ms": 10.785
+    },
+    {
+      "action": "workflow:next-tab",
+      "ms": 5.255
+    },
+    {
+      "action": "workflow:copy",
+      "ms": 4.322
+    },
+    {
+      "action": "workflow:new-tab",
+      "ms": 5.754
+    },
+    {
+      "action": "workflow:paste",
+      "ms": 6.787
+    },
+    {
+      "action": "workflow:undo",
+      "ms": 6.875
+    },
+    {
+      "action": "workflow:redo",
+      "ms": 6.231
+    },
+    {
+      "action": "workflow:dirty-close",
+      "ms": 7.883
+    },
+    {
+      "action": "workflow:cancel-close",
+      "ms": 9.653
+    },
+    {
+      "action": "workflow:open-prompt",
+      "ms": 9.601
+    },
+    {
+      "action": "workflow:dismiss-prompt",
+      "ms": 9.363
+    },
+    {
+      "action": "workflow:find-prompt",
+      "ms": 11.019
+    },
+    {
+      "action": "workflow:find-response",
+      "ms": 30.807
+    },
+    {
+      "action": "workflow:show-tree",
+      "ms": 18.89
+    },
+    {
+      "action": "workflow:focus-editor",
+      "ms": 2.533
+    },
+    {
+      "action": "workflow:hide-tree",
+      "ms": 43.184
+    },
+    {
+      "action": "workflow:folder-prompt",
+      "ms": 2.314
+    },
+    {
+      "action": "workflow:folder-response",
+      "ms": 222.728
+    },
+    {
+      "action": "workflow:expand-tree",
+      "ms": 34.21
+    },
+    {
+      "action": "workflow:quit-prompt",
+      "ms": 9.385
+    }
+  ],
+  "background_completion": [
+    {
+      "operation": "10MiB JSON review completion including locale changes",
+      "ms": 1385.309
+    }
+  ],
+  "max_ms": 222.728,
+  "failures": [
+    {
+      "action": "workflow:folder-response",
+      "ms": 222.728
+    }
+  ]
+}

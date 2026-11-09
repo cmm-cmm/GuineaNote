@@ -7,6 +7,7 @@ see [implementation status](docs/IMPLEMENTATION_STATUS.md) for verified scope.
 ```sh
 cargo build --release
 cargo run -- file.txt
+cargo run --release -- --language vi .
 cargo run -- --help
 ```
 
@@ -50,16 +51,40 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
 | F6 / Shift+F6 | Next / previous tab (Ctrl+Tab also when available) |
+| F7 | Cycle source / split / review (Markdown and textual data) |
+| F8 | Switch Vietnamese / English interface |
 | F1 / F2 | Help / command prompt with fallbacks for every main action |
 
 Prompts use Enter to submit and Esc to cancel. Destructive confirmations
 require Y; N/Esc cancels. Save first, then close/quit, to keep edits. Clipboard
 is internal; normal terminal paste depends on the terminal. File operations
-and full-document search/replace run in the background; input edits are paused
-until completion, with a visible message. All actions also work without a mouse.
+and full-document search/replace run in the background. Open/search/replace
+temporarily pause edits with visible feedback. Saving allows continued editing;
+completion marks the committed snapshot saved and keeps later edits dirty.
+All actions also work without a mouse.
 The navy/mint theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
+
+Use `--language vi` / `--language en`, or `language = "vi"` / `"en"` in the
+configuration, for Vietnamese / English. The default is English. F8 switches
+the current session; F2 commands `language-vi` and `language-en` also work.
+Document contents and filenames remain unchanged. Parser/OS diagnostics may
+retain their original technical details.
+
+F7 opens a cached, background-rendered review. Markdown renders headings,
+emphasis, lists/tasks, quotes, links, code fences and tables. JSON/JSONL/NDJSON
+is formatted with key/value colors; XML/SVG displays element structure;
+CSV/TSV displays numbered rows and header columns, including quoted/multiline
+fields. CSV/TSV treats the first record as the header; Left/Right in full review
+browses further columns. TOML has a formatted view. YAML/INI provide highlighted
+source review. F2 `source`, `split` or `review` selects a mode directly.
+In full review, arrows/PageUp/PageDown/Home/End and the mouse wheel scroll;
+Esc returns to source. Source and review have independent scroll positions.
+Review is read-only and refreshes after source edits. It never saves formatted
+content over the source. HTML in Markdown is literal text and links are inert.
+Review output is capped at 100,000 display rows with an explicit notice; all
+source data remains available in the editor. See [formats](docs/FORMATS.md).
 
 UTF-8 editing only; BOM and original LF/CRLF/mixed bytes are preserved. Enter
 uses CRLF for exclusively CRLF files and LF otherwise. Invalid encodings,
@@ -70,8 +95,11 @@ confirmation, save to a new path, or cancel. Read the
 
 Ropey keeps content in resident memory; history and search snapshots add memory.
 Files above 10 MiB trigger confirmation by default. Long lines and full-document
-operations can be expensive. Syntax is a small line-local lexer, without
-multiline grammar state. No bounded-memory large-file support, system clipboard
+operations can be expensive. The 100 ms interaction budget is measured on the
+local 10 MiB corpus, with full I/O/parse completion reported separately; it is
+not a universal timing guarantee. Syntax is a small line-local lexer, without
+multiline grammar state; very long horizontally-scrolled lines use viewport
+context. No bounded-memory large-file support, system clipboard
 integration, LSP, plugin runtime, Git integration or crash recovery.
 
 Run the required checks:

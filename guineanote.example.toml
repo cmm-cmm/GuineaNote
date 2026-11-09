@@ -1,4 +1,6 @@
 # Pass explicitly with --config guineanote.example.toml.
+# Interface: "vi" or "en". --language overrides this; F8 toggles for the session.
+language = "vi"
 tab_width = 4
 large_file_warning_bytes = 10485760
 syntax = true
