@@ -5,3 +5,6 @@
 tests/fixtures/** -text
 # Preserve control bytes and native line endings in raw PTY captures.
 docs/diagnostics/**/*.log binary
+# This evidence bundle carries SHA256 for original captured bytes, including
+# native newlines in CSV/JSON/tool output. Keep checkout bytes reproducible.
+docs/diagnostics/terminal-workflow/** -text
