@@ -1,0 +1,9 @@
+D:\Project\GuineaNote\target\previews\find-replace-en.png
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 104, in <module>
+    main()
+    ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 52, in main
+    assert path.read_bytes()==b"\xef\xbb\xbf"+original.encode(), (path.read_bytes(),original.encode())
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: (b'\xef\xbb\xbfVietnam \xf0\x9f\x91\xa9\xe2\x80\x8d\xf0\x9f\x92\xbb\r\nVietnam e\xcc\x81\r\n', b'Vi\xe1\xbb\x87t \xf0\x9f\x91\xa9\xe2\x80\x8d\xf0\x9f\x92\xbb\r\nVi\xe1\xbb\x87t e\xcc\x81\r\n')

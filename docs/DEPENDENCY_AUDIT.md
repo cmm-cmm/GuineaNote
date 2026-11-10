@@ -1,5 +1,17 @@
 # Dependency audit — 2026-11-09
 
+## Project finder, 2026-11-10
+
+Added ignore 0.4.34 and its locked graph (globset, walkdir, bstr,
+regex-automata/aho-corasick, crossbeam-deque/epoch/utils and same-file), ten new
+packages total. Existing package versions are unchanged. No advisory exception
+or license policy weakening. RustSec snapshot
+`2295466c4e9df26647fd67d8fa1c705ac2fc7f81`; locked offline audit passes advisories,
+bans, licenses and sources, with the same seven duplicate-version warnings.
+Project indexing uses the official ignore WalkBuilder API; it does not run a
+shell, language runtime or project code. Runtime input/worker limits are
+documented in [terminal workflow](TERMINAL_WORKFLOW.md).
+
 Tool: cargo-deny 0.20.2, installed from its locked source package into
 `target/devtools`. It is a development tool, not an application dependency or
 global PATH change. Project Cargo.lock remains the application dependency lock.

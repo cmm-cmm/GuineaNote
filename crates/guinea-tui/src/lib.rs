@@ -1,4 +1,5 @@
 mod app;
+mod commands;
 mod config;
 mod dialogs;
 mod explorer;
@@ -7,6 +8,7 @@ mod file_picker;
 mod i18n;
 mod input;
 mod preferences;
+mod project;
 mod recovery;
 mod render;
 mod review;
@@ -110,7 +112,12 @@ pub fn run_with_agent(
     if config.mouse {
         execute!(stdout(), EnableMouseCapture)?;
     }
-    let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
+    let write_times = trace::WriteTimes::default();
+    let mut terminal = Terminal::new(CrosstermBackend::new(trace::Writer::new(
+        stdout(),
+        write_times.clone(),
+    )))?;
+    let mut interactions = trace::Frames::default();
     let mut app = app::App::new(files, readonly, config);
     app.preferences.path = preferences::path();
     app.recovery = recovery::Recovery::start(app.preferences.path.clone(), app.config.recovery);
@@ -129,6 +136,8 @@ pub fn run_with_agent(
                 let _build = trace::span("frame_build");
                 render::draw(frame, &mut app)
             })?;
+            interactions.flushed();
+            write_times.frame();
             app.redraw = false;
         }
         // At most four idle wakeups/sec, no redraw without state changes.
@@ -142,8 +151,10 @@ pub fn run_with_agent(
                 crossterm::event::Event::Resize(..) | crossterm::event::Event::Mouse(_)
             );
             {
+                let receipt = trace::received(&app, &event);
                 let _span = trace::span("input_handle");
                 app.handle(event);
+                interactions.record(receipt, app.redraw);
             }
             // Coalesce bursts (typed paths, key repeats, paste transport) into
             // one frame. Bound the batch so rendering/jobs cannot starve.
@@ -161,8 +172,10 @@ pub fn run_with_agent(
                         crossterm::event::Event::Resize(..) | crossterm::event::Event::Mouse(_)
                     );
                     {
+                        let receipt = trace::received(&app, &event);
                         let _span = trace::span("input_handle");
                         app.handle(event);
+                        interactions.record(receipt, app.redraw);
                     }
                     if geometry_change {
                         break;

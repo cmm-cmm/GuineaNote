@@ -173,12 +173,89 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
             cell.set_fg(ratatui::style::Color::Reset)
                 .set_bg(ratatui::style::Color::Reset);
         }
+    } else if app.config.ansi_colors {
+        let theme = Theme::new(app.config.basic_colors);
+        for cell in &mut frame.buffer_mut().content {
+            cell.set_fg(ansi_color(cell.fg, theme, false));
+            cell.set_bg(ansi_color(cell.bg, theme, true));
+        }
+    }
+}
+fn ansi_color(
+    color: ratatui::style::Color,
+    theme: Theme,
+    background: bool,
+) -> ratatui::style::Color {
+    use ratatui::style::Color;
+    if color == theme.canvas || color == theme.panel {
+        Color::Black
+    } else if color == theme.raised {
+        Color::DarkGray
+    } else if color == theme.accent || color == theme.secondary || color == theme.keyword {
+        if background {
+            Color::Green
+        } else {
+            Color::LightGreen
+        }
+    } else if color == theme.warm || color == theme.line {
+        Color::Yellow
+    } else if color == theme.danger {
+        Color::Red
+    } else if color == theme.faint {
+        Color::DarkGray
+    } else if color == theme.muted {
+        Color::Gray
+    } else if matches!(color, Color::Rgb(..) | Color::Indexed(_)) {
+        if background {
+            Color::Black
+        } else {
+            Color::White
+        }
+    } else {
+        color
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn ansi_palette_project_and_command_dialogs_fit_small_viewports() {
+        for size in [(80, 24), (40, 12), (30, 9)] {
+            let mut app = App::new(
+                vec![],
+                false,
+                Config {
+                    ansi_colors: true,
+                    no_color: false,
+                    ..Config::default()
+                },
+            );
+            app.tabs[0].document.insert("text").unwrap();
+            let mut terminal = Terminal::new(TestBackend::new(size.0, size.1)).unwrap();
+            for command in ["files", "project-search", "goto", "help"] {
+                app.command(command);
+                terminal.draw(|f| draw(f, &mut app)).unwrap();
+                for cell in terminal.backend().buffer().content() {
+                    assert!(!matches!(
+                        cell.fg,
+                        ratatui::style::Color::Rgb(..) | ratatui::style::Color::Indexed(_)
+                    ));
+                    assert!(!matches!(
+                        cell.bg,
+                        ratatui::style::Color::Rgb(..) | ratatui::style::Color::Indexed(_)
+                    ));
+                }
+            }
+            app.modal = None;
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            let normal = app.hits.editor_text.height;
+            app.command("focus-mode");
+            terminal.draw(|f| draw(f, &mut app)).unwrap();
+            assert!(app.hits.editor_text.height >= normal);
+            assert_eq!(app.hits.tree.height, 0);
+        }
+    }
     #[test]
     fn clipped_syntax_uses_real_string_context_and_falls_back_when_unknown() {
         let document = guinea_core::Document::from_text("let value = \"true + 42\";");

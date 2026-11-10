@@ -1,5 +1,16 @@
 # Performance measurements
 
+## Current interaction targets — 2026-11-10
+
+The adopted goals are p50 <=10 ms, p95 <=20 ms and p99 <=50 ms per operation,
+corpus and phase. >100 ms is an investigation warning. See
+[targets](performance/INTERACTION_LATENCY_TARGETS.md),
+[method](performance/BENCHMARK_METHODOLOGY.md) and
+[new baseline](performance/LATENCY_BASELINE.md). Historical mixed PTY results
+below are retained; they are not interchangeable with application input-to-flush.
+Cold End 916.326 ms remains unexplained. No global SLA or native Unix/SSH
+certification is claimed; no GitHub Actions is activated.
+
 ## Risk mitigation, 2026-11-10
 
 Final Windows x64/MSVC release, sequential probes after builds. Corpus <=10 MiB.

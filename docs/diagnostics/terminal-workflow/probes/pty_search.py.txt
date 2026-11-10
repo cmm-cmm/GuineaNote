@@ -1,0 +1,11 @@
+D:\Project\GuineaNote\target\previews\find-replace-en.png
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 101, in <module>
+    main()
+    ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 48, in main
+    ui.send("\x13");ui.wait_until(lambda _:path.read_bytes()==b"\xef\xbb\xbf"+original.encode())
+                    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Project\GuineaNote\scripts\pty_smoke.py", line 151, in wait_until
+    raise AssertionError("Timed out waiting for screen predicate")
+AssertionError: Timed out waiting for screen predicate

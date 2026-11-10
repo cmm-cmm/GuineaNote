@@ -1,0 +1,6 @@
+{
+  "two_editors_same_names": "PASS",
+  "session_handle_isolation": "PASS",
+  "explicit_selection_only": "PASS",
+  "server_grant_and_readonly_restore": "PASS"
+}

@@ -28,6 +28,7 @@ impl Input {
 pub struct Input {
     receiver: std::sync::mpsc::Receiver<io::Result<Event>>,
     sender: std::sync::mpsc::SyncSender<io::Result<Event>>,
+    pending: Option<io::Result<Event>>,
 }
 
 #[cfg(windows)]
@@ -102,6 +103,7 @@ impl Input {
         Self {
             receiver,
             sender: wake_sender,
+            pending: None,
         }
     }
     pub fn waker(&self) -> Option<std::sync::Arc<dyn Fn() + Send + Sync>> {
@@ -113,7 +115,33 @@ impl Input {
 
     pub fn read(&mut self, timeout: Duration) -> io::Result<Option<Event>> {
         use std::sync::mpsc::RecvTimeoutError;
-        match self.receiver.recv_timeout(timeout) {
+        let received = if let Some(event) = self.pending.take() {
+            Ok(event)
+        } else {
+            self.receiver.recv_timeout(timeout)
+        };
+        match received {
+            Ok(Ok(Event::Key(key)))
+                if key.code == crossterm::event::KeyCode::Enter && key.modifiers.is_empty() =>
+            {
+                // Legacy ConPTY records strip paste delimiters. Preserve an
+                // adjacent CR/LF pair instead of inserting two policy newlines.
+                match self.receiver.recv_timeout(Duration::from_millis(2)) {
+                    Ok(Ok(Event::Key(next)))
+                        if next.code == crossterm::event::KeyCode::Char('\n') =>
+                    {
+                        Ok(Some(Event::Paste("\r\n".into())))
+                    }
+                    Ok(next) => {
+                        self.pending = Some(next);
+                        Ok(Some(Event::Key(key)))
+                    }
+                    Err(_) => Ok(Some(Event::Key(key))),
+                }
+            }
+            Ok(Ok(Event::Key(key))) if key.code == crossterm::event::KeyCode::Char('\n') => {
+                Ok(Some(Event::Paste("\n".into())))
+            }
             Ok(event) => event.map(Some),
             Err(RecvTimeoutError::Timeout) => Ok(None),
             Err(RecvTimeoutError::Disconnected) => {
@@ -208,6 +236,11 @@ impl WindowsKeys {
         if !down {
             return None;
         }
+        // ConPTY represents pasted LF as Ctrl+Enter. It is literal text,
+        // not a Ctrl shortcut to be silently discarded by the editor.
+        if unit == 10 && virtual_key == 0x0d {
+            return Some(KeyEvent::new(KeyCode::Char('\n'), KeyModifiers::NONE));
+        }
         let mut modifiers = KeyModifiers::NONE;
         if flags & 0x10 != 0 {
             modifiers |= KeyModifiers::SHIFT;
@@ -270,6 +303,13 @@ impl WindowsKeys {
 mod tests {
     use super::*;
     use crossterm::event::{KeyCode, KeyModifiers};
+    #[test]
+    fn conpty_linefeed_is_literal_text_not_an_ignored_ctrl_enter() {
+        let mut keys = WindowsKeys::default();
+        let key = keys.decode(10, true, 0x0d, 0x08).unwrap();
+        assert_eq!(key.code, KeyCode::Char('\n'));
+        assert!(key.modifiers.is_empty());
+    }
     #[test]
     fn mouse_transitions_drag_buttons_horizontal_wheel_and_modifiers() {
         use crossterm::event::{MouseButton, MouseEventKind};

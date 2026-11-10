@@ -1,5 +1,13 @@
 # Architecture
 
+Latest TUI extension: [terminal workflow](TERMINAL_WORKFLOW.md) and
+[Notion alignment](NOTION_ALIGNMENT.md). Project indexing/search use one
+cancellable worker per panel, shared CPU admission, bounded index/results and
+epoch-tagged publication. Disk results carry a fingerprint and are applied only
+to a clean matching source; no dirty-buffer replacement is implicit. Trace now
+measures main-loop input receipt to successful draw/flush, with grouped raw data.
+Ropey, save/recovery and the single state owner remain unchanged.
+
 Current checkpoint: risk mitigation, 2026-11-10. Research describes the previous
 source baseline and proposed evolution; this file describes implemented behavior.
 See [risk register](RISK_MITIGATION.md) for evidence and remaining limits.

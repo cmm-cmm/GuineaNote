@@ -16,6 +16,8 @@ use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
 #[path = "agent.rs"]
 mod agent;
+#[path = "project_app.rs"]
+mod project_ui;
 #[path = "search_app.rs"]
 mod search_ui;
 use crate::{
@@ -77,9 +79,10 @@ pub struct HitRegions {
     pub modal_actions: Vec<(Rect, &'static str)>,
     pub modal: Rect,
     pub outline: Rect,
+    pub commands: Vec<(Rect, &'static str)>,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · periodic draft recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nCtrl+E project files · Ctrl+G search project\nF11 focus mode · F2 goto line[:column]\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, files, project-search, focus-mode, goto, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · periodic draft recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub id: u64,
@@ -135,6 +138,7 @@ pub enum InputKind {
     Folder,
     SaveAs,
     Command,
+    GoToLine,
 }
 
 impl InputKind {
@@ -144,6 +148,7 @@ impl InputKind {
             Self::Folder => "Open folder",
             Self::SaveAs => "Save to NEW path",
             Self::Command => "Command (F1 lists commands)",
+            Self::GoToLine => "Go to line[:column] (1-based)",
         }
     }
 }
@@ -185,6 +190,7 @@ pub enum Modal {
     FileInfo(FileInfo),
     Tabs(TabManager),
     Search(crate::search::Search),
+    Project(Box<crate::project::Project>),
 }
 
 #[derive(Debug, Clone)]
@@ -225,6 +231,9 @@ pub struct App {
     pub hits: HitRegions,
     pub preferences: Preferences,
     pub recovery: crate::recovery::Recovery,
+    pub palette_index: usize,
+    pub focus_mode: bool,
+    project_jump: Option<crate::project::Found>,
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
     saving: bool,
@@ -286,6 +295,9 @@ impl App {
             hits: HitRegions::default(),
             preferences: Preferences::default(),
             recovery: crate::recovery::Recovery::default(),
+            palette_index: 0,
+            focus_mode: false,
+            project_jump: None,
             mouse_selecting: None,
             last_modal_click: None,
             readonly,
@@ -310,6 +322,7 @@ impl App {
             || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::Search(p)) if p.busy())
+            || matches!(&self.modal, Some(Modal::Project(p)) if p.busy())
             || self.explorer.scanning()
             || (self.explorer_visible && self.explorer.busy())
             || self.tabs[self.active]
@@ -334,6 +347,7 @@ impl App {
     }
 
     fn prompt(&mut self, kind: InputKind) {
+        self.palette_index = 0;
         self.modal = Some(Modal::Input {
             kind,
             value: String::new(),
@@ -446,6 +460,9 @@ impl App {
         self.poll_recovery();
         self.poll_agent();
         self.poll_search();
+        if let Some(Modal::Project(project)) = &mut self.modal {
+            self.redraw |= project.poll();
+        }
         let mut documents_changed = false;
         if let Some(result) = self.preferences.poll() {
             self.redraw = true;
@@ -593,6 +610,7 @@ impl App {
     }
 
     fn finish_job(&mut self, completed: Completed) {
+        let opened = matches!(&completed.job, Job::Open { .. });
         match completed.result {
             Err(WorkerError::File(FileError::LargeFile { size, limit })) => {
                 if let Job::Open { path, replace, .. } = completed.job {
@@ -680,6 +698,9 @@ impl App {
                 }
             }
         }
+        if opened {
+            self.apply_project_jump();
+        }
     }
 
     pub fn handle(&mut self, event: Event) {
@@ -712,9 +733,15 @@ impl App {
             Event::Paste(text) => {
                 self.redraw = true;
                 if let Some(Modal::Input { value, .. }) = self.modal.as_mut() {
-                    value.push_str(&text.replace(['\r', '\n'], ""));
+                    if value.len().saturating_add(text.len()) <= 4096 {
+                        value.extend(text.chars().filter(|c| !c.is_control()));
+                    } else {
+                        self.message = "Input is limited to 4096 UTF-8 bytes".into();
+                    }
                 } else if let Some(Modal::FilePicker(picker)) = self.modal.as_mut() {
                     picker.paste(&text);
+                } else if let Some(Modal::Project(project)) = self.modal.as_mut() {
+                    project.paste(&text);
                 } else if let Some(Modal::Tabs(manager)) = self.modal.as_mut() {
                     manager.paste(&text);
                 } else if let Some(Modal::Search(search)) = self.modal.as_mut() {
@@ -747,7 +774,7 @@ impl App {
                             | KeyCode::Esc
                             | KeyCode::Tab
                             | KeyCode::Enter
-                            | KeyCode::F(1..=10)
+                            | KeyCode::F(1..=11)
                             | KeyCode::Char('j' | 'k' | ' ')
                     )
                 {
@@ -785,6 +812,7 @@ impl App {
         let modal = self.modal.take().expect("modal exists");
         match modal {
             Modal::Search(search) => self.search_key(search, key),
+            Modal::Project(project) => self.project_key(project, key),
             Modal::Tabs(mut manager) => {
                 let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
                 match key.code {
@@ -922,6 +950,29 @@ impl App {
                 }
             },
             Modal::Input { kind, mut value } => {
+                if matches!(kind, InputKind::Command) {
+                    let commands = crate::commands::suggestions(&value, self.config.language);
+                    match key.code {
+                        KeyCode::Up => self.palette_index = self.palette_index.saturating_sub(1),
+                        KeyCode::Down => {
+                            self.palette_index =
+                                (self.palette_index + 1).min(commands.len().saturating_sub(1))
+                        }
+                        KeyCode::Tab => {
+                            if let Some(command) = commands.get(self.palette_index) {
+                                value = command.id.into();
+                            }
+                            self.palette_index = 0;
+                        }
+                        KeyCode::Enter if !commands.iter().any(|c| c.id == value.trim()) => {
+                            if let Some(command) = commands.get(self.palette_index) {
+                                value = command.id.into();
+                            }
+                        }
+                        KeyCode::Char(_) | KeyCode::Backspace => self.palette_index = 0,
+                        _ => {}
+                    }
+                }
                 match key.code {
                     KeyCode::Esc => {
                         self.message = "Cancelled".into();
@@ -941,7 +992,11 @@ impl App {
                             .modifiers
                             .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT) =>
                     {
-                        value.push(ch)
+                        if value.len() + ch.len_utf8() <= 4096 {
+                            value.push(ch);
+                        } else {
+                            self.message = "Input is limited to 4096 UTF-8 bytes".into();
+                        }
                     }
                     _ => {}
                 }
@@ -965,6 +1020,37 @@ impl App {
             ),
             InputKind::SaveAs if !value.is_empty() => self.start_save(PathBuf::from(value)),
             InputKind::Command => self.command(value.trim()),
+            InputKind::GoToLine => {
+                let coordinates = value
+                    .split(':')
+                    .map(str::trim)
+                    .map(str::parse::<usize>)
+                    .collect::<Result<Vec<_>, _>>();
+                let Ok(coordinates) = coordinates else {
+                    self.message = "Invalid line or column".into();
+                    return;
+                };
+                if coordinates.is_empty() || coordinates.len() > 2 || coordinates.contains(&0) {
+                    self.message = "Invalid line or column".into();
+                    return;
+                }
+                let line = coordinates[0] - 1;
+                let column = coordinates.get(1).copied().unwrap_or(1) - 1;
+                self.start_compute("Go to line", move |document| {
+                    let start = document.buffer().line_to_char(line)?;
+                    let bounds = document.line_bounds(line)?;
+                    let text = document.buffer().slice(bounds.clone())?;
+                    let byte = text
+                        .grapheme_indices(true)
+                        .map(|(byte, _)| byte)
+                        .chain(std::iter::once(text.len()))
+                        .nth(column)
+                        .ok_or(guinea_core::EditError::OutOfBounds)?;
+                    let at = start + text[..byte].chars().count();
+                    document.select(at, at)?;
+                    Ok("Moved to line".into())
+                });
+            }
             _ => {
                 self.message = "Empty input; cancelled".into();
             }
@@ -972,6 +1058,10 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
+        if key.code == KeyCode::F(11) {
+            self.command("focus-mode");
+            return;
+        }
         if matches!(
             key.code,
             KeyCode::Left
@@ -1026,6 +1116,8 @@ impl App {
                 KeyCode::Char('k') => self.command("open-folder"),
                 KeyCode::Char('w') => self.command("close"),
                 KeyCode::Char('q') => self.command("quit"),
+                KeyCode::Char('e') => self.command("files"),
+                KeyCode::Char('g') => self.command("project-search"),
                 KeyCode::Char('f') => self.command("find"),
                 KeyCode::Char('h') => self.command("replace"),
                 KeyCode::Char('z') => self.command("undo"),
@@ -1373,6 +1465,29 @@ impl App {
             self.modal = None;
             self.last_modal_click = None;
             self.message = if search { "Search closed" } else { "Cancelled" }.into();
+            return;
+        }
+        if matches!(&self.modal, Some(Modal::Project(_))) {
+            self.project_mouse(mouse);
+            return;
+        }
+        if mouse.kind == MouseEventKind::Down(MouseButton::Left)
+            && matches!(
+                &self.modal,
+                Some(Modal::Input {
+                    kind: InputKind::Command,
+                    ..
+                })
+            )
+            && let Some(command) = self
+                .hits
+                .commands
+                .iter()
+                .find(|(r, _)| r.contains(point))
+                .map(|(_, c)| *c)
+        {
+            self.modal = None;
+            self.command(command);
             return;
         }
         if matches!(&self.modal, Some(Modal::Search(_))) {
@@ -1828,6 +1943,10 @@ impl App {
             "language" | "language-vi" | "language-en" => {
                 self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
             }
+            "files" => self.open_project(crate::project::Mode::Files),
+            "project-search" => self.open_project(crate::project::Mode::Contents),
+            "goto" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Source; self.prompt(InputKind::GoToLine); }
+            "focus-mode" => { self.focus_mode = !self.focus_mode; self.focus = Focus::Editor; }
             "settings" => self.modal = Some(Modal::Settings { selected: self.config.language }),
             "tabs" => self.modal = Some(Modal::Tabs(TabManager::new(&self.tabs, self.active, self.config.language))),
             "info" | "file-info" => self.modal = Some(Modal::FileInfo(FileInfo::new(self.document(), self.config.language))),
@@ -1837,8 +1956,8 @@ impl App {
             "split" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Split; self.focus = Focus::Editor; },
             "new" => self.new_blank(),
             "open-folder" => self.prompt(InputKind::Folder),
-            "explorer" => { self.explorer_visible = !self.explorer_visible; self.focus = if self.explorer_visible { Focus::Explorer } else { Focus::Editor }; }
-            "focus" => { self.explorer_visible = true; self.focus = if self.focus == Focus::Editor { Focus::Explorer } else { Focus::Editor }; }
+            "explorer" => { if self.focus_mode { self.focus_mode = false; self.explorer_visible = true; } else { self.explorer_visible = !self.explorer_visible; } self.focus = if self.explorer_visible { Focus::Explorer } else { Focus::Editor }; }
+            "focus" => { self.focus_mode = false; self.explorer_visible = true; self.focus = if self.focus == Focus::Editor { Focus::Explorer } else { Focus::Editor }; }
             "refresh" => self.explorer.refresh(),
             "open" => {
                 let root = self.document().path.as_ref().and_then(|p| p.parent()).filter(|p| !p.as_os_str().is_empty()).map(PathBuf::from).unwrap_or_else(|| self.explorer.root.clone());
@@ -1881,6 +2000,91 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn project_navigation_keeps_dirty_buffer_and_stale_disk_results_safe() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("source.txt");
+        std::fs::write(&path, "first\nneedle e\u{301} 👩‍💻\n").unwrap();
+        let document = guinea_io::open(&path, false, u64::MAX).unwrap();
+        let found = crate::project::Found {
+            path: document.path.clone().unwrap(),
+            label: "source.txt".into(),
+            line: 1,
+            range: Some(6..12),
+            hash: document.fingerprint.as_ref().map(|f| f.sha256),
+            preview: "needle".into(),
+        };
+        let mut a = app();
+        a.tabs[0] = Tab::new(document);
+        a.open_project_result(found.clone());
+        assert_eq!(a.document().selected_text(), "needle");
+        a.document_mut().insert("changed").unwrap();
+        let text = a.document().text();
+        let selection = a.document().selection();
+        a.open_project_result(found.clone());
+        assert_eq!(a.document().text(), text);
+        assert_eq!(a.document().selection(), selection);
+        assert!(a.message.contains("Search result changed"));
+        let mut stale = found;
+        stale.hash = Some([0; 32]);
+        a.document_mut().undo().unwrap();
+        a.open_project_result(stale);
+        assert!(a.message.contains("Search result changed"));
+    }
+    #[test]
+    fn goto_uses_grapheme_columns_and_rejects_out_of_range_without_moving() {
+        let mut a = app();
+        a.handle(Event::Paste("e\u{301}👩‍💻\r\nnext".into()));
+        a.submit(InputKind::GoToLine, "1:2".into());
+        drain_jobs(&mut a);
+        assert_eq!(a.document().cursor(), 2);
+        let original = a.document().text();
+        for value in ["0", "1:0", "999:1", "1:99", "1:2:3", "invalid"] {
+            a.submit(InputKind::GoToLine, value.into());
+            drain_jobs(&mut a);
+            assert_eq!(a.document().cursor(), 2, "{value}");
+            assert_eq!(a.document().text(), original);
+        }
+        a.submit(InputKind::GoToLine, "1:3".into());
+        drain_jobs(&mut a);
+        assert_eq!(a.document().cursor(), 5);
+    }
+
+    #[test]
+    fn project_shortcuts_palette_completion_and_focus_mode_preserve_text() {
+        let mut a = app();
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('e'),
+            KeyModifiers::CONTROL,
+        )));
+        assert!(matches!(a.modal, Some(Modal::Project(_))));
+        a.handle(key(KeyCode::Esc));
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('p'),
+            KeyModifiers::CONTROL,
+        )));
+        assert!(matches!(a.modal, Some(Modal::Tabs(_))));
+        a.handle(key(KeyCode::Esc));
+        a.handle(key(KeyCode::F(2)));
+        a.handle(Event::Paste("project-se".into()));
+        a.handle(key(KeyCode::Tab));
+        a.handle(key(KeyCode::Enter));
+        assert!(
+            matches!(&a.modal,Some(Modal::Project(p)) if p.mode==crate::project::Mode::Contents)
+        );
+        a.handle(key(KeyCode::Esc));
+        a.handle(Event::Paste("draft".into()));
+        a.handle(key(KeyCode::F(11)));
+        assert!(a.focus_mode);
+        a.handle(key(KeyCode::F(11)));
+        assert!(!a.focus_mode);
+        assert_eq!(a.document().text(), "draft");
+        a.command("focus-mode");
+        a.command("focus");
+        assert!(!a.focus_mode);
+        assert!(a.explorer_visible);
+        assert_eq!(a.focus, Focus::Explorer);
+    }
 
     #[test]
     fn closing_inactive_dirty_and_linked_tabs_preserves_selection_and_source() {

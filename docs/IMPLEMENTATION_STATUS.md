@@ -17,6 +17,33 @@ milestone notes, not the current development policy.
 
 ## Latest checkpoint — architectural risk mitigation, 2026-11-10
 
+Superseded for current TUI work by the checkpoint below; risk controls and
+historical evidence remain valid within their documented scope.
+
+## Latest TUI checkpoint — Notion alignment, 2026-11-10
+
+Project file/content picker, command suggestions, grapheme-aware goto with
+out-of-range rejection, focus mode, compact editor header, ANSI16 fallback,
+Windows newline handling and grouped input-to-flush tracing are implemented.
+See [terminal workflow](TERMINAL_WORKFLOW.md) and [Notion decisions](NOTION_ALIGNMENT.md).
+The executable rename to guinea is a separate release task.
+
+134 Rust tests, fmt, native and Linux/macOS cross-Clippy, release workspace build
+and dependency audit pass. Native Windows functional probes cover tabs,
+project/search, mouse/dialogs, Unicode/BOM/mixed EOL, Agent/MCP and recovery.
+Terminal matrix passes 6/6 configurations. The final grouped trace corpus has
+2016 warm samples across 28 operation/corpus groups, all meeting the adopted
+goals for this run; all-phase max is 20.956 ms and zero trace rows dropped.
+Cold category counts are insufficient for tail acceptance. See
+[baseline and raw evidence](performance/LATENCY_BASELINE.md), including retained
+harness failures, independent Windows sharing reproduction and trace-off repeat.
+
+Cold End 916.326 ms remains unexplained. Full unified action/disabled-reason
+dispatch, OSC52, true rapid-resize stress, native Linux/macOS/ARM/SSH/tmux,
+power-loss and release/install matrix remain open. GitHub Actions stays inactive.
+
+## Previous checkpoint — architectural risk mitigation, 2026-11-10
+
 Implemented history-free/opaque snapshots, streamed strict I/O, bounded history,
 view/cache/worker admission, file identity/hardlink/metadata controls, private
 versioned draft recovery, recovered-file Agent policy, correct syntax clipping

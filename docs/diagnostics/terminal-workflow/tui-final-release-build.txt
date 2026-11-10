@@ -1,0 +1,3 @@
+   Compiling guinea-tui v0.1.0 (D:\Project\GuineaNote\crates\guinea-tui)
+   Compiling guineanote v0.1.0 (D:\Project\GuineaNote)
+    Finished `release` profile [optimized] target(s) in 31.52s

@@ -1,5 +1,28 @@
 # Test plan and reproduction
 
+## Project workflow and grouped interaction latency
+
+Build release first, then run sequentially:
+
+```powershell
+python -X utf8 scripts/pty_project.py
+python -X utf8 scripts/terminal_matrix.py
+python -X utf8 scripts/pty_interaction_latency.py
+python -X utf8 scripts/pty_interaction_latency.py --no-trace
+```
+
+Do not build/audit concurrently with latency measurement. Corpus: 1 KiB and
+10 MiB Unicode long lines, typing/delete/caret/history/Home/End/tabs/dialogs/
+project/search/mouse/resize. Internal input-to-flush and PTY observer are separate;
+groups with n<20 remain insufficient. Trace drops invalidate acceptance. Preserve
+failed logs. Terminal matrix checks BOM/NFD/ZWJ/mixed EOL paste/save and cleanup,
+truecolor, ANSI16, mono, small windows and keyboard-only. Use explicit --ssh host
+--remote-binary path or --tmux for those runtime checks; unavailable is not pass.
+See [workflow limits](TERMINAL_WORKFLOW.md) and [baseline](performance/LATENCY_BASELINE.md).
+
+Rust checks cover project ignore/cancel/stale result behavior, safe dirty-buffer
+jumps, grapheme goto/out-of-range, focus/palette, ANSI16 and narrow layouts.
+
 ## Dialog, mouse and search coverage
 
 After building release binaries, run sequentially:

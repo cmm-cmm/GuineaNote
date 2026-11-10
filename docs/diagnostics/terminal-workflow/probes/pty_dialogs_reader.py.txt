@@ -1,0 +1,8 @@
+D:\Project\GuineaNote\target\previews\settings-en.png
+D:\Project\GuineaNote\target\previews\open-file-picker.png
+D:\Project\GuineaNote\target\previews\file-details.png
+D:\Project\GuineaNote\target\previews\review-options.png
+D:\Project\GuineaNote\target\previews\markdown-split.png
+D:\Project\GuineaNote\target\previews\markdown-review-tab.png
+D:\Project\GuineaNote\target\previews\markdown-code-card.png
+PASS: settings persist/cancel, picker, details, split/tab review, outline, read-only history, live updates, exact save

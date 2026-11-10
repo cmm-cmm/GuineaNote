@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_interaction_latency.py", line 133, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_interaction_latency.py", line 89, in main
+    ui.wait_until(lambda lines:len(ui.output)>before and any(
+    ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        'Ln 1, Col 1 ' in line for line in lines[-3:]))
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Project\GuineaNote\scripts\pty_smoke.py", line 151, in wait_until
+    raise AssertionError("Timed out waiting for screen predicate")
+AssertionError: Timed out waiting for screen predicate

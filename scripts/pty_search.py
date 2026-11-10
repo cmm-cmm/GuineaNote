@@ -36,7 +36,7 @@ def main():
             assert path.read_bytes()==b"\xef\xbb\xbf"+original.encode(), (path.read_bytes(),original.encode())
             action(ui,"search:close","\x1b",lambda s:"FIND / REPLACE" not in s)
             ui.wait("Vietnam")
-            ui.send("\x13");ui.wait_until(lambda _:path.read_bytes()==b"\xef\xbb\xbf"+original.replace("Việt","Vietnam").encode())
+            ui.send("\x13");ui.wait_until(lambda lines:"● Saved" in "\n".join(lines) and "● MODIFIED" not in "\n".join(lines))
             assert path.read_bytes()==b"\xef\xbb\xbf"+original.replace("Việt","Vietnam").encode()
             ui.read(.01)
             action(ui,"search:undo-all","\x1a","Ln 2, Col 5 ")
@@ -45,7 +45,10 @@ def main():
             action(ui,"search:replace-selected-query","\x01absent","absent│")
             ui.wait("No matches")
             ui.send("\x1b");ui.wait_until(lambda lines:"FIND / REPLACE" not in "\n".join(lines))
-            ui.send("\x13");ui.wait_until(lambda _:path.read_bytes()==b"\xef\xbb\xbf"+original.encode())
+            # Do not repeatedly open the Windows destination during ReplaceFile:
+            # Python CRT readers can deny DELETE sharing and cause a legitimate
+            # safe-save failure. Await application completion before byte checks.
+            ui.send("\x13");ui.wait_until(lambda lines:"● Saved" in "\n".join(lines) and "● MODIFIED" not in "\n".join(lines))
             assert path.read_bytes()==b"\xef\xbb\xbf"+original.encode(), (path.read_bytes(),original.encode())
             ui.send("\x1b[19~");ui.wait("SETTINGS");ui.send("v\r");ui.wait("SOẠN THẢO")
             ui.send(click(ui,"Thay ^H"));ui.send("Việt");ui.wait("Kết quả 1 / 2");ui.read(.04)

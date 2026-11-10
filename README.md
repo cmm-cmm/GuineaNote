@@ -1,5 +1,14 @@
 # GuineaNote
 
+Current decisions: [Notion alignment](docs/NOTION_ALIGNMENT.md). Product name is
+**Guinea Note**; the executable migration to **guinea** is a separate release task.
+Research and older measurements retain their historical names.
+
+New terminal workflow: Ctrl+E project files, Ctrl+G disk content search,
+F2 searchable command suggestions and `goto`, F11 focus mode, ANSI16 fallback.
+See [workflow and limits](docs/TERMINAL_WORKFLOW.md) and
+[grouped interaction baseline](docs/performance/LATENCY_BASELINE.md).
+
 Native terminal text editor, built in Rust with Ratatui, Crossterm and Ropey.
 Implementation follows the supplied technical specification. Work in progress;
 see [implementation status](docs/IMPLEMENTATION_STATUS.md) for verified scope.

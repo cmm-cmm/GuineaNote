@@ -13,6 +13,7 @@ pub struct Config {
     pub mouse: bool,
     pub recovery: bool,
     pub no_color: bool,
+    pub ansi_colors: bool,
 }
 
 impl Default for Config {
@@ -29,6 +30,8 @@ impl Default for Config {
             mouse: true,
             recovery: true,
             no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
+            ansi_colors: std::env::var("TERM")
+                .is_ok_and(|term| matches!(term.as_str(), "linux" | "vt100" | "vt102" | "ansi")),
         }
     }
 }

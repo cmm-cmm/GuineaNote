@@ -78,36 +78,36 @@ pub(crate) fn panel(title: &str, theme: Theme, focused: bool) -> Block<'static> 
 
 fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
-    let brand = Line::from(vec![
-        Span::styled(" G/ ", bold(theme.accent)),
-        Span::styled("GUINEA", bold(theme.text)),
-        Span::styled("NOTE", bold(theme.accent)),
-        Span::styled(
-            locale.tr("    A little more focused.").into_owned(),
-            text_style(theme.muted),
-        ),
-    ]);
-    frame.render_widget(
-        Paragraph::new(brand),
-        Rect::new(area.x, area.y, area.width, 1),
-    );
-    if area.height < 2 {
-        return;
-    }
-    if area.width > 85 {
+    let actions_y = area.y + u16::from(area.height > 1);
+    if area.height > 1 {
+        let brand = Line::from(vec![
+            Span::styled(" G/ ", bold(theme.accent)),
+            Span::styled("GUINEA", bold(theme.text)),
+            Span::styled("NOTE", bold(theme.accent)),
+            Span::styled(
+                locale.tr("    A little more focused.").into_owned(),
+                text_style(theme.muted),
+            ),
+        ]);
         frame.render_widget(
-            Paragraph::new(locale.tr("WORKSPACE  /  v0.1.0 ").into_owned())
-                .style(text_style(theme.faint))
-                .alignment(Alignment::Right),
-            Rect::new(area.x + area.width - 27, area.y, 27, 1),
+            Paragraph::new(brand),
+            Rect::new(area.x, area.y, area.width, 1),
         );
+        if area.width > 85 {
+            frame.render_widget(
+                Paragraph::new(locale.tr("WORKSPACE  /  v0.1.0 ").into_owned())
+                    .style(text_style(theme.faint))
+                    .alignment(Alignment::Right),
+                Rect::new(area.x + area.width - 27, area.y, 27, 1),
+            );
+        }
     }
     let mut x = area.x + 1;
     for (label, command) in [
         (" Open file  ^O ", "open"),
         (" Open folder  ^K ", "open-folder"),
-        (" New  ^N ", "new"),
-        (" Save  ^S ", "save"),
+        (" Files ^E ", "files"),
+        (" Project ^G ", "project-search"),
         (" Find ^F ", "find"),
         (" Replace ^H ", "replace"),
         (" Review  F7 ", "preview"),
@@ -133,7 +133,7 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         if x + width > area.right() {
             break;
         }
-        let rect = Rect::new(x, area.y + 1, width, 1);
+        let rect = Rect::new(x, actions_y, width, 1);
         frame.render_widget(
             Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
                 if app.tabs[app.active].ai_action.is_some() && command == "save" {
@@ -152,7 +152,7 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Paragraph::new(locale.tr("F1 Help   F2 Commands ").into_owned())
                 .style(text_style(theme.secondary))
                 .alignment(Alignment::Right),
-            Rect::new(area.right() - 25, area.y + 1, 25, 1),
+            Rect::new(area.right() - 25, actions_y, 25, 1),
         );
     }
 }
@@ -581,14 +581,32 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
 
 fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
-    let compact = area.height < 10;
+    let compact = area.height < 10 || app.focus_mode;
     let regions = Layout::vertical([
         Constraint::Length(if compact { 1 } else { 4 }),
         Constraint::Length(if compact { 0 } else { 1 }),
         Constraint::Min(1),
     ])
     .split(area);
-    tabs(frame, app, regions[0], theme);
+    if app.focus_mode {
+        let label = format!(
+            " {} · {}/{} · F11 {}",
+            app.tabs[app.active].title(locale),
+            app.active + 1,
+            app.tabs.len(),
+            if locale == Locale::Vi {
+                "Không gian làm việc"
+            } else {
+                "Workspace"
+            }
+        );
+        frame.render_widget(
+            Paragraph::new(clipped(&label, regions[0].width as usize)).style(bold(theme.text)),
+            regions[0],
+        );
+    } else {
+        tabs(frame, app, regions[0], theme);
+    }
     let path = app
         .document()
         .path
@@ -1097,7 +1115,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             .style(Style::default().bg(theme.raised)),
         Rect::new(areas[1].right() - right_width, areas[1].y, right_width, 1),
     );
-    let hints = if app.tabs[app.active].ai_action.is_some() {
+    let hints = if app.focus_mode {
+        " F11 Workspace   ^S Save   ^E Files   ^G Project search   ^P Tabs   F2 Commands"
+    } else if app.tabs[app.active].ai_action.is_some() {
         " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings"
     } else if app.focus == Focus::Explorer {
         " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files"
@@ -1130,16 +1150,25 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         return;
     }
     let compact = area.height < 14;
+    let header_height = if app.focus_mode {
+        0
+    } else if compact || !app.welcome() {
+        1
+    } else {
+        2
+    };
     let areas = Layout::vertical([
-        Constraint::Length(if compact { 1 } else { 2 }),
-        Constraint::Length(if compact { 0 } else { 1 }),
+        Constraint::Length(header_height),
+        Constraint::Length(0),
         Constraint::Min(1),
         Constraint::Length(1),
         Constraint::Length(1),
         Constraint::Length(1),
     ])
     .split(area);
-    header(frame, app, areas[0], theme);
+    if header_height > 0 {
+        header(frame, app, areas[0], theme);
+    }
     frame.render_widget(
         Paragraph::new("─".repeat(area.width as usize)).style(text_style(theme.line)),
         areas[1],
@@ -1150,7 +1179,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         areas[2].width.saturating_sub(2),
         areas[2].height,
     );
-    if app.explorer_visible && workspace.width >= 64 {
+    if app.explorer_visible && !app.focus_mode && workspace.width >= 64 {
         let sidebar = app.config.sidebar_width.min(workspace.width / 3).max(22);
         let split = Layout::horizontal([
             Constraint::Length(sidebar),

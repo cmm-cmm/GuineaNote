@@ -1,0 +1,12 @@
+D:\Project\GuineaNote\target\previews\tab-toolbar-overflow.png
+D:\Project\GuineaNote\target\previews\tab-dirty-document.png
+D:\Project\GuineaNote\target\previews\tab-manager-all.png
+D:\Project\GuineaNote\target\previews\tab-close-confirmation.png
+D:\Project\GuineaNote\target\previews\tab-manager-filtered.png
+D:\Project\GuineaNote\target\previews\tab-manager-vi.png
+{
+  "sample_count": 26,
+  "max_ms": 37.614,
+  "failures": []
+}
+PASS: mouse new/save/switch/close, overflow filter, dirty cancel, review close, last blank, VI/EN, disk integrity

@@ -145,6 +145,156 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
     let active = app.active;
     let hits = &mut app.hits;
     match app.modal.as_mut() {
+        Some(Modal::Project(project)) => {
+            let body = surface(
+                frame,
+                area,
+                106,
+                29,
+                tr(
+                    locale,
+                    "PROJECT · Ctrl+E / Ctrl+G",
+                    "PROJECT · Ctrl+E / Ctrl+G",
+                ),
+                theme,
+                hits,
+            );
+            let mode = if project.mode == crate::project::Mode::Files {
+                tr(
+                    locale,
+                    "Find files · path words · case insensitive",
+                    "Tìm file · các từ trong đường dẫn · không phân biệt hoa thường",
+                )
+            } else {
+                tr(
+                    locale,
+                    "Find text · saved files · literal · case sensitive",
+                    "Tìm nội dung · file trên đĩa · văn bản · phân biệt hoa thường",
+                )
+            };
+            text(
+                frame,
+                row(body, 0, 1),
+                Line::from(clipped(mode, body.width.saturating_sub(4) as usize)),
+                bold(theme.accent),
+            );
+            let field = row(body, 2, 1);
+            let tail = input_tail(&project.query, field.width.saturating_sub(4) as usize);
+            text(
+                frame,
+                field,
+                Line::from(format!("› {tail}│")),
+                fg(theme.text).bg(theme.raised),
+            );
+            if field.width > 3 {
+                frame.set_cursor_position((
+                    field.x + (Line::from(tail.as_str()).width() as u16 + 2).min(field.width - 1),
+                    field.y,
+                ));
+            }
+            let summary = if project.busy() {
+                tr(locale, "Searching… Esc cancels", "Đang tìm… Esc để hủy").to_owned()
+            } else if let Some(error) = &project.error {
+                safe(error)
+            } else {
+                format!(
+                    "{} {} · {} {} · {} {}{}",
+                    project.matches,
+                    tr(locale, "matches", "kết quả"),
+                    project.scanned,
+                    tr(locale, "files read", "file đã đọc"),
+                    project.skipped,
+                    tr(locale, "skipped", "bỏ qua"),
+                    if project.limited {
+                        tr(
+                            locale,
+                            " · limit reached; narrow query",
+                            " · đã tới giới hạn; thu hẹp truy vấn",
+                        )
+                    } else {
+                        ""
+                    }
+                )
+            };
+            text(
+                frame,
+                row(body, 4, 1),
+                Line::from(clipped(&summary, body.width.saturating_sub(4) as usize)),
+                fg(theme.warm),
+            );
+            let list = Rect::new(
+                body.x + 2,
+                body.y + 6,
+                body.width.saturating_sub(4),
+                body.height.saturating_sub(10),
+            );
+            project.list = list;
+            project.height = (list.height as usize / 2).max(1);
+            let top = project.top();
+            for (offset, found) in project
+                .rows
+                .iter()
+                .skip(top)
+                .take(project.height)
+                .enumerate()
+            {
+                let selected = top + offset == project.selected;
+                let y = list.y + offset as u16 * 2;
+                let title = if found.range.is_some() {
+                    format!("{}:{}", found.label, found.line + 1)
+                } else {
+                    found.label.clone()
+                };
+                text(
+                    frame,
+                    Rect::new(list.x, y, list.width, 1),
+                    Line::from(clipped(&title, list.width as usize)),
+                    fg(if selected { theme.canvas } else { theme.text }).bg(if selected {
+                        theme.accent
+                    } else {
+                        theme.panel
+                    }),
+                );
+                if y + 1 < list.bottom() {
+                    text(
+                        frame,
+                        Rect::new(list.x, y + 1, list.width, 1),
+                        Line::from(clipped(&found.preview, list.width as usize)),
+                        fg(theme.muted),
+                    );
+                }
+            }
+            let y = body.bottom().saturating_sub(3);
+            for (x, label, action) in [
+                (
+                    body.x + 2,
+                    tr(locale, " Enter Open ", " Enter Mở "),
+                    "project-open",
+                ),
+                (
+                    body.x + 20,
+                    tr(locale, " Tab Files/Text ", " Tab File/Nội dung "),
+                    "project-toggle",
+                ),
+            ] {
+                let width = Line::from(label).width() as u16;
+                if x + width <= body.right() {
+                    let rect = Rect::new(x, y, width, 1);
+                    button(frame, rect, label, theme, action == "project-open");
+                    hits.modal_actions.push((rect, action));
+                }
+            }
+            text(
+                frame,
+                row(body, body.height.saturating_sub(1), 1),
+                Line::from(tr(
+                    locale,
+                    "↑↓ Select · Enter Open · Tab Mode · F5 Refresh · ^U Clear · Esc Close",
+                    "↑↓ Chọn · Enter Mở · Tab Chế độ · F5 Đọc lại · ^U Xóa · Esc Đóng",
+                )),
+                fg(theme.secondary),
+            );
+        }
         Some(Modal::Search(search)) => {
             let body = surface(
                 frame,
@@ -608,11 +758,12 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             }
         }
         Some(Modal::Input { kind, value }) => {
+            let command = matches!(kind, crate::app::InputKind::Command);
             let body = surface(
                 frame,
                 area,
                 88,
-                16,
+                if command { 24 } else { 16 },
                 tr(locale, "OPEN / SEARCH / SAVE", "MỞ / TÌM / LƯU"),
                 theme,
                 hits,
@@ -637,7 +788,35 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     field.y,
                 ));
             }
-            if body.height >= 10 {
+            if command && body.height >= 8 {
+                let suggestions = crate::commands::suggestions(value, locale);
+                let height = body.height.saturating_sub(8) as usize;
+                let top = app.palette_index.saturating_sub(height.saturating_sub(1));
+                for (index, command) in suggestions.iter().enumerate().skip(top).take(height) {
+                    let rect = row(body, 5 + (index - top) as u16, 1);
+                    let label = format!(
+                        "{:<16} {}",
+                        command.id,
+                        crate::commands::description(command, locale)
+                    );
+                    text(
+                        frame,
+                        rect,
+                        Line::from(clipped(&label, rect.width as usize)),
+                        fg(if index == app.palette_index {
+                            theme.canvas
+                        } else {
+                            theme.text
+                        })
+                        .bg(if index == app.palette_index {
+                            theme.accent
+                        } else {
+                            theme.panel
+                        }),
+                    );
+                    hits.commands.push((rect, command.id));
+                }
+            } else if body.height >= 10 {
                 text(
                     frame,
                     row(body, 5, 2),

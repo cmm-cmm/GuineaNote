@@ -1,0 +1,32 @@
+{
+  "samples": [
+    {
+      "action": "project:open-files",
+      "ms": 19.401
+    },
+    {
+      "action": "project:path-query",
+      "ms": 17.078
+    },
+    {
+      "action": "project:find-across-files",
+      "ms": 6.937
+    },
+    {
+      "action": "project:content-query",
+      "ms": 14.247
+    },
+    {
+      "action": "project:focus-on",
+      "ms": 5.973
+    },
+    {
+      "action": "project:focus-off",
+      "ms": 4.359
+    }
+  ],
+  "sample_count": 6,
+  "max_ms": 19.401,
+  "disk_unchanged": true,
+  "stale_dirty_buffer_retained": true
+}
