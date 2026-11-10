@@ -268,3 +268,43 @@ edits, dialogs, switching/new tabs and editing another tab while MCP analyzes
 a 10 MiB JSON array. It requires at least 20 genuinely concurrent inputs and
 fails any response >=100 ms. API completion is measured separately. Run it
 without concurrent builds, audits or other performance probes.
+
+## Risk mitigation checkpoint — 2026-11-10
+
+Run locally after `cargo build --workspace --release`, with no parallel build,
+audit or competing performance probe:
+
+```sh
+python scripts/pty_recovery.py
+python scripts/pty_navigation.py --trace
+python scripts/pty_risk_stress.py
+```
+
+Recovery runs English and Vietnamese through two real process kills per locale,
+checks committed draft content, changes the original externally, restarts again,
+Save As exact BOM/NFD/ZWJ/mixed-newline bytes, and deliberate clean exit/cleanup.
+This is a process-crash check, not a power-loss test. Unit tests separately cover
+active session locks, malformed/checksum/quota failures, unseen drafts,
+source metadata changes and recovered Agent secret/workspace restrictions.
+
+Navigation includes twelve fresh sessions: single long Unicode line, ASCII
+prefix/bare-CR suffix and a second long Unicode line after editing its short
+predecessor. Raw stage CSVs include timestamps and dropped sample counts.
+Latency includes ConPTY transport/pyte parsing, excludes physical paint.
+Opening completion is measured separately. Historical 916.326 ms failure remains
+an open diagnostic; repeats passing do not erase it.
+
+History stress exceeds the 2048-transaction default on a <=10 MiB fixture,
+then times a new key, Undo/Redo and F9 open/close feedback. Bulk 2400-key time
+is throughput, not one interactive response. A 5 ms psutil observer samples RSS;
+observed peak may miss shorter spikes and is not a hard memory bound.
+
+All previous smoke/workspace/tabs/dialog/mouse/search/Agent/MCP probes remain
+relevant. Record each exit code and preserve raw JSON with the current binary
+hash in docs/diagnostics/risk-after/. Native Unix/ARM execution, real disk full,
+power loss, privileged SACL/xattrs and hostile-writer CAS remain separate gates.
+
+The PTY emulator now answers terminal status/cursor reports through pyte's
+write_process_input callback. Its default no-op caused a reproducible ~500 ms
+ConPTY timeout during cooked-mode restoration. Preserve pre-fix evidence;
+this does not establish the cause of the historical cold End outlier.

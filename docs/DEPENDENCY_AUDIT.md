@@ -102,3 +102,17 @@ warnings now include bitflags, block-buffer, cpufeatures, crypto-common, digest,
 sha2 and syn. SDK and existing dependencies require both generations; no
 forced downgrade or weakened advisory policy was used. Native strict Clippy
 is a separate warnings-as-errors gate.
+
+## Risk mitigation dependencies, 2026-11-10
+
+Only two new locked packages: winapi-util 0.1.11 (Windows stable handle identity)
+and xattr 1.7.0 (Unix handle-based extended attributes). guinea-io also reuses
+existing serde/serde_json, libc and windows-permissions for recovery/metadata.
+No existing package version was upgraded and no policy exception was added.
+
+Refetched RustSec on 2026-11-10, commit
+`d9cb059f3217db87aeccd190b81eaffe8cc29cb9`, timestamp
+`2026-11-09T17:13:08+01:00`. Locked workspace offline check: exit 0,
+**advisories ok, bans ok, licenses ok, sources ok**. The same seven existing
+duplicate-version groups remain warnings under the unchanged policy.
+Project code still forbids unsafe Rust; target OS wrappers are dependencies.

@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {
+      "locale": "en",
+      "crashes": 2,
+      "exact_bytes": true,
+      "source_untouched": true,
+      "clean_exit": true
+    },
+    {
+      "locale": "vi",
+      "crashes": 2,
+      "exact_bytes": true,
+      "source_untouched": true,
+      "clean_exit": true
+    }
+  ],
+  "note": "Process kill after committed checkpoint; not power loss"
+}

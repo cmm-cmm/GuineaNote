@@ -10,6 +10,16 @@ guinea-core.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true
 sha2 = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[target.'cfg(windows)'.dependencies]
+winapi-util = "0.1.11"
+windows-permissions = "0.2.4"
+
+[target.'cfg(unix)'.dependencies]
+xattr = "1.7"
+libc = "0.2"
 
 [dev-dependencies]
 proptest = "1"

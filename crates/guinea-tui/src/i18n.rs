@@ -32,6 +32,18 @@ impl Locale {
             return Cow::Borrowed(text);
         }
         let translated = match text {
+            "Recovered" => "Khôi phục",
+            "Recovered drafts opened; use Save As to keep them" => {
+                "Đã mở bản nháp khôi phục; dùng Lưu thành để giữ lại"
+            }
+            "Recovery warning" => "Cảnh báo khôi phục bản nháp",
+            "Older Undo steps trimmed to keep history within its budget" => {
+                "Đã bỏ các bước Hoàn tác cũ vượt giới hạn lịch sử"
+            }
+            "… Review limited to 100,000 rows or 16 MiB of display budget; source is complete." => {
+                "… Xem trước giới hạn 100.000 dòng hoặc 16 MiB ngân sách hiển thị; nguồn vẫn đầy đủ."
+            }
+
             "EXPLORER" => "THƯ MỤC",
             "EDITOR" => "SOẠN THẢO",
             "START HERE" => "BẮT ĐẦU",

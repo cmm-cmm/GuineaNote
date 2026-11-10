@@ -1,0 +1,13 @@
+{
+  "samples": [
+    {
+      "action": "second-line:down",
+      "ms": 17.214
+    },
+    {
+      "action": "second-line:first-end",
+      "ms": 77.021
+    }
+  ],
+  "trace": "two-line-before-1794276288983975600.csv"
+}

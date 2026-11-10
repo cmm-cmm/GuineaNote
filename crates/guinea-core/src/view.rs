@@ -268,52 +268,133 @@ pub struct LineWindow {
     pub char_start: usize,
     pub cell_start: usize,
 }
+pub(crate) struct LayoutEdit {
+    bytes: Option<std::ops::Range<usize>>,
+    chars: usize,
+    line: usize,
+    revision: u64,
+    delta: isize,
+}
 
 impl Document {
-    /// Prepare the first visible line off the UI thread. Bound the extra work
-    /// to the supported interactive file budget; other lines remain lazy.
+    /// Prepare bounded initial line indexes on the file-open worker.
     pub fn prepare_view(&self, tab_width: usize) {
         if self.buffer().len_bytes() <= 10 * 1024 * 1024 {
-            let _ = self.indexed_line(0, tab_width, self.line_bounds(0).map_or(0, |r| r.len()), 0);
+            for line in 0..self.buffer().len_lines().min(64) {
+                let _ = self.indexed_line(
+                    line,
+                    tab_width,
+                    self.line_bounds(line).map_or(0, |r| r.len()),
+                    0,
+                );
+            }
+            let _ = self.indexed_line(0, tab_width, 0, 0);
         }
+    }
+    pub fn view_cache_bytes(&self) -> usize {
+        self.view
+            .layout_cache
+            .borrow()
+            .as_ref()
+            .map_or(0, |c| c.text.len())
+            + self
+                .view
+                .layout_others
+                .borrow()
+                .iter()
+                .map(|c| c.text.len())
+                .sum::<usize>()
+    }
+    pub fn clear_view_cache(&self) {
+        *self.view.layout_cache.borrow_mut() = None;
+        self.view.layout_others.borrow_mut().clear();
     }
     pub(crate) fn prepare_layout_edit(
         &self,
         range: &std::ops::Range<usize>,
         text: &str,
-    ) -> Option<(std::ops::Range<usize>, usize)> {
+    ) -> Option<LayoutEdit> {
         if text.contains(['\r', '\n']) {
             return None;
         }
-        let cache = self.layout_cache.borrow();
-        let layout = cache.as_ref()?;
-        if layout.revision != self.revision()
-            || range.start < layout.start
-            || range.end > self.line_bounds(layout.line).ok()?.end
-        {
+        let line = self.buffer().char_to_line(range.start).ok()?;
+        let bounds = self.line_bounds(line).ok()?;
+        if range.end > bounds.end {
             return None;
         }
-        let origin = self.buffer().char_to_byte(CharIndex(layout.start)).ok()?.0;
-        Some((
-            self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0 - origin
-                ..self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0 - origin,
-            range.start - layout.start,
-        ))
+        let tab = self
+            .view
+            .layout_cache
+            .borrow()
+            .as_ref()
+            .map_or(4, |c| c.tab);
+        let indexed = self.indexed_line(line, tab, 0, 0).is_some();
+        let cache = self.view.layout_cache.borrow();
+        let bytes = if indexed {
+            let layout = cache.as_ref()?;
+            let origin = self.buffer().char_to_byte(CharIndex(layout.start)).ok()?.0;
+            Some(
+                self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0 - origin
+                    ..self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0 - origin,
+            )
+        } else {
+            None
+        };
+        Some(LayoutEdit {
+            bytes,
+            chars: range.start - bounds.start,
+            line,
+            revision: self.revision(),
+            delta: text.chars().count() as isize - range.len() as isize,
+        })
     }
-    pub(crate) fn apply_layout_edit(
-        &self,
-        edit: Option<(std::ops::Range<usize>, usize)>,
-        text: &str,
-    ) {
-        let mut cache = self.layout_cache.borrow_mut();
-        let Some((bytes, chars)) = edit else {
+    pub(crate) fn apply_layout_edit(&self, edit: Option<LayoutEdit>, text: &str) {
+        let mut cache = self.view.layout_cache.borrow_mut();
+        let Some(edit) = edit else {
             *cache = None;
+            self.view.layout_others.borrow_mut().clear();
             return;
         };
+        let Some(bytes) = edit.bytes else {
+            let valid =
+                |c: &Arc<LineLayout<'static>>| c.revision == edit.revision && c.line != edit.line;
+            let remap = |c: &mut Arc<LineLayout<'static>>| {
+                let c = Arc::make_mut(c);
+                c.revision = self.revision();
+                if c.line > edit.line {
+                    c.start = c.start.saturating_add_signed(edit.delta);
+                }
+            };
+            if cache.as_ref().is_some_and(valid) {
+                remap(cache.as_mut().unwrap());
+            } else {
+                *cache = None;
+            }
+            let mut others = self.view.layout_others.borrow_mut();
+            others.retain(valid);
+            for c in others.iter_mut() {
+                remap(c);
+            }
+            return;
+        };
+        let chars = edit.chars;
         let Some(layout) = cache.as_mut() else {
             return;
         };
         let layout = Arc::make_mut(layout);
+        let scalar_delta =
+            text.chars().count() as isize - layout.text[bytes.clone()].chars().count() as isize;
+        let mut others = self.view.layout_others.borrow_mut();
+        others.retain(|c| {
+            c.line != layout.line && c.revision == layout.revision && c.tab == layout.tab
+        });
+        for cached in others.iter_mut() {
+            let cached = Arc::make_mut(cached);
+            cached.revision = self.revision();
+            if cached.line > layout.line {
+                cached.start = cached.start.saturating_add_signed(scalar_delta);
+            }
+        }
         // A complete, tab-free index survives small printable-ASCII edits
         // between ASCII neighbors. All four coordinate units shift equally.
         // Unicode joins, controls, tabs and incomplete indexes use the normal
@@ -370,40 +451,63 @@ impl Document {
         through_char: usize,
         through_cell: usize,
     ) -> Option<Arc<LineLayout<'static>>> {
-        let mut cache = self.layout_cache.borrow_mut();
+        let mut cache = self.view.layout_cache.borrow_mut();
         if cache
             .as_ref()
             .is_none_or(|c| c.line != line || c.revision != self.revision() || c.tab != tab)
         {
-            let range = self.line_bounds(line).ok()?;
-            if range.len() < 8192 {
-                return None;
+            let mut others = self.view.layout_others.borrow_mut();
+            if let Some(index) = others
+                .iter()
+                .position(|c| c.line == line && c.revision == self.revision() && c.tab == tab)
+            {
+                let found = others.remove(index).expect("cached index");
+                if let Some(old) = cache.replace(found) {
+                    others.push_back(old);
+                }
+            } else {
+                let range = self.line_bounds(line).ok()?;
+                if range.len() < 8192 {
+                    return None;
+                }
+                let bytes = self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0
+                    - self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0;
+                if bytes == range.len() {
+                    return None;
+                }
+                if let Some(old) = cache.take() {
+                    others.push_back(old);
+                }
+                *cache = Some(Arc::new(LineLayout {
+                    line,
+                    revision: self.revision(),
+                    tab,
+                    start: range.start,
+                    text: Cow::Owned(self.buffer().slice(range).ok()?),
+                    checkpoints: vec![Checkpoint {
+                        chars: 0,
+                        byte: 0,
+                        cells: 0,
+                        graphemes: 0,
+                    }],
+                    first_tab: None,
+                    scanned: Checkpoint {
+                        chars: 0,
+                        byte: 0,
+                        cells: 0,
+                        graphemes: 0,
+                    },
+                }));
             }
-            let bytes = self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0
-                - self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0;
-            if bytes == range.len() {
-                return None;
+            while others.len() > 63
+                || others.iter().map(|c| c.text.len()).sum::<usize>()
+                    + cache.as_ref().map_or(0, |c| c.text.len())
+                    > 16 * 1024 * 1024
+            {
+                if others.pop_front().is_none() {
+                    break;
+                }
             }
-            *cache = Some(Arc::new(LineLayout {
-                line,
-                revision: self.revision(),
-                tab,
-                start: range.start,
-                text: Cow::Owned(self.buffer().slice(range).ok()?),
-                checkpoints: vec![Checkpoint {
-                    chars: 0,
-                    byte: 0,
-                    cells: 0,
-                    graphemes: 0,
-                }],
-                first_tab: None,
-                scanned: Checkpoint {
-                    chars: 0,
-                    byte: 0,
-                    cells: 0,
-                    graphemes: 0,
-                },
-            }));
         }
         let layout = cache.as_mut().unwrap();
         if (layout.scanned.chars < through_char || layout.scanned.cells < through_cell)
@@ -559,12 +663,70 @@ impl Document {
 mod tests {
     use super::*;
     #[test]
+    fn multiline_cache_matches_fresh_layout_after_edits_history_and_tab_changes() {
+        let text = (0..90)
+            .map(|i| format!("line {i}\t{}tail\n", "Việt e\u{301} 👩‍💻 ".repeat(1000)))
+            .collect::<String>();
+        let mut document = Document::from_text(&text);
+        document.prepare_view(4);
+        assert!(!document.view.layout_others.borrow().is_empty());
+        assert!(document.view.layout_others.borrow().len() <= 63);
+        for edit_line in [0, 40, 89, 2] {
+            let start = document.buffer().line_to_char(edit_line).unwrap();
+            document.select(start, start).unwrap();
+            // Last painted line differs from the edited line.
+            document.line_window(70, 0, 40, 8).unwrap();
+            document.insert("abc e\u{301}").unwrap();
+            for action in 0..3 {
+                if action == 1 {
+                    document.undo().unwrap();
+                }
+                if action == 2 {
+                    document.redo().unwrap();
+                }
+                let fresh = Document::from_text(&document.text());
+                for tab in [4, 8, 3, 4] {
+                    for line in [0, 2, 40, 70, 89] {
+                        let actual = document.line_window(line, 15, 20, tab).unwrap();
+                        let expected = fresh.line_window(line, 15, 20, tab).unwrap();
+                        assert_eq!(
+                            (actual.char_start, actual.cell_start, actual.text),
+                            (expected.char_start, expected.cell_start, expected.text)
+                        );
+                    }
+                }
+            }
+        }
+        document.clear_view_cache();
+        assert_eq!(document.view_cache_bytes(), 0);
+    }
+
+    #[test]
+    fn short_line_edit_keeps_prepared_long_line_with_shifted_coordinates() {
+        let mut document =
+            Document::from_text(&format!("prefix\n{}", "Việt e\u{301} 👩‍💻 ".repeat(2000)));
+        document.prepare_view(4);
+        let bytes = document.view_cache_bytes();
+        assert!(bytes > 0);
+        document.insert("edited ").unwrap();
+        assert_eq!(document.view_cache_bytes(), bytes);
+        let actual = document.line_window(1, 17000, 30, 4).unwrap();
+        let fresh = Document::from_text(&document.text());
+        let expected = fresh.line_window(1, 17000, 30, 4).unwrap();
+        assert_eq!(
+            (actual.text, actual.char_start, actual.cell_start),
+            (expected.text, expected.char_start, expected.cell_start)
+        );
+    }
+
+    #[test]
     fn prepared_indexes_survive_ascii_edits_and_rebuild_for_unicode_and_tabs() {
         for unit in ["ascii Việt e\u{301} 👩‍💻 ", "ascii\tViệt e\u{301} 👩‍💻 "] {
             let mut d = Document::from_text(&unit.repeat(50000));
             d.prepare_view(4);
             assert!(
-                d.layout_cache
+                d.view
+                    .layout_cache
                     .borrow()
                     .as_ref()
                     .is_some_and(|l| l.scanned.byte == l.text.len())
@@ -574,7 +736,8 @@ mod tests {
                 d.insert(text).unwrap();
                 if !unit.contains('\t') && text.is_ascii() {
                     assert!(
-                        d.layout_cache
+                        d.view
+                            .layout_cache
                             .borrow()
                             .as_ref()
                             .is_some_and(|l| l.scanned.byte == l.text.len()),

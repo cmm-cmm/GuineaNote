@@ -11,6 +11,8 @@ pub struct Config {
     pub sidebar_width: u16,
     pub basic_colors: bool,
     pub mouse: bool,
+    pub recovery: bool,
+    pub no_color: bool,
 }
 
 impl Default for Config {
@@ -25,6 +27,8 @@ impl Default for Config {
                 && !std::env::var("COLORTERM")
                     .is_ok_and(|value| matches!(value.as_str(), "truecolor" | "24bit")),
             mouse: true,
+            recovery: true,
+            no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
         }
     }
 }

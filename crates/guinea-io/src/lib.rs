@@ -1,11 +1,15 @@
 //! Strict UTF-8, exact newline bytes, and conservative same-directory saves.
+#[cfg(windows)]
+use std::io::Seek;
 use std::{
     fs::{self, File, Metadata},
-    io::{self, Read, Write},
+    io::{self, BufRead, BufReader, BufWriter, Read, Write},
     path::{Path, PathBuf},
 };
 
-use guinea_core::{Document, Fingerprint};
+use guinea_core::{ContentSnapshot, Document, Fingerprint};
+mod platform;
+pub mod recovery;
 use sha2::{Digest, Sha256};
 use tempfile::NamedTempFile;
 use thiserror::Error;
@@ -34,6 +38,8 @@ pub enum FileError {
     DestinationExists,
     #[error("file changed while it was being read; retry opening")]
     UnstableRead,
+    #[error("hard-linked targets cannot be replaced safely; use Save As")]
+    HardLinks,
 }
 
 #[derive(Debug, Default)]
@@ -46,6 +52,10 @@ pub struct SaveReport {
 /// visible to the safety checks. Parent directory must already exist.
 pub fn absolute_path(path: &Path) -> Result<PathBuf, FileError> {
     let name = path.file_name().ok_or(FileError::SpecialFile)?;
+    #[cfg(windows)]
+    if name.to_string_lossy().contains(':') {
+        return Err(FileError::SpecialFile);
+    }
     let parent = path
         .parent()
         .filter(|p| !p.as_os_str().is_empty())
@@ -55,76 +65,104 @@ pub fn absolute_path(path: &Path) -> Result<PathBuf, FileError> {
 
 fn metadata(path: &Path) -> Result<Option<Metadata>, FileError> {
     match fs::symlink_metadata(path) {
-        Ok(m) if m.file_type().is_symlink() || !m.is_file() => Err(FileError::SpecialFile),
+        Ok(m) if platform::special(&m) || !m.is_file() => Err(FileError::SpecialFile),
         Ok(m) => Ok(Some(m)),
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(e) => Err(e.into()),
     }
 }
 
-fn fingerprint(bytes: &[u8], meta: &Metadata) -> Fingerprint {
-    Fingerprint {
-        size: bytes.len() as u64,
-        modified: meta.modified().ok(),
-        sha256: Sha256::digest(bytes).into(),
+struct CheckedReader<R> {
+    input: R,
+    digest: Sha256,
+    size: u64,
+    nul: bool,
+}
+impl<R: Read> Read for CheckedReader<R> {
+    fn read(&mut self, out: &mut [u8]) -> io::Result<usize> {
+        let n = self.input.read(out)?;
+        self.digest.update(&out[..n]);
+        self.size += n as u64;
+        self.nul |= out[..n].contains(&0);
+        if self.nul {
+            return Err(io::Error::new(io::ErrorKind::InvalidData, "NUL input"));
+        }
+        Ok(n)
     }
 }
-
 fn same_metadata(a: &Metadata, b: &Metadata) -> bool {
     a.len() == b.len() && a.modified().ok() == b.modified().ok()
 }
 
-fn read_checked(path: &Path, limit: u64) -> Result<(Vec<u8>, Metadata), FileError> {
-    let before = metadata(path)?.ok_or_else(|| io::Error::from(io::ErrorKind::NotFound))?;
+pub fn open(path: &Path, readonly: bool, limit: u64) -> Result<Document, FileError> {
+    let path = absolute_path(path)?;
+    let Some(before) = metadata(&path)? else {
+        let mut document = Document::default();
+        document.path = Some(path);
+        document.readonly = readonly;
+        return Ok(document);
+    };
     if before.len() > limit {
         return Err(FileError::LargeFile {
             size: before.len(),
             limit,
         });
     }
-    let file = File::open(path)?;
+    let file = platform::open_file(&path)?;
     let opened = file.metadata()?;
+    let identity = platform::identity(&file)?;
     if !same_metadata(&before, &opened) {
         return Err(FileError::UnstableRead);
     }
-    let mut bytes = Vec::new();
-    file.take(limit.saturating_add(1)).read_to_end(&mut bytes)?;
-    if bytes.len() as u64 > limit {
+    let mut input = BufReader::with_capacity(64 * 1024, (&file).take(limit.saturating_add(1)));
+    let prefix = input.fill_buf()?;
+    if prefix.starts_with(b"\xff\xfe") || prefix.starts_with(b"\xfe\xff") {
+        return Err(FileError::Encoding);
+    }
+    let bom = prefix.starts_with(BOM);
+    let mut reader = CheckedReader {
+        input,
+        digest: Sha256::new(),
+        size: 0,
+        nul: false,
+    };
+    if bom {
+        let mut prefix = [0; 3];
+        reader.read_exact(&mut prefix)?;
+    }
+    let result = Document::from_utf8_reader(&mut reader);
+    if reader.size > limit {
         return Err(FileError::LargeFile {
-            size: bytes.len() as u64,
+            size: reader.size,
             limit,
         });
     }
-    let after = metadata(path)?.ok_or(FileError::UnstableRead)?;
-    if !same_metadata(&before, &after) || bytes.len() as u64 != after.len() {
-        return Err(FileError::UnstableRead);
-    }
-    Ok((bytes, after))
-}
-
-pub fn open(path: &Path, readonly: bool, limit: u64) -> Result<Document, FileError> {
-    let path = absolute_path(path)?;
-    let Some(meta) = metadata(&path)? else {
-        let mut document = Document::default();
-        document.path = Some(path);
-        document.readonly = readonly;
-        return Ok(document);
-    };
-    let (bytes, meta_after) = read_checked(&path, limit)?;
-    if bytes.starts_with(b"\xff\xfe") || bytes.starts_with(b"\xfe\xff") {
-        return Err(FileError::Encoding);
-    }
-    let bom = bytes.starts_with(BOM);
-    let content = if bom { &bytes[BOM.len()..] } else { &bytes };
-    if content.contains(&0) {
+    if reader.nul {
         return Err(FileError::Binary);
     }
-    let text = std::str::from_utf8(content).map_err(|_| FileError::Encoding)?;
-    let mut document = Document::from_text(text);
+    let mut document = result.map_err(|e| {
+        if e.kind() == io::ErrorKind::InvalidData {
+            FileError::Encoding
+        } else {
+            e.into()
+        }
+    })?;
+    let after = file.metadata()?;
+    if !same_metadata(&opened, &after)
+        || after.len() != reader.size
+        || !platform::same_object(&path, identity).unwrap_or(false)
+    {
+        return Err(FileError::UnstableRead);
+    }
     document.path = Some(path);
     document.bom = bom;
-    document.readonly = readonly || meta.permissions().readonly();
-    document.fingerprint = Some(fingerprint(&bytes, &meta_after));
+    document.readonly = readonly || after.permissions().readonly();
+    document.fingerprint = Some(Fingerprint {
+        size: reader.size,
+        modified: after.modified().ok(),
+        sha256: reader.digest.finalize().into(),
+        identity: Some(identity),
+    });
     document.mark_saved();
     Ok(document)
 }
@@ -132,7 +170,7 @@ pub fn open(path: &Path, readonly: bool, limit: u64) -> Result<Document, FileErr
 fn validate_destination(
     path: &Path,
     expected: Option<&Fingerprint>,
-) -> Result<Option<Metadata>, FileError> {
+) -> Result<Option<File>, FileError> {
     let current = metadata(path)?;
     match (current, expected) {
         (None, None) => Ok(None),
@@ -142,34 +180,72 @@ fn validate_destination(
             if meta.permissions().readonly() {
                 return Err(FileError::ReadOnly);
             }
-            if meta.len() != expected.size || meta.modified().ok() != expected.modified {
+            let file = platform::open_file(path)?;
+            let identity = platform::identity(&file)?;
+            if expected.identity.is_some_and(|id| id != identity) {
                 return Err(FileError::Conflict);
             }
-            // Stream the hash: don't allocate a second full document on save.
-            let mut input = File::open(path)?.take(expected.size.saturating_add(1));
+            if platform::links(&file)? > 1 {
+                return Err(FileError::HardLinks);
+            }
+            let before = file.metadata()?;
+            if before.len() != expected.size || before.modified().ok() != expected.modified {
+                return Err(FileError::Conflict);
+            }
+            let mut input = (&file).take(expected.size.saturating_add(1));
             let mut digest = Sha256::new();
-            let mut chunk = [0u8; 64 * 1024];
+            let mut chunk = [0; 64 * 1024];
             let mut size = 0;
             loop {
-                let read = input.read(&mut chunk)?;
-                if read == 0 {
+                let n = input.read(&mut chunk)?;
+                if n == 0 {
                     break;
                 }
-                digest.update(&chunk[..read]);
-                size += read as u64;
+                digest.update(&chunk[..n]);
+                size += n as u64;
             }
-            let after = metadata(path)?.ok_or(FileError::Conflict)?;
-            let actual = Fingerprint {
-                size,
-                modified: after.modified().ok(),
-                sha256: digest.finalize().into(),
-            };
-            if !same_metadata(&meta, &after) || &actual != expected {
+            let after = file.metadata()?;
+            if !same_metadata(&before, &after)
+                || size != expected.size
+                || <[u8; 32]>::from(digest.finalize()) != expected.sha256
+                || !platform::same_object(path, identity).unwrap_or(false)
+            {
                 return Err(FileError::Conflict);
             }
-            Ok(Some(after))
+            Ok(Some(file))
         }
     }
+}
+
+/// Stream immutable UTF-8 bytes without a full String or output Vec.
+pub fn write_content(
+    snapshot: &ContentSnapshot,
+    bom: bool,
+    out: &mut impl Write,
+) -> Result<(u64, [u8; 32]), FileError> {
+    let mut digest = Sha256::new();
+    let mut size = 0u64;
+    if bom {
+        out.write_all(BOM)?;
+        digest.update(BOM);
+        size += 3;
+    }
+    let mut result: Result<(), FileError> = Ok(());
+    snapshot.visit_chunks(&mut |chunk| {
+        if chunk.contains('\0') {
+            result = Err(FileError::Binary);
+            return false;
+        }
+        if let Err(error) = out.write_all(chunk.as_bytes()) {
+            result = Err(error.into());
+            return false;
+        }
+        digest.update(chunk.as_bytes());
+        size += chunk.len() as u64;
+        true
+    });
+    result?;
+    Ok((size, digest.finalize().into()))
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -200,40 +276,110 @@ fn save_with_hook(
     } else {
         None
     };
-    let original_meta = validate_destination(&target, expected)?;
-    let text = document.text();
-    if text.contains('\0') {
-        return Err(FileError::Binary);
-    }
-    let mut bytes = Vec::with_capacity(text.len() + 3);
-    if document.bom {
-        bytes.extend_from_slice(BOM);
-    }
-    bytes.extend_from_slice(text.as_bytes());
+    let original = validate_destination(&target, expected)?;
     let parent = target.parent().ok_or(FileError::SpecialFile)?;
     hook(Stage::Create)?;
     let mut temp = NamedTempFile::new_in(parent)?;
-    let midpoint = bytes.len() / 2;
-    temp.write_all(&bytes[..midpoint])?;
-    hook(Stage::Write)?;
-    temp.write_all(&bytes[midpoint..])?;
-    hook(Stage::Flush)?;
-    temp.flush()?;
-    if let Some(meta) = original_meta {
-        temp.as_file().set_permissions(meta.permissions())?;
+    // Draft bytes must never inherit a broader ACL than the original file.
+    // Newly created files start owner-only; replacement metadata is applied
+    // before any original or edited bytes are copied into the temporary file.
+    platform::private(temp.path(), false)?;
+    if let Some(original) = &original {
+        platform::preserve(original, &target, temp.as_file(), temp.path())?;
+    }
+    #[cfg(windows)]
+    if original.is_some() {
+        // std CopyFileEx copies NTFS alternate streams. Only truncate the main
+        // stream afterwards; original bytes remain untouched until persist.
+        fs::copy(&target, temp.path())
+            .map_err(|e| io::Error::new(e.kind(), format!("Preserving file streams: {e}")))?;
+        temp.as_file().set_len(0).map_err(|e| {
+            io::Error::new(e.kind(), format!("Resetting temporary main stream: {e}"))
+        })?;
+        temp.as_file_mut().rewind()?;
+    }
+    let snapshot = document.snapshot_buffer();
+    let midpoint = (snapshot.len_bytes() + usize::from(document.bom) * 3) / 2;
+    let mut called = false;
+    let (size, sha256) = {
+        struct Progress<'a, W, H> {
+            out: &'a mut W,
+            hook: &'a mut H,
+            written: usize,
+            midpoint: usize,
+            called: &'a mut bool,
+        }
+        impl<W: Write, H: FnMut(Stage) -> io::Result<()>> Write for Progress<'_, W, H> {
+            fn write(&mut self, bytes: &[u8]) -> io::Result<usize> {
+                if !*self.called && self.written >= self.midpoint {
+                    (self.hook)(Stage::Write)?;
+                    *self.called = true;
+                }
+                let len = if !*self.called {
+                    bytes.len().min(self.midpoint - self.written)
+                } else {
+                    bytes.len()
+                };
+                let n = self.out.write(&bytes[..len])?;
+                self.written += n;
+                Ok(n)
+            }
+            fn flush(&mut self) -> io::Result<()> {
+                self.out.flush()
+            }
+        }
+        let mut out = BufWriter::with_capacity(64 * 1024, temp.as_file_mut());
+        let result = write_content(
+            &snapshot,
+            document.bom,
+            &mut Progress {
+                out: &mut out,
+                hook: &mut hook,
+                written: 0,
+                midpoint,
+                called: &mut called,
+            },
+        )?;
+        if !called {
+            hook(Stage::Write)?;
+        }
+        hook(Stage::Flush)?;
+        out.flush()?;
+        result
+    };
+    if let Some(original) = &original {
+        platform::preserve(original, &target, temp.as_file(), temp.path())
+            .map_err(|e| io::Error::new(e.kind(), format!("Preserving security metadata: {e}")))?;
     }
     hook(Stage::Sync)?;
-    temp.as_file().sync_all()?;
-    let saved_fingerprint = fingerprint(&bytes, &temp.as_file().metadata()?);
+    temp.as_file()
+        .sync_all()
+        .map_err(|e| io::Error::new(e.kind(), format!("Syncing temporary file: {e}")))?;
+    let saved_fingerprint = Fingerprint {
+        size,
+        sha256,
+        modified: temp.as_file().metadata()?.modified().ok(),
+        identity: Some(platform::identity(temp.as_file())?),
+    };
     hook(Stage::Replace)?;
-    validate_destination(&target, expected)?;
+    let verified = validate_destination(&target, expected)?;
+    drop(verified);
+    drop(original);
     // Never delete the destination as a fallback. New paths use no-clobber.
     if expected.is_some() {
-        temp.persist(&target)
-            .map_err(|error| FileError::Io(error.error))?;
+        temp.persist(&target).map_err(|error| {
+            FileError::Io(io::Error::new(
+                error.error.kind(),
+                format!("Committing temporary file: {}", error.error),
+            ))
+        })?;
     } else {
-        temp.persist_noclobber(&target)
-            .map_err(|error| FileError::Io(error.error))?;
+        temp.persist_noclobber(&target).map_err(|error| {
+            FileError::Io(io::Error::new(
+                error.error.kind(),
+                format!("Committing temporary file: {}", error.error),
+            ))
+        })?;
     }
     // Commit point: later durability warnings must not be reported as failure.
     #[cfg(unix)]
@@ -244,6 +390,7 @@ fn save_with_hook(
     #[cfg(not(unix))]
     let warning = None;
     document.path = Some(target);
+    document.recovery_source = None;
     document.fingerprint = Some(saved_fingerprint);
     document.mark_saved();
     Ok(SaveReport { warning })
@@ -253,6 +400,85 @@ fn save_with_hook(
 mod tests {
     use super::*;
     use proptest::prelude::*;
+
+    #[test]
+    fn replacement_identity_conflict_and_hardlinks_preserve_all_original_names() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("source.txt");
+        fs::write(&path, "original").unwrap();
+        let mut d = open(&path, false, 100).unwrap();
+        d.insert("edit ").unwrap();
+        let previous = dir.path().join("previous.txt");
+        fs::rename(&path, &previous).unwrap();
+        fs::write(&path, "original").unwrap();
+        // Simulate a same-content/same-mtime replacement: identity must still fail.
+        d.fingerprint.as_mut().unwrap().modified = fs::metadata(&path).unwrap().modified().ok();
+        assert!(matches!(save(&mut d, &path), Err(FileError::Conflict)));
+        assert_eq!(fs::read_to_string(&path).unwrap(), "original");
+        let mut d = open(&path, false, 100).unwrap();
+        d.insert("edit ").unwrap();
+        let alias = dir.path().join("alias.txt");
+        fs::hard_link(&path, &alias).unwrap();
+        assert!(matches!(save(&mut d, &path), Err(FileError::HardLinks)));
+        assert_eq!(fs::read(&path).unwrap(), fs::read(&alias).unwrap());
+        assert!(d.is_dirty());
+        save(&mut d, &dir.path().join("safe-copy.txt")).unwrap();
+        assert_eq!(fs::read_to_string(&alias).unwrap(), "original");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_save_preserves_alternate_streams_and_protected_acl() {
+        use windows_permissions::{
+            LocalBox, SecurityDescriptor,
+            constants::{SeObjectType, SecurityInformation},
+            utilities, wrappers,
+        };
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("streams.txt");
+        fs::write(&path, "original").unwrap();
+        let stream = format!("{}:guineanote-test-metadata", path.display());
+        fs::write(&stream, b"private metadata\0exact").unwrap();
+        let sid = utilities::current_process_sid().unwrap();
+        let acl: LocalBox<SecurityDescriptor> = format!("D:P(A;;FA;;;{sid})").parse().unwrap();
+        wrappers::SetNamedSecurityInfo(
+            path.as_os_str(),
+            SeObjectType::SE_FILE_OBJECT,
+            SecurityInformation::Dacl | SecurityInformation::ProtectedDacl,
+            None,
+            None,
+            acl.dacl(),
+            None,
+        )
+        .unwrap();
+        let mut document = open(&path, false, 100).unwrap();
+        document.insert("Việt 👩‍💻 ").unwrap();
+        save(&mut document, &path).unwrap();
+        assert_eq!(fs::read(&stream).unwrap(), b"private metadata\0exact");
+        let actual = wrappers::GetNamedSecurityInfo(
+            path.as_os_str(),
+            SeObjectType::SE_FILE_OBJECT,
+            SecurityInformation::Owner | SecurityInformation::Dacl,
+        )
+        .unwrap();
+        assert_eq!(actual.owner(), Some(&*sid));
+        let dacl = actual.dacl().unwrap();
+        assert_eq!(dacl.len(), 1);
+        assert_eq!(dacl.get_ace(0).unwrap().sid(), Some(&*sid));
+        assert_eq!(fs::read_to_string(&path).unwrap(), "Việt 👩‍💻 original");
+    }
+
+    #[test]
+    fn streaming_builder_detects_newlines_across_chunks_without_normalizing_bytes() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("chunked.txt");
+        let original = format!("\u{feff}{}\r\nViệt e\u{301} 👩‍💻\nend\r", "a".repeat(65532));
+        fs::write(&path, &original).unwrap();
+        let mut d = open(&path, false, 100_000).unwrap();
+        assert_eq!(d.line_ending(), guinea_core::LineEnding::Mixed);
+        save(&mut d, &path).unwrap();
+        assert_eq!(fs::read(&path).unwrap(), original.as_bytes());
+    }
 
     proptest! {
         #![proptest_config(ProptestConfig::with_cases(64))]

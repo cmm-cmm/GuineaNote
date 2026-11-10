@@ -177,9 +177,22 @@ local 10 MiB corpus, with full I/O/parse completion reported separately; it is
 not a universal timing guarantee. Syntax distinguishes functions, types,
 constants, properties, attributes, escapes, operators and punctuation, with
 italic comments and separate semantic colors. It is a lightweight line-local lexer, without
-multiline grammar state; very long horizontally-scrolled lines use viewport
-context. No bounded-memory large-file support, system clipboard
-integration, LSP, plugin runtime, Git integration or crash recovery.
+multiline grammar state; horizontally-scrolled lines use real line-origin context
+up to a bounded prefix, then plain text. No bounded-memory large-file support,
+system clipboard integration, LSP, plugin runtime or Git integration.
+
+Crash recovery is enabled by default. Dirty tabs are checkpointed by a separate
+worker about once per second and reopen after a crash as independent unsaved
+drafts. Use Save As to keep a recovered draft; the source file is never overwritten
+automatically. Set `recovery = false` in TOML to disable it. Drafts are private
+local plaintext with quotas; the last uncheckpointed edits can still be lost.
+See [file safety](docs/FILE_SAFETY.md) for storage paths and limits.
+
+History defaults to 2048 Undo/Redo transactions and 64 MiB charged edit payload,
+retaining the nearest transaction even if oversized. Old steps are trimmed with
+feedback; F9 reports their counts. This is not a process-RAM limit. The
+[risk mitigation report](docs/RISK_MITIGATION.md) records all five research risks,
+implemented controls, verification and remaining uncertainty.
 
 Run the required checks:
 

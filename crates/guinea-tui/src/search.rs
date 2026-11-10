@@ -16,7 +16,9 @@ use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
 
 pub const PAGE: usize = 200;
 static WORKERS: AtomicUsize = AtomicUsize::new(0);
-struct Worker;
+struct Worker {
+    _permit: crate::work::Permit,
+}
 impl Drop for Worker {
     fn drop(&mut self) {
         WORKERS.fetch_sub(1, Ordering::Release);
@@ -370,6 +372,9 @@ impl Search {
             );
             return;
         }
+        let Some(permit) = crate::work::Permit::acquire() else {
+            return;
+        };
         if WORKERS
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
                 (n < 2).then_some(n + 1)
@@ -378,7 +383,7 @@ impl Search {
         {
             return;
         }
-        let guard = Worker;
+        let guard = Worker { _permit: permit };
         let mut snapshot = document.review_snapshot();
         snapshot.readonly = false;
         let query = self.query.clone();
@@ -501,14 +506,17 @@ impl Search {
                 self.dirty = false;
                 return (true, None);
             }
+            let Some(permit) = crate::work::Permit::acquire() else {
+                return (changed, None);
+            };
             if WORKERS
                 .fetch_update(Ordering::AcqRel, Ordering::Acquire, |n| {
                     (n < 2).then_some(n + 1)
                 })
                 .is_ok()
             {
-                let guard = Worker;
-                let snapshot = document.review_snapshot();
+                let guard = Worker { _permit: permit };
+                let snapshot = document.worker_snapshot();
                 let query = self.query.clone();
                 let offset = self.offset;
                 let (tx, rx) = mpsc::channel();

@@ -1,6 +1,6 @@
 //! Workspace surfaces and interaction geometry. All text edits stay in core.
 use guinea_core::TextBuffer;
-use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
+use guinea_syntax::Language;
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Layout, Rect},
@@ -697,8 +697,13 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let tab = &mut app.tabs[app.active];
     let document = &tab.document;
     let language = crate::app::document_language(document);
-    let (cursor_line, _) = document.position();
-    let cursor_cell = document.cursor_cell(app.config.tab_width);
+    let (cursor_line, cursor_cell) = {
+        let _span = crate::trace::span("cursor_layout");
+        (
+            document.position().0,
+            document.cursor_cell(app.config.tab_width),
+        )
+    };
     let gutter = if body.width > 14 {
         document.buffer().len_lines().to_string().len().min(6) + 3
     } else {
@@ -720,6 +725,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     }
     for offset in 0..body.height {
         let line_idx = tab.top + offset as usize;
+        let _line_span = crate::trace::span("line_layout_paint");
         let Ok(window) = document.line_window(line_idx, tab.left, width, app.config.tab_width)
         else {
             break;
@@ -739,7 +745,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             );
         }
         let highlights = if app.config.syntax && language != Language::Plain {
-            Some(BasicSyntax.highlight_line(language, text, document.revision()))
+            crate::render::source_highlights(document, line_idx, &window, language)
         } else {
             None
         };
@@ -958,7 +964,8 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     } else {
         app.message.as_str()
     };
-    let error = message.contains("Cannot")
+    let error = app.recovery.failed
+        || message.contains("Cannot")
         || message.contains("denied")
         || message.contains("outside")
         || message.contains("unsupported");
@@ -967,6 +974,14 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             Span::styled(
                 if app.busy() { " ◌ " } else { " ● " },
                 text_style(if error { theme.danger } else { theme.accent }),
+            ),
+            Span::styled(
+                if app.recovery.failed {
+                    format!("{} · ", locale.tr("Recovery warning"))
+                } else {
+                    String::new()
+                },
+                text_style(theme.danger),
             ),
             Span::styled(safe(&locale.message(message)), text_style(theme.muted)),
         ])),

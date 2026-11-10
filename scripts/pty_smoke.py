@@ -49,11 +49,13 @@ def probe_child(arguments):
 
 
 class Session:
-    def __init__(self, arguments, colors=False, preferences_path=None):
+    def __init__(self, arguments, colors=False, preferences_path=None, env=None):
         command = [sys.executable, str(Path(__file__).resolve()), "--probe-child", *arguments]
         self.preference_directory = tempfile.TemporaryDirectory(prefix="guineanote-preferences-")
         environment = dict(os.environ)
         environment["GUINEANOTE_PREFERENCES"] = str(preferences_path or (Path(self.preference_directory.name) / "preferences.toml"))
+        if env:
+            environment.update(env)
         if colors:
             environment.pop("NO_COLOR", None)
             environment["TERM"] = "xterm-256color"
@@ -82,7 +84,14 @@ class Session:
             self.resize(28, 100)
         self.output = b""
         import pyte
+        session = self
         class TerminalScreen(pyte.Screen):
+            def write_process_input(self, data):
+                # pyte's default is a no-op. ConPTY can request cursor status
+                # while restoring cooked input; a real terminal replies. Ignoring
+                # the request adds a host timeout (~500 ms) to exit measurements.
+                session.send(data)
+
             @property
             def display(self):
                 from wcwidth import wcwidth

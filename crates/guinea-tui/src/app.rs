@@ -27,7 +27,12 @@ use crate::{
 };
 
 pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language {
-    let detected = guinea_syntax::Language::detect(document.path.as_deref());
+    let detected = guinea_syntax::Language::detect(
+        document
+            .path
+            .as_deref()
+            .or(document.recovery_source.as_deref()),
+    );
     if !matches!(
         detected,
         guinea_syntax::Language::Plain
@@ -44,7 +49,13 @@ pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language 
                 prefix.push_str(chunk);
                 !prefix.contains('\n')
             });
-    guinea_syntax::Language::detect_content(document.path.as_deref(), &prefix)
+    guinea_syntax::Language::detect_content(
+        document
+            .path
+            .as_deref()
+            .or(document.recovery_source.as_deref()),
+        &prefix,
+    )
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -68,7 +79,7 @@ pub struct HitRegions {
     pub outline: Rect,
 }
 
-pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · no crash recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = "GuineaNote — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · periodic draft recovery\nF1 / Esc dismisses help";
 
 pub struct Tab {
     pub id: u64,
@@ -213,6 +224,7 @@ pub struct App {
     pub focus: Focus,
     pub hits: HitRegions,
     pub preferences: Preferences,
+    pub recovery: crate::recovery::Recovery,
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
     saving: bool,
@@ -273,6 +285,7 @@ impl App {
             },
             hits: HitRegions::default(),
             preferences: Preferences::default(),
+            recovery: crate::recovery::Recovery::default(),
             mouse_selecting: None,
             last_modal_click: None,
             readonly,
@@ -293,6 +306,7 @@ impl App {
             || (cfg!(not(windows)) && self.agent.is_some())
             || self.busy()
             || self.preferences.busy()
+            || self.recovery.busy()
             || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::Search(p)) if p.busy())
@@ -335,8 +349,15 @@ impl App {
             self.message = "Review is read-only; F7 or Esc returns to source".into();
             return;
         }
+        let trimmed = self.document().history_status().trimmed;
         if let Err(error) = command(self.document_mut()) {
             self.message = error.to_string();
+        } else if self.document().history_status().trimmed != trimmed {
+            self.message = self
+                .config
+                .language
+                .tr("Older Undo steps trimmed to keep history within its budget")
+                .into_owned();
         }
     }
 
@@ -369,7 +390,7 @@ impl App {
             self.message = "Document is read-only".into();
             return;
         }
-        let mut document = self.document().clone();
+        let mut document = self.document().worker_snapshot();
         let job = Job::Save { id: document.id };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
@@ -394,7 +415,7 @@ impl App {
         label: &str,
         task: impl FnOnce(&mut Document) -> Result<String, guinea_core::EditError> + Send + 'static,
     ) {
-        let mut document = self.document().clone();
+        let mut document = self.document().worker_snapshot();
         let job = Job::Compute { id: document.id };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
@@ -422,6 +443,7 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        self.poll_recovery();
         self.poll_agent();
         self.poll_search();
         let mut documents_changed = false;
@@ -483,6 +505,32 @@ impl App {
             self.redraw = true;
         }
         self.sync_review_tabs();
+        let mut cached = self
+            .tabs
+            .iter()
+            .map(|t| t.review.cache_bytes())
+            .sum::<usize>();
+        let mut layouts = self
+            .tabs
+            .iter()
+            .map(|t| t.document.view_cache_bytes())
+            .sum::<usize>();
+        for (index, tab) in self.tabs.iter_mut().enumerate() {
+            if index == self.active {
+                continue;
+            }
+            tab.review.suspend();
+            if cached > 32 * 1024 * 1024 {
+                let before = tab.review.cache_bytes();
+                tab.review.release_cache();
+                cached = cached.saturating_sub(before - tab.review.cache_bytes());
+            }
+            if layouts > 32 * 1024 * 1024 {
+                let bytes = tab.document.view_cache_bytes();
+                tab.document.clear_view_cache();
+                layouts = layouts.saturating_sub(bytes);
+            }
+        }
         if documents_changed && let Some(Modal::Tabs(manager)) = &mut self.modal {
             manager.refresh(&self.tabs, self.active, self.config.language);
         }
@@ -497,6 +545,51 @@ impl App {
         if self.quit_after_settings && !self.preferences.busy() {
             self.exit = true;
         }
+    }
+
+    fn poll_recovery(&mut self) {
+        if let Some(outcome) = self.recovery.poll() {
+            match outcome {
+                crate::recovery::Outcome::Loaded(drafts, warnings) => {
+                    let count = drafts.len();
+                    for mut recovered in drafts {
+                        recovered.document.readonly = self.readonly;
+                        let name = recovered
+                            .source
+                            .as_ref()
+                            .and_then(|p| p.file_name())
+                            .map(|p| p.to_string_lossy().into_owned())
+                            .unwrap_or_else(|| "Untitled".into());
+                        let mut tab = Tab::new(recovered.document);
+                        tab.title_override =
+                            Some(format!("{} · {name}", self.config.language.tr("Recovered")));
+                        self.tabs.push(tab);
+                        self.active = self.tabs.len() - 1;
+                    }
+                    if count > 0 {
+                        self.message = self
+                            .config
+                            .language
+                            .tr("Recovered drafts opened; use Save As to keep them")
+                            .into_owned();
+                    }
+                    if !warnings.is_empty() {
+                        self.message = format!(
+                            "{}: {}",
+                            self.config.language.tr("Recovery warning"),
+                            warnings.join("; ")
+                        );
+                    }
+                }
+                crate::recovery::Outcome::Error(error) => {
+                    self.message =
+                        format!("{}: {error}", self.config.language.tr("Recovery warning"));
+                }
+                crate::recovery::Outcome::Saved => {}
+            }
+            self.redraw = true;
+        }
+        self.recovery.checkpoint(&self.tabs);
     }
 
     fn finish_job(&mut self, completed: Completed) {
@@ -523,7 +616,11 @@ impl App {
                             .iter_mut()
                             .find(|t| t.review_source.is_none() && t.document.id == id)
                         {
+                            let recovered = tab.document.recovery_source.is_some();
                             tab.document.accept_saved_snapshot(&document);
+                            if recovered {
+                                tab.title_override = None;
+                            }
                         }
                         self.message = completed.warning.unwrap_or_else(|| "Saved".into());
                     }
@@ -533,7 +630,13 @@ impl App {
                             .iter_mut()
                             .find(|t| t.review_source.is_none() && t.document.id == id)
                         {
-                            tab.document = document;
+                            if document.revision() == tab.document.revision() {
+                                let selection = document.selection();
+                                let _ = tab.document.select(selection.anchor, selection.head);
+                            } else {
+                                let revision = tab.document.revision();
+                                let _ = tab.document.accept_prepared(&document, revision);
+                            }
                         }
                         self.message = completed.warning.unwrap_or_else(|| "Saved".into());
                     }

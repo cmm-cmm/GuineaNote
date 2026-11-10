@@ -6,6 +6,78 @@ fn call(service: &mut Service, value: serde_json::Value) -> Response {
     service.handle(Request::new(operation), Arc::new(AtomicBool::new(false)))
 }
 #[test]
+fn recovered_tabs_keep_secret_and_workspace_policy_even_without_a_save_path() {
+    use guinea_core::Document;
+    use guinea_service::live::{Live, TabInfo, UiCall, UiCommand, UiReply};
+    use std::sync::mpsc;
+    let dir = tempfile::tempdir().unwrap();
+    let outside = tempfile::tempdir().unwrap();
+    for (origin, secrets, allowed) in [
+        (dir.path().join(".env"), false, false),
+        (dir.path().join(".env"), true, true),
+        (dir.path().join("public.txt"), false, true),
+        (outside.path().join("public.txt"), true, false),
+    ] {
+        let policy = Policy::new(dir.path(), false, secrets).unwrap();
+        let origin = if allowed || origin.parent() == Some(dir.path()) {
+            policy.root.join(origin.file_name().unwrap())
+        } else {
+            origin
+        };
+        let (tx, rx) = mpsc::sync_channel::<UiCall>(8);
+        let editor = std::thread::spawn(move || {
+            for call in rx {
+                let reply = match call.command {
+                    UiCommand::Acquire { .. } => {
+                        let mut draft = Document::from_text("TOKEN=private");
+                        draft.recovery_source = Some(origin.clone());
+                        UiReply::Document(Box::new(draft))
+                    }
+                    UiCommand::ListTabs => UiReply::Tabs(vec![TabInfo {
+                        tab: "test:t1".into(),
+                        document: "test:d1".into(),
+                        title: "Recovered".into(),
+                        path: None,
+                        recovery_source: Some(origin.to_string_lossy().into_owned()),
+                        revision: 1,
+                        dirty: true,
+                        readonly: false,
+                        review: false,
+                        ai: false,
+                        active: true,
+                    }]),
+                    UiCommand::Release { .. } => continue,
+                    _ => panic!("unexpected UI command"),
+                };
+                let _ = call.reply.send(Ok(reply));
+            }
+        });
+        let mut service = Service::new(
+            policy,
+            Some(Live {
+                session: "test".into(),
+                tx,
+                wake: None,
+            }),
+        );
+        let tabs = call(&mut service, json!({"op":"list_tabs"}))
+            .result()
+            .unwrap();
+        assert_eq!(tabs["total"], usize::from(allowed));
+        let result = call(
+            &mut service,
+            json!({"op":"read_document", "document":"test:d1"}),
+        );
+        if allowed {
+            assert_eq!(result.result().unwrap()["text"], "TOKEN=private");
+        } else {
+            assert_eq!(result.error.unwrap().code, "OUT_OF_SCOPE");
+        }
+        drop(service);
+        editor.join().unwrap();
+    }
+}
+#[test]
 fn paginated_unicode_read_search_analysis_and_conflicts() {
     let dir = tempfile::tempdir().unwrap();
     let text = "e\u{301} 👩‍💻\r\n# Việt\r\nfind find";

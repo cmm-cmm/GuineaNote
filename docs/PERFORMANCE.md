@@ -1,5 +1,49 @@
 # Performance measurements
 
+## Risk mitigation, 2026-11-10
+
+Final Windows x64/MSVC release, sequential probes after builds. Corpus <=10 MiB.
+
+| Workload | Samples | Max UI ms |
+| --- | ---: | ---: |
+| General editor/review/dialog/tree | 196 | 36.155 |
+| Tabs/overflow manager | 26 | 44.172 |
+| Dialog/mouse | 15 | 33.523 |
+| Find/replace feedback | 13 | 70.618 |
+| Human UI during MCP analysis | 28 | 14.348 |
+| Navigation with trace / without trace | 52 / 52 | 22.873 / 18.905 |
+| After 2401 history transactions | 5 | 12.242 |
+
+387/387 latest responses are <100 ms. Mixed-corpus nearest-rank p95/p99 are
+31.525/34.637 ms, descriptive only. Twenty-four fresh navigation sessions include
+a second long Unicode line after editing its short predecessor. Traced runs
+record zero dropped samples. ConPTY transport and pyte screen parsing are
+included; physical paint is not. The historical 916.326 ms cold End remains
+unexplained; new passing samples do not remove that failure.
+
+[Raw reports, platform and binary hash](diagnostics/risk-after/validation.json).
+[Risk analysis and limits](RISK_MITIGATION.md). An initial ~500 ms exit failure
+is retained: tracing found unanswered ConPTY cursor-status requests in the PTY
+emulator. Answering pyte write_process_input fixed this separate protocol issue;
+raw-mode restore changed from ~512 ms to 0.159 ms in the diagnostic run. This is
+not evidence of the cause of the old cold End outlier.
+
+History stress observed 53219328-byte RSS peak over 41 samples (observer requested
+5 ms intervals), not an allocator bound. Bulk 2400-key completion was 524.933 ms,
+reported as throughput. The following five individual feedback samples passed.
+Small-buffer idle: 2.005 s, 0 CPU seconds and 0 output bytes; RSS 7524352 bytes.
+
+Background completion remains separate. In this run 10 MiB replace-all completed
+in 193.014 ms and MCP analysis in 1418.957 ms. The existing 21-sample core/I/O
+microbenchmark records 10 MiB warm open p50/p95 107.817/126.219 ms, safe save
+100.931/137.572 ms, random edit+Undo 0.012/0.018 ms and absent search
+15.575/18.331 ms. See [CSV](diagnostics/risk-after/editor-benchmark.csv).
+Opening here excludes TUI prewarm, startup, cold disk and physical paint.
+No Rust-versus-TypeScript speed factor is inferred.
+
+Earlier sections below are retained historical checkpoints.
+
+
 ## Dialog, mouse and find/replace, 2026-11-09
 
 Native Windows 11/MSVC release; sequential probes after builds completed.

@@ -15,6 +15,37 @@ pub(crate) fn safe(text: &str) -> String {
         .collect()
 }
 
+/// Lex from a known line origin, then clip spans to the visible scalar range.
+/// Unknown context beyond the budget renders plain text rather than false colors.
+pub(crate) fn source_highlights(
+    document: &guinea_core::Document,
+    line: usize,
+    window: &guinea_core::LineWindow,
+    language: guinea_syntax::Language,
+) -> Option<guinea_syntax::Highlights> {
+    use guinea_core::TextBuffer;
+    use guinea_syntax::SyntaxProvider;
+    let origin = document.buffer().line_to_char(line).ok()?;
+    let offset = window.char_start.checked_sub(origin)?;
+    let visible = window.text.chars().count();
+    if offset.saturating_add(visible) > 16_384 {
+        return None;
+    }
+    let prefix = document
+        .buffer()
+        .slice(origin..window.char_start + visible)
+        .ok()?;
+    let mut highlights =
+        guinea_syntax::BasicSyntax.highlight_line(language, &prefix, document.revision());
+    highlights.spans.retain_mut(|span| {
+        let start = span.chars.start.max(offset);
+        let end = span.chars.end.min(offset + visible);
+        span.chars = start.saturating_sub(offset)..end.saturating_sub(offset);
+        start < end
+    });
+    Some(highlights)
+}
+
 // Lex only the prefix needed for this viewport. Starting at byte zero keeps
 // the line-local string/comment context correct while avoiding hidden suffixes.
 #[cfg(test)]
@@ -137,11 +168,54 @@ pub(crate) fn styled_line(
 
 pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
     crate::workspace_render::draw(frame, app);
+    if app.config.no_color {
+        for cell in &mut frame.buffer_mut().content {
+            cell.set_fg(ratatui::style::Color::Reset)
+                .set_bg(ratatui::style::Color::Reset);
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn clipped_syntax_uses_real_string_context_and_falls_back_when_unknown() {
+        let document = guinea_core::Document::from_text("let value = \"true + 42\";");
+        let window = document.line_window(0, 13, 8, 4).unwrap();
+        let result =
+            source_highlights(&document, 0, &window, guinea_syntax::Language::Rust).unwrap();
+        assert!(!result.spans.is_empty());
+        assert!(result.spans.iter().all(|s| s.kind == TokenKind::String));
+        let document = guinea_core::Document::from_text(&format!("{}true", " ".repeat(17000)));
+        let window = document.line_window(0, 17000, 4, 4).unwrap();
+        assert!(source_highlights(&document, 0, &window, guinea_syntax::Language::Rust).is_none());
+    }
+
+    #[test]
+    fn monochrome_resets_colors_in_source_and_dialog_cells() {
+        let mut app = App::new(
+            vec![],
+            false,
+            Config {
+                no_color: true,
+                ..Config::default()
+            },
+        );
+        app.tabs[0].document.insert("let value = 42;").unwrap();
+        let mut terminal = Terminal::new(TestBackend::new(100, 28)).unwrap();
+        for settings in [false, true] {
+            if settings {
+                app.command("settings");
+            }
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            for cell in terminal.backend().buffer().content() {
+                assert_eq!(cell.fg, ratatui::style::Color::Reset);
+                assert_eq!(cell.bg, ratatui::style::Color::Reset);
+            }
+        }
+    }
+
     fn mouse_event(
         kind: crossterm::event::MouseEventKind,
         x: u16,

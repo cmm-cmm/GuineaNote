@@ -1,0 +1,8 @@
+D:\Project\GuineaNote\target\previews\confirmation-en-redesign.png
+D:\Project\GuineaNote\target\previews\input-dialog-redesign.png
+D:\Project\GuineaNote\target\previews\confirmation-vi-redesign.png
+{
+  "sample_count": 15,
+  "max_ms": 33.523,
+  "failures": []
+}

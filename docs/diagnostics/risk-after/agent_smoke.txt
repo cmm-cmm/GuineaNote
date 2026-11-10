@@ -1,0 +1,6 @@
+{
+  "cli_json_unicode_scope": "PASS",
+  "mcp_2025_11_25": "PASS",
+  "mcp_2026_07_28": "PASS",
+  "tools_resources_schema_eof": "PASS"
+}

@@ -1,0 +1,22 @@
+D:\Project\GuineaNote\target\previews\find-replace-en.png
+D:\Project\GuineaNote\target\previews\find-replace-vi.png
+{
+  "max_input_bytes": 10485760,
+  "sample_count": 13,
+  "max_ms": 70.618,
+  "background_completion": [
+    {
+      "operation": "10MiB search complete",
+      "ms": 151.486
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 110.67
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 193.014
+    }
+  ],
+  "failures": []
+}

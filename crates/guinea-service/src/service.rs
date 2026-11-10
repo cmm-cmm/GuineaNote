@@ -133,7 +133,7 @@ impl Service {
         match (document, path) {
             (Some(document), None) => {
                 let (snapshot, lease) = self.live()?.acquire(document, action)?;
-                if let Some(path) = &snapshot.path {
+                for path in snapshot.path.iter().chain(snapshot.recovery_source.iter()) {
                     self.policy.relative(path)?;
                 }
                 if snapshot.buffer().len_bytes() as u64 > MAX_FILE {
@@ -161,8 +161,9 @@ impl Service {
                 .into_iter()
                 .filter(|t| {
                     t.path
-                        .as_ref()
-                        .is_none_or(|p| self.policy.relative(std::path::Path::new(p)).is_ok())
+                        .iter()
+                        .chain(t.recovery_source.iter())
+                        .all(|p| self.policy.relative(std::path::Path::new(p)).is_ok())
                 })
                 .collect()),
             _ => Err(Error::new("INTERNAL", "Unexpected tab reply")),
@@ -350,7 +351,12 @@ impl Service {
                 let hash = check_hash(&snapshot, expected_hash.as_deref())?;
                 let mut result = analysis::analyze(
                     &snapshot.text(),
-                    guinea_syntax::Language::detect(snapshot.path.as_deref()),
+                    guinea_syntax::Language::detect(
+                        snapshot
+                            .path
+                            .as_deref()
+                            .or(snapshot.recovery_source.as_deref()),
+                    ),
                     offset,
                     limit,
                 )?;

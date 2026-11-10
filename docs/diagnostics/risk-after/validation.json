@@ -1,0 +1,123 @@
+{
+  "date": "2026-11-10",
+  "baseline_commit": "3186ddf49e181d14f465f29af1e8a6e7e4392383",
+  "state": "dev implementation checkpoint; revision is the enclosing Git commit",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "rust_tests": {
+    "guinea_core": 26,
+    "guinea_io": 22,
+    "guinea_service_unit": 3,
+    "guinea_service_contract": 6,
+    "guinea_syntax": 5,
+    "guinea_tui": 60,
+    "cli": 4,
+    "file_workflow": 1,
+    "total": 127
+  },
+  "checks": {
+    "fmt": "PASS",
+    "strict_clippy_windows_x64": "PASS",
+    "strict_cross_clippy_linux_x64": "PASS (compile only)",
+    "strict_cross_clippy_macos_arm64": "PASS (compile only)",
+    "workspace_tests": "PASS native Windows",
+    "debug_release_workspace_builds": "PASS",
+    "cargo_deny": "PASS advisories/bans/licenses/sources; unchanged duplicate warnings",
+    "editor_microbenchmark": "PASS: 21 samples per size/operation; repeated safe saves at 1 KiB/1 MiB/10 MiB"
+  },
+  "latest_latency_runs": [
+    {
+      "file": "responsiveness.json",
+      "samples": 196,
+      "p95_ms": 32.745,
+      "p99_ms": 34.637,
+      "max_ms": 36.155,
+      "failures": 0
+    },
+    {
+      "file": "tab-responsiveness.json",
+      "samples": 26,
+      "p95_ms": 27.027,
+      "p99_ms": 44.172,
+      "max_ms": 44.172,
+      "failures": 0
+    },
+    {
+      "file": "dialog-mouse-responsiveness.json",
+      "samples": 15,
+      "p95_ms": 33.523,
+      "p99_ms": 33.523,
+      "max_ms": 33.523,
+      "failures": 0
+    },
+    {
+      "file": "search-responsiveness.json",
+      "samples": 13,
+      "p95_ms": 70.618,
+      "p99_ms": 70.618,
+      "max_ms": 70.618,
+      "failures": 0
+    },
+    {
+      "file": "responsiveness-agent.json",
+      "samples": 28,
+      "p95_ms": 12.487,
+      "p99_ms": 14.348,
+      "max_ms": 14.348,
+      "failures": 0
+    },
+    {
+      "file": "navigation-traced.json",
+      "samples": 52,
+      "p95_ms": 17.863,
+      "p99_ms": 22.873,
+      "max_ms": 22.873,
+      "failures": 0
+    },
+    {
+      "file": "navigation-untraced.json",
+      "samples": 52,
+      "p95_ms": 17.491,
+      "p99_ms": 18.905,
+      "max_ms": 18.905,
+      "failures": 0
+    },
+    {
+      "file": "risk-history-stress.json",
+      "samples": 5,
+      "p95_ms": 12.242,
+      "p99_ms": 12.242,
+      "max_ms": 12.242,
+      "failures": 0
+    }
+  ],
+  "latest_samples": 387,
+  "latest_max_ms": 70.618,
+  "latest_p95_ms": 31.525,
+  "latest_p99_ms": 34.637,
+  "latest_failures": 0,
+  "limits": [
+    "Mixed workload percentiles are descriptive only; not population-tail estimates",
+    "ConPTY transport and screen parse included; physical paint not measured",
+    "Background I/O, parsing, startup and bulk-key throughput are separate",
+    "Historical cold End 916.326 ms remains unexplained",
+    "Initial ~500 ms quit failures retained; traced to unanswered terminal CPR in emulator, corrected protocol",
+    "One recovery harness run sent Quit before asynchronous save receipt; test now waits for receipt; exact disk bytes had committed",
+    "Native Unix/ARM, power loss, true disk-full, filesystem CAS not certified"
+  ],
+  "binary_sha256": "9f21cfe2745e5396a6005cfb97ec754c1c72bb26e244298340db665b9f4b658d",
+  "functional_probes": {
+    "pty_smoke": "PASS",
+    "pty_workspace": "PASS",
+    "pty_tabs": "PASS",
+    "pty_dialog_mouse": "PASS",
+    "pty_search": "PASS",
+    "pty_responsiveness": "PASS",
+    "agent_smoke": "PASS",
+    "pty_agent_sessions": "PASS",
+    "pty_agent": "PASS",
+    "pty_agent_latency": "PASS",
+    "pty_recovery": "PASS",
+    "pty_risk_stress": "PASS"
+  },
+  "measurement_state": "Measured before commit; source and recorded results retained in the checkpoint"
+}

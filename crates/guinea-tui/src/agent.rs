@@ -143,6 +143,11 @@ impl App {
                                 .map(|p| p.to_string_lossy().into_owned()),
                             revision: t.document.revision(),
                             dirty: t.document.is_dirty(),
+                            recovery_source: t
+                                .document
+                                .recovery_source
+                                .as_ref()
+                                .map(|p| p.to_string_lossy().into_owned()),
                             readonly: t.document.readonly,
                             review: t.review_source.is_some(),
                             ai: t.ai_action.is_some(),
@@ -161,7 +166,7 @@ impl App {
                     return Err(Error::new("BUSY", "Document is already leased by AI"));
                 }
                 let readonly = self.tabs[index].document.readonly;
-                let mut snapshot = self.tabs[index].document.review_snapshot();
+                let mut snapshot = self.tabs[index].document.worker_snapshot();
                 snapshot.readonly = readonly;
                 self.agent_leases.insert(
                     document,
@@ -177,7 +182,7 @@ impl App {
                     }
                 }
                 self.redraw = true;
-                Ok(UiReply::Document(snapshot))
+                Ok(UiReply::Document(Box::new(snapshot)))
             }
             UiCommand::Release { lease } => {
                 if let Some(document) = self
@@ -386,7 +391,7 @@ mod tests {
             document: source,
             lease: "lease".into(),
             expected_revision: 1,
-            prepared,
+            prepared: *prepared,
         })
         .unwrap();
         assert_eq!(a.document().id, other);

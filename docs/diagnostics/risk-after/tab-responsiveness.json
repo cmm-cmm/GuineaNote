@@ -1,0 +1,111 @@
+{
+  "sample_count": 26,
+  "max_ms": 44.172,
+  "samples": [
+    {
+      "action": "tabs:mouse-new",
+      "ms": 7.011
+    },
+    {
+      "action": "tabs:mouse-save-prompt",
+      "ms": 6.908
+    },
+    {
+      "action": "tabs:save-feedback",
+      "ms": 44.172
+    },
+    {
+      "action": "tabs:mouse-previous",
+      "ms": 8.128
+    },
+    {
+      "action": "tabs:mouse-next",
+      "ms": 12.435
+    },
+    {
+      "action": "tabs:individual-close",
+      "ms": 8.664
+    },
+    {
+      "action": "tabs:mouse-all",
+      "ms": 7.761
+    },
+    {
+      "action": "tabs:filter-alpha",
+      "ms": 10.179
+    },
+    {
+      "action": "tabs:activate-alpha",
+      "ms": 9.419
+    },
+    {
+      "action": "tabs:inactive-dirty-close",
+      "ms": 27.027
+    },
+    {
+      "action": "tabs:cancel-dirty-close",
+      "ms": 12.683
+    },
+    {
+      "action": "tabs:confirm-inactive-close",
+      "ms": 16.674
+    },
+    {
+      "action": "tabs:manager-open",
+      "ms": 17.628
+    },
+    {
+      "action": "tabs:filter-hidden-tab",
+      "ms": 23.209
+    },
+    {
+      "action": "tabs:mouse-switch-hidden",
+      "ms": 8.23
+    },
+    {
+      "action": "tabs:close-review-from-list",
+      "ms": 15.075
+    },
+    {
+      "action": "tabs:close-clean-11",
+      "ms": 20.233
+    },
+    {
+      "action": "tabs:close-clean-10",
+      "ms": 21.199
+    },
+    {
+      "action": "tabs:close-clean-9",
+      "ms": 17.133
+    },
+    {
+      "action": "tabs:close-clean-8",
+      "ms": 15.541
+    },
+    {
+      "action": "tabs:close-clean-7",
+      "ms": 15.658
+    },
+    {
+      "action": "tabs:close-clean-6",
+      "ms": 16.152
+    },
+    {
+      "action": "tabs:close-clean-5",
+      "ms": 26.791
+    },
+    {
+      "action": "tabs:close-clean-4",
+      "ms": 17.01
+    },
+    {
+      "action": "tabs:close-clean-3",
+      "ms": 14.067
+    },
+    {
+      "action": "tabs:close-clean-2",
+      "ms": 14.944
+    }
+  ],
+  "failures": []
+}

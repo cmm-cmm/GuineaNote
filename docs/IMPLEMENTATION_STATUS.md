@@ -15,7 +15,31 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — dialogs, mouse and find/replace
+## Latest checkpoint — architectural risk mitigation, 2026-11-10
+
+Implemented history-free/opaque snapshots, streamed strict I/O, bounded history,
+view/cache/worker admission, file identity/hardlink/metadata controls, private
+versioned draft recovery, recovered-file Agent policy, correct syntax clipping
+and NO_COLOR. See [risk report](RISK_MITIGATION.md), [architecture](ARCHITECTURE.md)
+and [file safety](FILE_SAFETY.md) for exact scope and remaining limits.
+
+127 Rust tests, fmt, strict native/Linux/macOS cross-Clippy, debug/release workspace
+builds and the refreshed dependency audit pass. Native TUI/Agent/MCP probes pass;
+387 latest feedback samples reach <=10 MiB, max 70.618 ms. Cold End 916.326 ms
+from the historical checkpoint remains unexplained. A separate ~500 ms exit
+probe artifact was diagnosed with tracing as an unanswered terminal CPR and the
+harness now replies correctly; raw failures are retained. Native Unix/ARM,
+power-loss, real disk-full, filesystem CAS and a bounded-memory large-file
+backend remain unverified/unimplemented as described in the risk report.
+
+This development checkpoint is recorded on dev; its enclosing Git commit contains
+the implementation, eight research reports and validation evidence. The user
+authorized commit/push and synchronization of this status to Notion. No CI,
+package publication or main-branch change is introduced.
+Older sections are historical and their no-recovery/unbounded-history notes
+have been superseded by this checkpoint.
+
+## Previous checkpoint — dialogs, mouse and find/replace
 
 Implemented a shared dialog design, explicit default-cancel decisions, clickable
 close/submit controls, native mouse drag and wheel handling, file/tab double-click,

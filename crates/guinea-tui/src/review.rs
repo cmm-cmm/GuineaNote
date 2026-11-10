@@ -4,7 +4,7 @@ use crate::{
     render::{LinePaint, safe, styled_line},
     theme::Theme,
 };
-use guinea_core::{Document, TextBuffer};
+use guinea_core::Document;
 use guinea_syntax::{BasicSyntax, Language, SyntaxProvider};
 use ratatui::{
     style::{Modifier, Style},
@@ -22,6 +22,8 @@ mod markdown;
 mod value;
 
 const MAX_ROWS: usize = 100_000;
+const MAX_RENDER_BYTES: usize = 16 * 1024 * 1024;
+const MAX_PARSE_BYTES: usize = 16 * 1024 * 1024;
 
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub enum ViewMode {
@@ -63,6 +65,7 @@ struct Content {
     stats: Option<MarkdownStats>,
 }
 struct Rendered {
+    bytes: usize,
     key: Key,
     lines: Vec<Line<'static>>,
     error: bool,
@@ -88,12 +91,19 @@ fn json_lines(document: &Document) -> bool {
     document
         .path
         .as_ref()
+        .or(document.recovery_source.as_ref())
         .and_then(|p| p.extension())
         .and_then(|s| s.to_str())
         .is_some_and(|s| matches!(s.to_ascii_lowercase().as_str(), "jsonl" | "ndjson"))
 }
 
 impl Review {
+    pub fn suspend(&mut self) {
+        self.desired = None;
+        // A rendezvous channel has no queued payload to destroy on the UI.
+        // Disconnect lets a completed inactive worker discard its own output.
+        self.pending = None;
+    }
     pub fn needs_poll(&self, document: &Document, locale: Locale) -> bool {
         self.busy()
             || (self.mode != ViewMode::Source
@@ -132,6 +142,16 @@ impl Review {
         }
         self.outline_focus = false;
     }
+    pub fn cache_bytes(&self) -> usize {
+        self.cached.as_ref().map_or(0, |c| c.bytes)
+    }
+    pub fn release_cache(&mut self) {
+        if let Some(cache) = self.cached.take()
+            && let Err(cache) = crate::work::reclaim(cache)
+        {
+            self.cached = Some(cache);
+        }
+    }
     pub fn lines(&self) -> &[Line<'static>] {
         self.cached
             .as_ref()
@@ -166,6 +186,7 @@ impl Review {
                 Err(mpsc::TryRecvError::Disconnected) => {
                     self.pending = None;
                     self.cached = Some(Rendered {
+                        bytes: 256,
                         key,
                         lines: vec![Line::from("Review worker failed; source retained")],
                         error: true,
@@ -195,21 +216,33 @@ impl Review {
                     .desired
                     .is_some_and(|(_, since)| since.elapsed() >= Duration::from_millis(40)))
         {
+            let Some(permit) = crate::work::Permit::acquire() else {
+                return redraw;
+            };
             let buffer = document.snapshot_buffer();
-            let path = document.path.clone();
-            let (sender, receiver) = mpsc::channel();
+            let path = document.path.clone().or(document.recovery_source.clone());
+            let (sender, receiver) = mpsc::sync_channel(0);
             self.pending = Some(receiver);
             thread::spawn(move || {
-                let text = buffer.text();
-                let result = render_content(
-                    &text,
-                    key.language,
-                    path.as_deref(),
-                    key.width,
-                    Theme::new(basic),
-                    locale,
-                    key.column,
-                );
+                let _permit = permit;
+                let text = if buffer.len_bytes() <= MAX_PARSE_BYTES {
+                    buffer.text()
+                } else {
+                    String::new()
+                };
+                let result = if buffer.len_bytes() > MAX_PARSE_BYTES {
+                    Err("Review input exceeds 16 MiB; source remains complete".into())
+                } else {
+                    render_content(
+                        &text,
+                        key.language,
+                        path.as_deref(),
+                        key.width,
+                        Theme::new(basic),
+                        locale,
+                        key.column,
+                    )
+                };
                 let (content, error) = match result {
                     Ok(content) => (content, false),
                     Err(error) => (
@@ -224,7 +257,20 @@ impl Review {
                         true,
                     ),
                 };
+                let bytes = content
+                    .lines
+                    .iter()
+                    .map(|line| {
+                        std::mem::size_of_val(line)
+                            + line
+                                .spans
+                                .iter()
+                                .map(|s| std::mem::size_of_val(s) + s.content.len())
+                                .sum::<usize>()
+                    })
+                    .sum();
                 let _ = sender.send(Rendered {
+                    bytes,
                     key,
                     lines: content.lines,
                     error,
@@ -240,6 +286,7 @@ impl Review {
 /// Coalesces spans and bounds output; long paragraphs cannot allocate one span
 /// per character. Terminal cells, rather than bytes, determine wrapping.
 struct Writer {
+    allocated: usize,
     lines: Vec<Line<'static>>,
     spans: Vec<Span<'static>>,
     cell: usize,
@@ -252,6 +299,7 @@ impl Writer {
     fn new(width: usize, locale: Locale) -> Self {
         Self {
             locale,
+            allocated: 0,
             outline: vec![],
             stats: None,
             lines: vec![],
@@ -261,12 +309,13 @@ impl Writer {
         }
     }
     fn full(&self) -> bool {
-        self.lines.len() >= MAX_ROWS
+        self.lines.len() >= MAX_ROWS || self.allocated >= MAX_RENDER_BYTES
     }
     fn newline(&mut self) {
         if self.full() {
             return;
         }
+        self.allocated += std::mem::size_of::<Line>();
         self.lines.push(Line::from(std::mem::take(&mut self.spans)));
         self.cell = 0;
     }
@@ -280,6 +329,12 @@ impl Writer {
     }
     fn push(&mut self, text: &str, style: Style) {
         for g in text.graphemes(true) {
+            if self.full() {
+                return;
+            }
+            self.allocated = self
+                .allocated
+                .saturating_add(g.len() + std::mem::size_of::<Span>());
             if self.full() {
                 return;
             }
@@ -306,6 +361,14 @@ impl Writer {
         if !self.spans.is_empty() {
             self.newline();
         }
+        self.allocated = self.allocated.saturating_add(
+            std::mem::size_of::<Line>()
+                + line
+                    .spans
+                    .iter()
+                    .map(|s| s.content.len() + std::mem::size_of::<Span>())
+                    .sum::<usize>(),
+        );
         if !self.full() {
             self.lines.push(line);
         }
@@ -317,7 +380,7 @@ impl Writer {
         if self.full() {
             self.lines.push(Line::from(
                 self.locale
-                    .tr("… Review limited to 100,000 display rows; source is complete.")
+                    .tr("… Review limited to 100,000 rows or 16 MiB of display budget; source is complete.")
                     .into_owned(),
             ));
         }
@@ -709,6 +772,7 @@ fn table(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use guinea_core::TextBuffer;
     #[test]
     fn rich_markdown_has_navigable_outline_cards_stats_and_bounded_unicode_tables() {
         let text = "# Title\n\n## Details\n\n- [x] done\n- [ ] todo\n\n> [!NOTE]\n> A useful note.\n\n```rust\nfn main() { let tên = \"Việt\"; }\n```\n\n| Name | Value |\n|---|---|\n| 界 | **bold** |\n\n[Read](https://example.com)\n";
@@ -785,6 +849,38 @@ mod tests {
         assert!(!rendered.contains("old"));
         assert!(rendered.contains("bản xem"));
         assert_eq!(d.text(), "{\"latest\": 42}");
+    }
+    #[test]
+    fn switching_away_from_pending_reviews_does_not_strand_worker_permits() {
+        let d = Document::from_text("# Draft\n\nViệt e\u{301} 👩‍💻");
+        let mut reviews = Vec::new();
+        for _ in 0..20 {
+            let mut review = Review {
+                mode: ViewMode::Review,
+                width: 60,
+                ..Review::default()
+            };
+            review.poll(&d, false, Locale::En);
+            review.suspend();
+            assert!(!review.busy());
+            reviews.push(review);
+        }
+        let mut active = Review {
+            mode: ViewMode::Review,
+            width: 60,
+            ..Review::default()
+        };
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while !active.ready() {
+            active.poll(&d, false, Locale::En);
+            assert!(
+                Instant::now() < deadline,
+                "inactive results held all permits"
+            );
+            thread::sleep(Duration::from_millis(2));
+        }
+        assert!(!active.error());
+        assert_eq!(d.text(), "# Draft\n\nViệt e\u{301} 👩‍💻");
     }
     #[test]
     fn table_cells_remain_aligned_and_later_columns_are_reachable() {

@@ -16,6 +16,7 @@ pub struct TabInfo {
     pub document: String,
     pub title: String,
     pub path: Option<String>,
+    pub recovery_source: Option<String>,
     pub revision: u64,
     pub dirty: bool,
     pub readonly: bool,
@@ -65,7 +66,7 @@ pub enum UiCommand {
     },
 }
 pub enum UiReply {
-    Document(Document),
+    Document(Box<Document>),
     Tabs(Vec<TabInfo>),
     Value(Value),
 }
@@ -179,7 +180,7 @@ impl Live {
             id,
         };
         match reply {
-            UiReply::Document(snapshot) => Ok((snapshot, lease)),
+            UiReply::Document(snapshot) => Ok((*snapshot, lease)),
             _ => Err(Error::new("INTERNAL", "Unexpected snapshot reply")),
         }
     }

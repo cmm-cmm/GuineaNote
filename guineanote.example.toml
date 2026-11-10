@@ -8,3 +8,8 @@ sidebar_width = 30
 mouse = true
 # Use a 256-color theme for terminals without true color.
 basic_colors = false
+
+# Private periodic draft checkpoints; source files still save explicitly.
+recovery = true
+# NO_COLOR is honored by default. Set explicitly to override it.
+# no_color = true

@@ -46,12 +46,19 @@ pub fn bytes(size: usize) -> String {
         format!("{size} B")
     }
 }
-fn inspect(document: &Document, locale: Locale) -> Details {
+fn inspect(document: &Document, locale: Locale, history: guinea_core::HistoryStatus) -> Details {
     let yes = if locale == Locale::Vi { "Có" } else { "Yes" };
     let no = if locale == Locale::Vi { "Không" } else { "No" };
     let text = document.text();
     let mut fields = Vec::new();
     let mut add = |en, vi, value| fields.push(Field { en, vi, value });
+    if let Some(source) = &document.recovery_source {
+        add(
+            "Recovered from",
+            "Khôi phục từ",
+            source.to_string_lossy().into_owned(),
+        );
+    }
     add(
         "Full path",
         "Đường dẫn",
@@ -91,6 +98,21 @@ fn inspect(document: &Document, locale: Locale) -> Details {
         "Editor read-only",
         "Chỉ đọc trong editor",
         if document.readonly { yes } else { no }.into(),
+    );
+    add(
+        "Undo / Redo steps",
+        "Số bước Hoàn tác / Làm lại",
+        format!("{} / {}", history.undo, history.redo),
+    );
+    add(
+        "History charged bytes",
+        "Byte tính cho lịch sử",
+        history.charged_bytes.to_string(),
+    );
+    add(
+        "Trimmed Undo steps",
+        "Bước Hoàn tác cũ đã bỏ",
+        history.trimmed.to_string(),
     );
     if let Some(path) = &document.path {
         add(
@@ -170,11 +192,12 @@ fn inspect(document: &Document, locale: Locale) -> Details {
 }
 impl FileInfo {
     pub fn new(document: &Document, locale: Locale) -> Self {
-        let mut snapshot = document.review_snapshot();
+        let history = document.history_status();
+        let mut snapshot = document.worker_snapshot();
         snapshot.readonly = document.readonly;
         let (tx, rx) = mpsc::channel();
         thread::spawn(move || {
-            let _ = tx.send(inspect(&snapshot, locale));
+            let _ = tx.send(inspect(&snapshot, locale, history));
         });
         Self {
             details: None,
@@ -225,7 +248,7 @@ mod tests {
         let mut doc = Document::from_text("e\u{301} 👩‍💻\r\n");
         doc.path = Some(path.clone());
         doc.insert("x").unwrap();
-        let details = inspect(&doc, Locale::En);
+        let details = inspect(&doc, Locale::En, doc.history_status());
         assert!(details.dirty);
         assert_eq!(details.lines, 2);
         assert!(

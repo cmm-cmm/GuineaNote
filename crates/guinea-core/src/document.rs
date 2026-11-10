@@ -1,11 +1,12 @@
 use std::{
+    collections::VecDeque,
     ops::Range,
     path::PathBuf,
     sync::atomic::{AtomicU64, Ordering},
     time::SystemTime,
 };
 
-use crate::{EditError, RopeyBuffer, TextBuffer, coordinates::CharIndex};
+use crate::{EditError, RopeyBuffer, TextBuffer, ViewState, coordinates::CharIndex};
 use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
@@ -55,6 +56,8 @@ pub struct Fingerprint {
     pub size: u64,
     pub modified: Option<SystemTime>,
     pub sha256: [u8; 32],
+    /// Stable filesystem object identity when supplied by the I/O adapter.
+    pub identity: Option<[u64; 2]>,
 }
 
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
@@ -98,12 +101,37 @@ struct Transaction {
     start: usize,
     removed: usize,
     inserted: usize,
+    charge: usize,
+}
+
+/// Bounds retained edit payload accounting and transaction count, not OS RSS.
+#[derive(Debug, Clone, Copy)]
+pub struct HistoryLimits {
+    pub max_transactions: usize,
+    pub max_edit_bytes: usize,
+}
+impl Default for HistoryLimits {
+    fn default() -> Self {
+        Self {
+            max_transactions: 2048,
+            max_edit_bytes: 64 * 1024 * 1024,
+        }
+    }
+}
+#[derive(Debug, Clone, Copy)]
+pub struct HistoryStatus {
+    pub undo: usize,
+    pub redo: usize,
+    pub charged_bytes: usize,
+    pub trimmed: u64,
 }
 
 #[derive(Debug, Clone)]
 pub struct Document {
     pub id: u64,
     pub path: Option<PathBuf>,
+    /// Recovery provenance only; never used as a save destination.
+    pub recovery_source: Option<PathBuf>,
     pub readonly: bool,
     pub bom: bool,
     pub fingerprint: Option<Fingerprint>,
@@ -112,14 +140,14 @@ pub struct Document {
     saved_state: u64,
     next_content_state: u64,
     saved_bom: bool,
-    selection: Selection,
-    undo: Vec<Transaction>,
+    pub(crate) view: ViewState,
+    undo: VecDeque<Transaction>,
+    history_bytes: usize,
+    history_trimmed: u64,
+    history_limits: HistoryLimits,
     redo: Vec<Transaction>,
     revision: u64,
-    preferred_column: Option<usize>,
     newline_policy: LineEnding,
-    pub(crate) layout_cache:
-        std::cell::RefCell<Option<std::sync::Arc<crate::view::LineLayout<'static>>>>,
 }
 
 impl Default for Document {
@@ -130,10 +158,38 @@ impl Default for Document {
 
 impl Document {
     pub fn from_text(text: &str) -> Self {
-        let buffer = RopeyBuffer::from(text);
+        Self::from_buffer(RopeyBuffer::from(text))
+    }
+    pub fn from_utf8_reader(reader: impl std::io::Read) -> std::io::Result<Self> {
+        RopeyBuffer::from_reader(reader).map(Self::from_buffer)
+    }
+    fn from_buffer(buffer: RopeyBuffer) -> Self {
+        let mut cr = 0usize;
+        let mut lf = 0usize;
+        let mut pairs = 0usize;
+        let mut previous = 0u8;
+        buffer
+            .visit_chunks(0..buffer.len_chars(), &mut |chunk| {
+                for byte in chunk.bytes() {
+                    cr += usize::from(byte == b'\r');
+                    lf += usize::from(byte == b'\n');
+                    pairs += usize::from(previous == b'\r' && byte == b'\n');
+                    previous = byte;
+                }
+                true
+            })
+            .expect("full range");
+        let newline_policy = if cr > pairs || (pairs > 0 && lf > pairs) {
+            LineEnding::Mixed
+        } else if pairs > 0 {
+            LineEnding::CrLf
+        } else {
+            LineEnding::Lf
+        };
         Self {
             id: NEXT_ID.fetch_add(1, Ordering::Relaxed),
             path: None,
+            recovery_source: None,
             readonly: false,
             bom: false,
             fingerprint: None,
@@ -142,13 +198,14 @@ impl Document {
             next_content_state: 1,
             saved_bom: false,
             buffer,
-            selection: Selection::default(),
-            undo: Vec::new(),
+            view: ViewState::default(),
+            undo: VecDeque::new(),
+            history_bytes: 0,
+            history_trimmed: 0,
+            history_limits: HistoryLimits::default(),
             redo: Vec::new(),
             revision: 0,
-            preferred_column: None,
-            newline_policy: LineEnding::detect(text),
-            layout_cache: std::cell::RefCell::new(None),
+            newline_policy,
         }
     }
 
@@ -159,16 +216,17 @@ impl Document {
         self.buffer.text()
     }
     /// Cheap immutable content snapshot for background rendering.
-    pub fn snapshot_buffer(&self) -> RopeyBuffer {
-        self.buffer.clone()
+    pub fn snapshot_buffer(&self) -> crate::ContentSnapshot {
+        self.buffer.content_snapshot()
     }
-    /// Read-only view of this document, sharing text/layout without copying or
-    /// retaining editable history. Its id links it back to the source tab.
-    pub fn review_snapshot(&self) -> Self {
+    /// History-free editable/access-preserving copy for background preparation.
+    /// Does not share display caches with an I/O worker.
+    pub fn worker_snapshot(&self) -> Self {
         Self {
             id: self.id,
             path: self.path.clone(),
-            readonly: true,
+            recovery_source: self.recovery_source.clone(),
+            readonly: self.readonly,
             bom: self.bom,
             fingerprint: self.fingerprint.clone(),
             buffer: self.buffer.clone(),
@@ -176,13 +234,69 @@ impl Document {
             saved_state: self.saved_state,
             next_content_state: self.next_content_state,
             saved_bom: self.saved_bom,
-            selection: Selection::default(),
-            undo: Vec::new(),
+            view: ViewState {
+                selection: self.view.selection,
+                ..ViewState::default()
+            },
+            undo: VecDeque::new(),
+            history_bytes: 0,
+            history_trimmed: 0,
+            history_limits: HistoryLimits::default(),
             redo: Vec::new(),
             revision: self.revision,
-            preferred_column: None,
             newline_policy: self.newline_policy,
-            layout_cache: self.layout_cache.clone(),
+        }
+    }
+    /// Read-only linked view; never retains editable history or copies text.
+    pub fn review_snapshot(&self) -> Self {
+        let mut snapshot = self.worker_snapshot();
+        snapshot.readonly = true;
+        snapshot.view.selection = Selection::default();
+        snapshot.view.layout_cache = self.view.layout_cache.clone();
+        snapshot
+    }
+    pub fn history_status(&self) -> HistoryStatus {
+        HistoryStatus {
+            undo: self.undo.len(),
+            redo: self.redo.len(),
+            charged_bytes: self.history_bytes,
+            trimmed: self.history_trimmed,
+        }
+    }
+    pub fn set_history_limits(&mut self, limits: HistoryLimits) {
+        self.history_limits = limits;
+        self.trim_history();
+    }
+    fn clear_redo(&mut self) {
+        self.history_bytes = self
+            .history_bytes
+            .saturating_sub(self.redo.iter().map(|t| t.charge).sum::<usize>());
+        self.redo.clear();
+    }
+    fn push_history(&mut self, tx: Transaction) {
+        self.history_bytes = self.history_bytes.saturating_add(tx.charge);
+        self.undo.push_back(tx);
+        self.trim_history();
+    }
+    fn trim_history(&mut self) {
+        // Keep the nearest Undo, or the nearest Redo if there is no Undo.
+        while self.undo.len() + self.redo.len() > 1
+            && (self.undo.len() + self.redo.len() > self.history_limits.max_transactions.max(1)
+                || self.history_bytes > self.history_limits.max_edit_bytes)
+        {
+            let removed = if self.undo.len() > 1 || self.redo.is_empty() {
+                self.undo.pop_front()
+            } else if !self.redo.is_empty() {
+                Some(self.redo.remove(0))
+            } else {
+                None
+            };
+            if let Some(tx) = removed {
+                self.history_bytes = self.history_bytes.saturating_sub(tx.charge);
+                self.history_trimmed += 1;
+            } else {
+                break;
+            }
         }
     }
     /// Reopened content keeps the tab identity but advances its view revision,
@@ -190,13 +304,32 @@ impl Document {
     pub fn continue_identity(&mut self, previous: &Self) {
         self.id = previous.id;
         self.revision = previous.revision + 1;
-        *self.layout_cache.borrow_mut() = None;
+        self.clear_view_cache();
+    }
+    /// Swap an independent view without cloning document contents or history.
+    /// Stale detached views are rejected instead of guessing edit mappings.
+    pub fn swap_view(&mut self, view: &mut ViewState) -> Result<(), EditError> {
+        if view
+            .binding
+            .is_some_and(|binding| binding != (self.id, self.revision))
+        {
+            return Err(EditError::RevisionConflict);
+        }
+        if !self.is_grapheme_boundary(view.selection.anchor)
+            || !self.is_grapheme_boundary(view.selection.head)
+        {
+            return Err(EditError::GraphemeBoundary);
+        }
+        std::mem::swap(&mut self.view, view);
+        self.view.binding = Some((self.id, self.revision));
+        view.binding = Some((self.id, self.revision));
+        Ok(())
     }
     pub fn selection(&self) -> Selection {
-        self.selection
+        self.view.selection
     }
     pub fn cursor(&self) -> usize {
-        self.selection.head
+        self.view.selection.head
     }
     pub fn revision(&self) -> u64 {
         self.revision
@@ -213,11 +346,21 @@ impl Document {
         self.saved_bom = self.bom;
     }
 
+    /// Recovery always creates a new unsaved draft, never a writable disk path.
+    pub fn mark_recovered(&mut self) {
+        self.path = None;
+        self.fingerprint = None;
+        self.content_state = self.next_content_state;
+        self.next_content_state += 1;
+        self.revision += 1;
+    }
+
     /// Merge only metadata from the snapshot committed by a background save.
     /// Edits and selection made while I/O was running remain in this document.
     pub fn accept_saved_snapshot(&mut self, saved: &Self) {
         assert_eq!(self.id, saved.id);
         self.path = saved.path.clone();
+        self.recovery_source = saved.recovery_source.clone();
         self.fingerprint = saved.fingerprint.clone();
         self.saved_state = saved.saved_state;
         self.saved_bom = saved.saved_bom;
@@ -225,24 +368,24 @@ impl Document {
 
     pub fn selected_text(&self) -> String {
         self.buffer
-            .slice(self.selection.range())
+            .slice(self.view.selection.range())
             .expect("valid selection")
     }
 
     fn snapshot(&self) -> Snapshot {
         Snapshot {
             buffer: self.buffer.clone(),
-            selection: self.selection,
+            selection: self.view.selection,
             content_state: self.content_state,
         }
     }
 
     fn restore(&mut self, snapshot: &Snapshot) {
         self.buffer = snapshot.buffer.clone();
-        self.selection = snapshot.selection;
+        self.view.selection = snapshot.selection;
         self.content_state = snapshot.content_state;
         self.revision += 1;
-        self.preferred_column = None;
+        self.view.preferred_column = None;
     }
 
     pub fn is_grapheme_boundary(&self, idx: usize) -> bool {
@@ -261,17 +404,17 @@ impl Document {
         if !self.is_grapheme_boundary(anchor) || !self.is_grapheme_boundary(head) {
             return Err(EditError::GraphemeBoundary);
         }
-        self.selection = Selection { anchor, head };
-        self.preferred_column = None;
+        self.view.selection = Selection { anchor, head };
+        self.view.preferred_column = None;
         Ok(())
     }
 
     pub fn select_all(&mut self) {
-        self.selection = Selection {
+        self.view.selection = Selection {
             anchor: 0,
             head: self.buffer.len_chars(),
         };
-        self.preferred_column = None;
+        self.view.preferred_column = None;
     }
 
     pub fn replace_range(&mut self, range: Range<usize>, text: &str) -> Result<(), EditError> {
@@ -286,34 +429,39 @@ impl Document {
         }
         let before = self.snapshot();
         let layout_edit = self.prepare_layout_edit(&range, text);
-        let changed = self.buffer.slice(range.clone())? != text;
-        self.buffer.delete(range.clone())?;
+        let charge = self.buffer.char_to_byte(CharIndex(range.end))?.0
+            - self.buffer.char_to_byte(CharIndex(range.start))?.0
+            + text.len()
+            + 4096;
+        let changed = !self.buffer.range_equals(range.clone(), text)?;
+        self.buffer.remove(range.clone())?;
         self.buffer.insert(range.start, text)?;
         let cursor = self.snap_forward(range.start + text.chars().count());
-        self.selection = Selection {
+        self.view.selection = Selection {
             anchor: cursor,
             head: cursor,
         };
-        self.preferred_column = None;
+        self.view.preferred_column = None;
         if changed {
             self.content_state = self.next_content_state;
             self.next_content_state += 1;
             self.revision += 1;
             self.apply_layout_edit(layout_edit, text);
-            self.redo.clear();
-            self.undo.push(Transaction {
+            self.clear_redo();
+            self.push_history(Transaction {
                 before,
                 after: self.snapshot(),
                 start: range.start,
                 removed: range.len(),
                 inserted: text.chars().count(),
+                charge,
             });
         }
         Ok(())
     }
 
     pub fn insert(&mut self, text: &str) -> Result<(), EditError> {
-        self.replace_range(self.selection.range(), text)
+        self.replace_range(self.view.selection.range(), text)
     }
 
     /// Validate every scalar/grapheme range before changing anything. All edits
@@ -342,22 +490,23 @@ impl Document {
         }
         if edits.iter().all(|e| {
             self.buffer
-                .slice(e.start..e.end)
-                .is_ok_and(|text| text == e.text)
+                .range_equals(e.start..e.end, &e.text)
+                .unwrap_or(false)
         }) {
             return Ok(());
         }
         let mut prepared = self.review_snapshot();
         for edit in ordered.into_iter().rev() {
-            prepared.buffer.delete(edit.start..edit.end)?;
+            prepared.buffer.remove(edit.start..edit.end)?;
             prepared.buffer.insert(edit.start, &edit.text)?;
         }
-        prepared.selection = Selection::default();
+        prepared.view.selection = Selection::default();
         self.accept_prepared(&prepared, self.revision)
     }
 
-    /// Commit an off-thread prepared snapshot in O(1) shared-buffer work while
+    /// Commit an off-thread prepared snapshot by swapping shared buffer state,
     /// retaining this document's history, identity, path and save metadata.
+    /// History trimming/cache release also run here and have separate costs.
     pub fn accept_prepared(
         &mut self,
         prepared: &Self,
@@ -371,20 +520,26 @@ impl Document {
         }
         let before = self.snapshot();
         let removed = self.buffer.len_chars();
+        let charge = self
+            .buffer
+            .len_bytes()
+            .saturating_add(prepared.buffer.len_bytes())
+            .saturating_add(4096);
         self.buffer = prepared.buffer.clone();
-        self.selection = prepared.selection;
+        self.view.selection = prepared.view.selection;
         self.content_state = self.next_content_state;
         self.next_content_state += 1;
         self.revision += 1;
-        self.preferred_column = None;
-        *self.layout_cache.borrow_mut() = None;
-        self.redo.clear();
-        self.undo.push(Transaction {
+        self.view.preferred_column = None;
+        self.clear_view_cache();
+        self.clear_redo();
+        self.push_history(Transaction {
             before,
             after: self.snapshot(),
             start: 0,
             removed,
             inserted: self.buffer.len_chars(),
+            charge,
         });
         Ok(())
     }
@@ -402,19 +557,19 @@ impl Document {
     }
 
     pub fn backspace(&mut self) -> Result<(), EditError> {
-        let range = if self.selection.is_empty() {
+        let range = if self.view.selection.is_empty() {
             self.previous(self.cursor())..self.cursor()
         } else {
-            self.selection.range()
+            self.view.selection.range()
         };
         self.replace_range(range, "")
     }
 
     pub fn delete_forward(&mut self) -> Result<(), EditError> {
-        let range = if self.selection.is_empty() {
+        let range = if self.view.selection.is_empty() {
             self.cursor()..self.next(self.cursor())
         } else {
-            self.selection.range()
+            self.view.selection.range()
         };
         self.replace_range(range, "")
     }
@@ -427,6 +582,7 @@ impl Document {
             .expect("valid cursor");
         let start = self.buffer.line_to_char(line).expect("valid line");
         let tab_width = self
+            .view
             .layout_cache
             .borrow()
             .as_ref()
@@ -459,8 +615,12 @@ impl Document {
             .expect("valid cursor");
         let vertical = matches!(movement, Movement::Up | Movement::Down);
         let idx = match movement {
-            Movement::Left if !extend && !self.selection.is_empty() => self.selection.range().start,
-            Movement::Right if !extend && !self.selection.is_empty() => self.selection.range().end,
+            Movement::Left if !extend && !self.view.selection.is_empty() => {
+                self.view.selection.range().start
+            }
+            Movement::Right if !extend && !self.view.selection.is_empty() => {
+                self.view.selection.range().end
+            }
             Movement::Left => self.previous(self.cursor()),
             Movement::Right => self.next(self.cursor()),
             Movement::Start => 0,
@@ -468,8 +628,11 @@ impl Document {
             Movement::Home => self.buffer.line_to_char(line).expect("valid line"),
             Movement::End => self.line_end(line),
             Movement::Up | Movement::Down => {
-                let goal = self.preferred_column.unwrap_or_else(|| self.position().1);
-                self.preferred_column = Some(goal);
+                let goal = self
+                    .view
+                    .preferred_column
+                    .unwrap_or_else(|| self.position().1);
+                self.view.preferred_column = Some(goal);
                 let target = if matches!(movement, Movement::Up) {
                     line.saturating_sub(1)
                 } else {
@@ -494,12 +657,12 @@ impl Document {
                 }
             }
         };
-        self.selection.head = idx;
+        self.view.selection.head = idx;
         if !extend {
-            self.selection.anchor = idx;
+            self.view.selection.anchor = idx;
         }
         if !vertical {
-            self.preferred_column = None;
+            self.view.preferred_column = None;
         }
     }
 
@@ -511,8 +674,8 @@ impl Document {
         if self.readonly {
             return Err(EditError::ReadOnly);
         }
-        if let Some(tx) = self.undo.pop() {
-            let replacement = self.layout_cache.borrow().as_ref().map(|_| {
+        if let Some(tx) = self.undo.pop_back() {
+            let replacement = self.view.layout_cache.borrow().as_ref().map(|_| {
                 tx.before
                     .buffer
                     .slice(tx.start..tx.start + tx.removed)
@@ -535,7 +698,7 @@ impl Document {
             return Err(EditError::ReadOnly);
         }
         if let Some(tx) = self.redo.pop() {
-            let replacement = self.layout_cache.borrow().as_ref().map(|_| {
+            let replacement = self.view.layout_cache.borrow().as_ref().map(|_| {
                 tx.after
                     .buffer
                     .slice(tx.start..tx.start + tx.inserted)
@@ -546,7 +709,7 @@ impl Document {
             });
             self.restore(&tx.after);
             self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
-            self.undo.push(tx);
+            self.undo.push_back(tx);
             Ok(true)
         } else {
             Ok(false)
@@ -561,7 +724,7 @@ impl Document {
         let text = self.text();
         let cursor_byte = crate::coordinates::char_to_byte(
             &text,
-            crate::coordinates::CharIndex(self.selection.range().end),
+            crate::coordinates::CharIndex(self.view.selection.range().end),
         )
         .expect("valid selection")
         .0;
@@ -624,6 +787,74 @@ fn byte_is_grapheme_boundary(text: &str, byte: usize) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn worker_snapshot_is_history_free_and_preserves_original_access_and_selection() {
+        let mut d = Document::from_text("Việt 👩‍💻\r\n");
+        for _ in 0..40 {
+            d.insert("x").unwrap();
+        }
+        let mut worker = d.worker_snapshot();
+        let content = d.snapshot_buffer();
+        assert_eq!(worker.selection(), d.selection());
+        assert_eq!(worker.history_status().undo, 0);
+        assert_eq!(worker.history_status().redo, 0);
+        worker.insert("worker").unwrap();
+        assert_eq!(content.text(), d.text());
+        assert_ne!(worker.text(), d.text());
+        assert_eq!(d.history_status().undo, 40);
+        d.readonly = true;
+        assert!(d.worker_snapshot().insert("no").is_err());
+    }
+
+    #[test]
+    fn bounded_history_keeps_latest_undo_and_never_marks_trimmed_content_saved() {
+        let mut d = Document::default();
+        d.set_history_limits(HistoryLimits {
+            max_transactions: 3,
+            max_edit_bytes: 20_000,
+        });
+        for _ in 0..20 {
+            d.insert("界").unwrap();
+        }
+        assert_eq!(d.history_status().undo, 3);
+        assert_eq!(d.history_status().trimmed, 17);
+        for _ in 0..3 {
+            assert!(d.undo().unwrap());
+        }
+        assert!(!d.undo().unwrap());
+        assert_eq!(d.text(), "界".repeat(17));
+        assert!(d.is_dirty());
+        d.redo().unwrap();
+        d.mark_saved();
+        d.redo().unwrap();
+        assert!(d.is_dirty());
+        d.undo().unwrap();
+        assert!(!d.is_dirty());
+        d.insert("new branch").unwrap();
+        assert!(!d.redo().unwrap());
+        assert!(d.is_dirty());
+        assert!(d.history_status().charged_bytes <= 20_000);
+    }
+
+    #[test]
+    fn independent_view_states_do_not_fork_text_or_history_and_reject_stale_positions() {
+        let mut d = Document::from_text("e\u{301}界\nother");
+        d.select(2, 3).unwrap();
+        let mut second = ViewState::default();
+        d.swap_view(&mut second).unwrap();
+        assert_eq!(d.cursor(), 0);
+        assert_eq!(second.selection(), Selection { anchor: 2, head: 3 });
+        d.select(4, 4).unwrap();
+        d.swap_view(&mut second).unwrap();
+        assert_eq!(d.selection(), Selection { anchor: 2, head: 3 });
+        assert_eq!(second.selection().head, 4);
+        d.insert("X").unwrap();
+        assert_eq!(d.text(), "e\u{301}X\nother");
+        assert_eq!(d.swap_view(&mut second), Err(EditError::RevisionConflict));
+        d.undo().unwrap();
+        assert_eq!(d.text(), "e\u{301}界\nother");
+    }
     #[test]
     fn agent_edits_are_atomic_one_undo_and_revision_checked() {
         let original = "a\u{301}👩‍💻\r\nxyz";
@@ -855,8 +1086,8 @@ mod tests {
                     5 => d.move_cursor(Movement::Up, n % 2 == 0),
                     _ => d.move_cursor(Movement::Down, n % 2 == 0),
                 }
-                prop_assert!(d.is_grapheme_boundary(d.selection.anchor));
-                prop_assert!(d.is_grapheme_boundary(d.selection.head));
+                prop_assert!(d.is_grapheme_boundary(d.selection().anchor));
+                prop_assert!(d.is_grapheme_boundary(d.selection().head));
             }
             let final_text = d.text();
             while d.undo().unwrap() {}

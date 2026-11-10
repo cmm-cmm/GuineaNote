@@ -1,0 +1,9 @@
+{
+  "workspace_pty": "PASS",
+  "mouse_toolbar_click": "PASS",
+  "mouse_editor_caret": "PASS",
+  "directory_expand_collapse": "PASS",
+  "file_open_save": "PASS",
+  "dirty_tab_across_folder_change": "PASS",
+  "toggle_and_focus": "PASS"
+}

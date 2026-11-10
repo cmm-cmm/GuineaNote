@@ -1,0 +1,67 @@
+{
+  "sample_count": 15,
+  "max_ms": 33.523,
+  "samples": [
+    {
+      "action": "mouse:activate-alpha",
+      "ms": 13.19
+    },
+    {
+      "action": "mouse:drag-selection",
+      "ms": 21.681
+    },
+    {
+      "action": "dialog:close-prompt",
+      "ms": 16.185
+    },
+    {
+      "action": "dialog:keep-working",
+      "ms": 11.694
+    },
+    {
+      "action": "dialog:header-close",
+      "ms": 19.339
+    },
+    {
+      "action": "dialog:discard-close",
+      "ms": 7.425
+    },
+    {
+      "action": "mouse:return-alpha",
+      "ms": 21.821
+    },
+    {
+      "action": "mouse:wheel-editor",
+      "ms": 16.007
+    },
+    {
+      "action": "mouse:keyboard-resume",
+      "ms": 13.774
+    },
+    {
+      "action": "mouse:middle-close-inactive",
+      "ms": 10.989
+    },
+    {
+      "action": "dialog:discard-inactive",
+      "ms": 9.488
+    },
+    {
+      "action": "mouse:double-open-file",
+      "ms": 33.523
+    },
+    {
+      "action": "mouse:double-switch-tab",
+      "ms": 14.373
+    },
+    {
+      "action": "dialog:mouse-submit",
+      "ms": 22.493
+    },
+    {
+      "action": "dialog:quit-vietnamese",
+      "ms": 22.293
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,8 @@
+{
+  "pty": "PASS",
+  "panic": false,
+  "idle_wall_seconds": 2.005,
+  "idle_cpu_seconds": 0.0,
+  "idle_output_bytes": 0,
+  "rss_bytes": 7524352
+}
