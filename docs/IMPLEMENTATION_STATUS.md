@@ -15,7 +15,33 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Current checkpoint — official executable guinea, 2026-11-10
+## Current checkpoint — 50 ms investigations and menu/tab separation
+
+Every interactive response >50 ms now requires investigation. Local Windows/
+ConPTY is the current validation scope; Ubuntu/SSH is excluded by user request.
+Display-cache prefix reuse removes repeated long-suffix moves for eligible ASCII
+edits; explicit replacement results refresh without typing debounce. Main menu
+and tab-management controls have a dedicated separator and disjoint click regions.
+
+136 Rust tests, fmt, strict native Clippy and release build pass. The final
+paired trace-on/off corpus has 2050 internal samples (2016 warm/28 groups),
+all-phase max 10.558 ms, zero trace loss and no measured interaction >50 ms.
+Unicode 10 MiB delete/history p95 are 3.238/3.293 ms, versus 20.03/20.07 ms before.
+An intermediate cache-only binary also passed 9250 internal samples, 106 fresh
+navigation sessions and ten Agent-contention sessions (280 active samples).
+Binary-specific results remain separate in [report and evidence](performance/LATENCY50_IMPROVEMENTS.md).
+
+Search 71.135/73.491 ms observations were investigated: old harness waited for
+result completion, while traced input-to-flush stayed <=5.386 ms. Raw failures
+remain; final feedback/completion are distinct and unnecessary refresh debounce
+was removed. Completion itself is not certified <=50 ms. Agent harness still
+used a composed old editor executable name; it now runs guinea and has fresh
+native regression evidence. Earlier CLI migration Agent claims are corrected;
+their raw historical reports are preserved. Cold End 916.326 ms remains unexplained.
+Native final search/tab/mouse/Agent/recovery probes and terminal matrix pass.
+GitHub Actions remains inactive; no package publication.
+
+## Previous checkpoint — official executable guinea, 2026-11-10
 
 Product Guinea Note; canonical executable guinea/guinea.exe. Root Cargo package
 guineanote, config/preferences/recovery paths, GUINEANOTE_* and Agent/MCP binaries

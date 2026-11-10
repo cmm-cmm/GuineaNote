@@ -1,0 +1,1895 @@
+{
+  "profile": "release",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "git_head": "06056304228ef12fe34f2dcecaa360775e057f60",
+  "binary_sha256": "3b802aab18c33a479d569abd09ff0fb3727ee305d91ab64521ea26f32f526cd1",
+  "source_sha256": "fc5fd8ec258d9dcaf821f195e832290770358a2d7b56d3bf192c798c80568ad8",
+  "investigation_threshold_ms": 50,
+  "runs": [
+    {
+      "run": 0,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 910.012
+    },
+    {
+      "run": 1,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 837.17
+    },
+    {
+      "run": 2,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 839.514
+    },
+    {
+      "run": 3,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 831.617
+    },
+    {
+      "run": 4,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 841.936
+    },
+    {
+      "run": 5,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 1385.394
+    },
+    {
+      "run": 6,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 1339.772
+    },
+    {
+      "run": 7,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 1372.533
+    },
+    {
+      "run": 8,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 1441.059
+    },
+    {
+      "run": 9,
+      "concurrent_pty_samples": 28,
+      "agent_analysis_completion_ms": 854.508
+    }
+  ],
+  "application_groups": [
+    {
+      "operation": "caret",
+      "phase": "cold",
+      "context": "agent_active",
+      "n": 10,
+      "p50_ms": 1.045,
+      "p95_ms": 2.397,
+      "p99_ms": 2.397,
+      "max_ms": 2.397,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "caret",
+      "phase": "warm",
+      "context": "agent_active",
+      "n": 90,
+      "p50_ms": 1.401,
+      "p95_ms": 2.532,
+      "p99_ms": 2.847,
+      "max_ms": 2.847,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "operation": "commands",
+      "phase": "cold",
+      "context": "agent_idle",
+      "n": 10,
+      "p50_ms": 2.826,
+      "p95_ms": 3.508,
+      "p99_ms": 3.508,
+      "max_ms": 3.508,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "dialog_input",
+      "phase": "cold",
+      "context": "agent_active",
+      "n": 20,
+      "p50_ms": 1.698,
+      "p95_ms": 2.943,
+      "p99_ms": 3.333,
+      "max_ms": 3.333,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "operation": "dialog_input",
+      "phase": "warm",
+      "context": "agent_active",
+      "n": 10,
+      "p50_ms": 1.672,
+      "p95_ms": 3.031,
+      "p99_ms": 3.031,
+      "max_ms": 3.031,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "dialogs",
+      "phase": "cold",
+      "context": "agent_active",
+      "n": 20,
+      "p50_ms": 1.732,
+      "p95_ms": 2.908,
+      "p99_ms": 3.262,
+      "max_ms": 3.262,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "operation": "resize",
+      "phase": "cold",
+      "context": "agent_idle",
+      "n": 10,
+      "p50_ms": 1.771,
+      "p95_ms": 2.836,
+      "p99_ms": 2.836,
+      "max_ms": 2.836,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "tabs",
+      "phase": "cold",
+      "context": "agent_active",
+      "n": 10,
+      "p50_ms": 1.818,
+      "p95_ms": 3.861,
+      "p99_ms": 3.861,
+      "max_ms": 3.861,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "tabs",
+      "phase": "warm",
+      "context": "agent_active",
+      "n": 10,
+      "p50_ms": 1.119,
+      "p95_ms": 2.27,
+      "p99_ms": 2.27,
+      "max_ms": 2.27,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "operation": "typing",
+      "phase": "cold",
+      "context": "agent_active",
+      "n": 20,
+      "p50_ms": 1.269,
+      "p95_ms": 2.295,
+      "p99_ms": 2.477,
+      "max_ms": 2.477,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "operation": "typing",
+      "phase": "warm",
+      "context": "agent_active",
+      "n": 90,
+      "p50_ms": 1.139,
+      "p95_ms": 2.174,
+      "p99_ms": 2.473,
+      "max_ms": 2.473,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    }
+  ],
+  "dropped_samples": 0,
+  "application_investigations": [],
+  "pty_samples": [
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.108,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.887,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.531,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.725,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.716,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.114,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.843,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.868,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.698,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.69,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 4.77,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:settings-open",
+      "ms": 6.243,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:settings-cancel",
+      "ms": 8.411,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:tabs-open",
+      "ms": 8.219,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:tabs-cancel",
+      "ms": 7.081,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:new-other-tab",
+      "ms": 10.297,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 4.409,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 4.8,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 8.537,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 8.011,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 4.85,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 3.701,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 4.958,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 3.955,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 4.027,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:type-other-tab",
+      "ms": 3.422,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.741,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 0,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.917,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.636,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.17,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.467,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.187,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.29,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.178,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.141,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.868,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.365,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.193,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 3.895,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:settings-open",
+      "ms": 4.073,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:settings-cancel",
+      "ms": 7.011,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:tabs-open",
+      "ms": 3.888,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:tabs-cancel",
+      "ms": 6.493,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:new-other-tab",
+      "ms": 5.512,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 2.903,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 2.853,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 3.46,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 3.027,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 2.992,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 2.952,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 2.953,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 4.362,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 3.82,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:type-other-tab",
+      "ms": 3.025,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.749,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 1,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 7.045,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.658,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.023,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.976,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.978,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.969,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.97,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.94,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.514,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.067,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:navigate-locked-source",
+      "ms": 2.963,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 3.051,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:settings-open",
+      "ms": 3.867,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:settings-cancel",
+      "ms": 6.916,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:tabs-open",
+      "ms": 4.025,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:tabs-cancel",
+      "ms": 6.752,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:new-other-tab",
+      "ms": 5.111,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 3.12,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.983,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.897,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 3.298,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.928,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.961,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.939,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.908,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.855,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:type-other-tab",
+      "ms": 2.847,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.621,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 2,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.204,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.933,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.26,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.153,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.794,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.234,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.131,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.158,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.135,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.173,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.168,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 3.221,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:settings-open",
+      "ms": 4.113,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:settings-cancel",
+      "ms": 6.628,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:tabs-open",
+      "ms": 6.04,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:tabs-cancel",
+      "ms": 6.723,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:new-other-tab",
+      "ms": 5.161,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 2.962,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.819,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.324,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.045,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.026,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.053,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.057,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 2.886,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 2.885,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:type-other-tab",
+      "ms": 3.65,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:settings-on-other-tab",
+      "ms": 5.576,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 3,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.131,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.882,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.598,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.429,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.234,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.268,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.203,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.202,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.311,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.234,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.391,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 3.601,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:settings-open",
+      "ms": 5.755,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:settings-cancel",
+      "ms": 7.904,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:tabs-open",
+      "ms": 3.989,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:tabs-cancel",
+      "ms": 6.146,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:new-other-tab",
+      "ms": 7.312,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.176,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.351,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.205,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.788,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.109,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.533,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.174,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.089,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.131,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:type-other-tab",
+      "ms": 3.535,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.779,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 4,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.564,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.277,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.189,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.476,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.485,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.841,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.609,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.638,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.104,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.376,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.427,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 4.851,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:settings-open",
+      "ms": 6.66,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:settings-cancel",
+      "ms": 8.184,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:tabs-open",
+      "ms": 6.178,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:tabs-cancel",
+      "ms": 7.973,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:new-other-tab",
+      "ms": 11.33,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.336,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 5.878,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.281,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 5.522,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 6.599,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.795,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.758,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 5.469,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.326,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:type-other-tab",
+      "ms": 4.67,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:settings-on-other-tab",
+      "ms": 6.919,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 5,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 10.073,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.57,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.42,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.554,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 7.77,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.81,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.117,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.5,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.654,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.159,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.996,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 6.204,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:settings-open",
+      "ms": 6.82,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:settings-cancel",
+      "ms": 7.119,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:tabs-open",
+      "ms": 9.069,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:tabs-cancel",
+      "ms": 8.287,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:new-other-tab",
+      "ms": 10.399,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.36,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 5.495,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.359,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.709,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 5.561,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.48,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.352,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.242,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 7.126,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:type-other-tab",
+      "ms": 4.87,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:settings-on-other-tab",
+      "ms": 5.919,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 6,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 8.592,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 7.359,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.564,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.822,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.546,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.832,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.392,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.883,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.87,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.224,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.316,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 5.007,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:settings-open",
+      "ms": 6.338,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:settings-cancel",
+      "ms": 7.746,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:tabs-open",
+      "ms": 6.243,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:tabs-cancel",
+      "ms": 9.541,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:new-other-tab",
+      "ms": 7.159,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.611,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.621,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.398,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.215,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.348,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 5.356,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 6.175,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 5.88,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 5.858,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:type-other-tab",
+      "ms": 4.447,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:settings-on-other-tab",
+      "ms": 5.856,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 7,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 8.323,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 9.738,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 9.005,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.753,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 9.218,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.889,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.95,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.69,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 10.828,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 10.949,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.246,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 7.841,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:settings-open",
+      "ms": 6.961,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:settings-cancel",
+      "ms": 8.252,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:tabs-open",
+      "ms": 13.516,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:tabs-cancel",
+      "ms": 9.861,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:new-other-tab",
+      "ms": 14.512,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 7.493,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 7.433,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 6.094,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 8.6,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 7.047,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 7.785,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 6.595,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 8.329,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 5.508,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:type-other-tab",
+      "ms": 6.47,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:settings-on-other-tab",
+      "ms": 7.352,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 8,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 13.721,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.252,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.018,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.352,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.475,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 5.875,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.079,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 6.014,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.374,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 3.879,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:navigate-locked-source",
+      "ms": 4.088,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:blocked-edit-feedback",
+      "ms": 3.537,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:settings-open",
+      "ms": 3.931,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:settings-cancel",
+      "ms": 6.837,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:tabs-open",
+      "ms": 5.821,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:tabs-cancel",
+      "ms": 7.328,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:new-other-tab",
+      "ms": 3.258,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 2.889,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 3.61,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 3.114,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 2.847,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 3.38,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 3.685,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 2.977,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 2.988,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 2.979,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:type-other-tab",
+      "ms": 3.036,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:settings-on-other-tab",
+      "ms": 3.695,
+      "AI_active_at_input": true
+    },
+    {
+      "run": 9,
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 6.147,
+      "AI_active_at_input": true
+    }
+  ],
+  "pty_investigations": [],
+  "limits": [
+    "Agent active means owner state at event receipt, not proof of simultaneous CPU execution",
+    "Main-loop receipt after decode; PTY observations separate",
+    "Insufficient per-category samples remain explicit"
+  ]
+}

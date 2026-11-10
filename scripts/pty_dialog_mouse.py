@@ -1,5 +1,5 @@
 """Native mouse dialogs, drag/scroll, double-click and separated tabs.
-Owned fixtures only; fails any measured UI response >=100 ms.
+Owned fixtures only; fails any measured UI response >50 ms.
 """
 import json
 import os
@@ -117,7 +117,7 @@ def main():
             action(ui,"dialog:quit-vietnamese",click(ui,"Bỏ và thoát"),"TERM_STATE_OK")
             ui.wait("CHILD_EXIT=0")
             assert beta.read_bytes()==b'{"name":"GuineaNote"}'
-            report={"sample_count":len(RESULTS),"max_ms":max(r['ms'] for r in RESULTS),"samples":RESULTS,"failures":[r for r in RESULTS if r['ms']>=100]}
+            report={"sample_count":len(RESULTS),"max_ms":max(r['ms'] for r in RESULTS),"samples":RESULTS,"failures":[r for r in RESULTS if r['ms']>50]}
             (ROOT/"target/dialog-mouse-responsiveness.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
             print(json.dumps({k:v for k,v in report.items() if k!='samples'},indent=2))
             assert not report['failures'],"Dialog/mouse UI response budget exceeded"

@@ -5,6 +5,44 @@ use crate::{
 use std::{borrow::Cow, sync::Arc};
 use unicode_segmentation::UnicodeSegmentation;
 
+/// Keep deleted ASCII prefix bytes as reusable space in the display cache.
+/// The document's Ropey storage remains the source of truth. This avoids moving
+/// a multi-megabyte suffix for each prefix Backspace/Undo/Redo.
+#[derive(Debug, Clone)]
+struct LayoutText<'a> {
+    storage: Cow<'a, str>,
+    head: usize,
+}
+impl<'a> From<Cow<'a, str>> for LayoutText<'a> {
+    fn from(storage: Cow<'a, str>) -> Self {
+        Self { storage, head: 0 }
+    }
+}
+impl std::ops::Deref for LayoutText<'_> {
+    type Target = str;
+    fn deref(&self) -> &str {
+        &self.storage[self.head..]
+    }
+}
+impl LayoutText<'_> {
+    fn replace(&mut self, bytes: std::ops::Range<usize>, text: &str, ascii: bool) {
+        let end = self.head + bytes.end;
+        if ascii && bytes.start == 0 && end >= text.len() {
+            // Only printable ASCII is eligible, so the reused prefix starts
+            // and ends on UTF-8 boundaries. The physical length stays fixed.
+            let head = end - text.len();
+            if !text.is_empty() {
+                self.storage.to_mut().replace_range(head..end, text);
+            }
+            self.head = head;
+        } else {
+            self.storage
+                .to_mut()
+                .replace_range(self.head + bytes.start..end, text);
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 struct Checkpoint {
     chars: usize,
@@ -21,7 +59,7 @@ pub(crate) struct LineLayout<'a> {
     revision: u64,
     tab: usize,
     start: usize,
-    text: Cow<'a, str>,
+    text: LayoutText<'a>,
     checkpoints: Vec<Checkpoint>,
     scanned: Checkpoint,
     first_tab: Option<(usize, usize)>,
@@ -127,7 +165,7 @@ impl LineLayout<'_> {
         }
         boundaries.push(self.text.len());
         let tab = self.tab;
-        let text = self.text.as_ref();
+        let text: &str = &self.text;
         let segments = std::thread::scope(|scope| {
             let jobs = boundaries
                 .windows(2)
@@ -147,7 +185,7 @@ impl LineLayout<'_> {
                             start: 0,
                             // Scoped workers borrow disjoint ranges of the
                             // existing line; only the sparse index is allocated.
-                            text: Cow::Borrowed(text),
+                            text: Cow::Borrowed(text).into(),
                             checkpoints: vec![zero.clone()],
                             scanned: zero,
                             first_tab: None,
@@ -296,13 +334,13 @@ impl Document {
             .layout_cache
             .borrow()
             .as_ref()
-            .map_or(0, |c| c.text.len())
+            .map_or(0, |c| c.text.storage.len())
             + self
                 .view
                 .layout_others
                 .borrow()
                 .iter()
-                .map(|c| c.text.len())
+                .map(|c| c.text.storage.len())
                 .sum::<usize>()
     }
     pub fn clear_view_cache(&self) {
@@ -415,7 +453,7 @@ impl Document {
         let old_end = bytes.end;
         let edit_start = bytes.start;
         let delta = text.len() as isize - bytes.len() as isize;
-        layout.text.to_mut().replace_range(bytes, text);
+        layout.text.replace(bytes, text, retain_index);
         if retain_index {
             layout
                 .checkpoints
@@ -483,7 +521,7 @@ impl Document {
                     revision: self.revision(),
                     tab,
                     start: range.start,
-                    text: Cow::Owned(self.buffer().slice(range).ok()?),
+                    text: Cow::<str>::Owned(self.buffer().slice(range).ok()?).into(),
                     checkpoints: vec![Checkpoint {
                         chars: 0,
                         byte: 0,
@@ -500,8 +538,8 @@ impl Document {
                 }));
             }
             while others.len() > 63
-                || others.iter().map(|c| c.text.len()).sum::<usize>()
-                    + cache.as_ref().map_or(0, |c| c.text.len())
+                || others.iter().map(|c| c.text.storage.len()).sum::<usize>()
+                    + cache.as_ref().map_or(0, |c| c.text.storage.len())
                     > 16 * 1024 * 1024
             {
                 if others.pop_front().is_none() {
@@ -663,6 +701,57 @@ impl Document {
 mod tests {
     use super::*;
     #[test]
+    fn prefix_cache_reuse_preserves_snapshots_unicode_fallback_and_coordinates() {
+        let original = format!("marker {}", "e\u{301} 界 👩‍💻 🇻🇳 ".repeat(1500));
+        let mut d = Document::from_text(&original);
+        d.prepare_view(4);
+        for _ in 0..20 {
+            d.move_cursor(crate::Movement::Start, false);
+            d.insert("abc").unwrap();
+            let snapshot = d.review_snapshot();
+            d.select(0, 3).unwrap();
+            d.insert("").unwrap();
+            assert!(d.view.layout_cache.borrow().as_ref().unwrap().text.head > 0);
+            assert_eq!(d.text(), original);
+            let fresh_snapshot = Document::from_text(&format!("abc{original}"));
+            assert_eq!(
+                snapshot.line_window(0, 0, 20, 4).unwrap().text,
+                fresh_snapshot.line_window(0, 0, 20, 4).unwrap().text
+            );
+            for action in 0..3 {
+                if action == 1 {
+                    d.undo().unwrap();
+                }
+                if action == 2 {
+                    d.redo().unwrap();
+                }
+                let fresh = Document::from_text(&d.text());
+                for left in [0, 100, 10_003] {
+                    let actual = d.line_window(0, left, 30, 4).unwrap();
+                    let expected = fresh.line_window(0, left, 30, 4).unwrap();
+                    assert_eq!(
+                        (actual.text, actual.char_start, actual.cell_start),
+                        (expected.text, expected.char_start, expected.cell_start)
+                    );
+                }
+                d.move_cursor(crate::Movement::Finish, false);
+                assert_eq!(d.position().1, d.text().graphemes(true).count());
+            }
+        }
+        d.move_cursor(crate::Movement::Start, false);
+        d.insert("e\u{301}\t").unwrap();
+        let fresh = Document::from_text(&d.text());
+        assert_eq!(
+            d.line_window(0, 0, 30, 4).unwrap().text,
+            fresh.line_window(0, 0, 30, 4).unwrap().text
+        );
+        d.undo().unwrap();
+        assert_eq!(d.text(), original);
+        let charged = d.view_cache_bytes();
+        assert!(charged >= original.len());
+    }
+
+    #[test]
     fn multiline_cache_matches_fresh_layout_after_edits_history_and_tab_changes() {
         let text = (0..90)
             .map(|i| format!("line {i}\t{}tail\n", "Việt e\u{301} 👩‍💻 ".repeat(1000)))
@@ -795,7 +884,7 @@ mod tests {
                 revision: 0,
                 tab: 3,
                 start: 0,
-                text: Cow::Borrowed(text),
+                text: Cow::Borrowed(text).into(),
                 checkpoints: vec![zero.clone()],
                 scanned: zero,
                 first_tab: None,

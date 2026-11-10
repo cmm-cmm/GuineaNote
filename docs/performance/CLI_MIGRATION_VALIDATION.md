@@ -1,5 +1,11 @@
 # Kiểm chứng CLI guinea — 10/11/2026
 
+Đính chính sau checkpoint: harness pty_agent.py còn ghép tên executable editor
+cũ từ PROFILE/SUFFIX; phần Agent của checkpoint này đã chạy binary cũ, chưa
+chứng minh guinea.exe. Không đổi raw evidence lịch sử. Harness đã sửa sang
+guinea và được kiểm chứng lại trong [đợt latency50](LATENCY50_IMPROVEMENTS.md).
+Các probe CLI/open/save/project/recovery dùng guinea trực tiếp giữ phạm vi cũ.
+
 Hạng mục naming độc lập với tối ưu/save/text engine. Product Guinea Note,
 executable guinea.exe, Cargo package guineanote 0.1.0 giữ nguyên.
 

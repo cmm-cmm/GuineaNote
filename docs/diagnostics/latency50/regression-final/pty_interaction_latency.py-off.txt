@@ -1,0 +1,6 @@
+{
+  "report": "D:\\Project\\GuineaNote\\target\\interaction-1794298612652593600\\report.json",
+  "groups": [],
+  "dropped": 0,
+  "warnings": 0
+}

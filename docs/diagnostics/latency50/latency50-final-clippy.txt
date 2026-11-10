@@ -1,0 +1,3 @@
+    Checking guinea-tui v0.1.0 (D:\Project\GuineaNote\crates\guinea-tui)
+    Checking guineanote v0.1.0 (D:\Project\GuineaNote)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.06s

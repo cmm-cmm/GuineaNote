@@ -29,6 +29,8 @@ def main():
             assert 'forbidden-marker' not in '\n'.join(ui.screen.display)
             snapshot(ui,'project-files')
             ui.send('\r');ui.wait('first marker')
+            ui.wait('Opened');ui.read(.05)
+            snapshot(ui,'workspace-menu-tabs-separated')
             action(ui,'project:find-across-files','\x07','PROJECT · Ctrl+E / Ctrl+G')
             action(ui,'project:content-query','needle','› needle│')
             ui.wait('2 matches')

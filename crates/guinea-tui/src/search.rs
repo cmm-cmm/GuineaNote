@@ -544,6 +544,9 @@ impl Search {
         self.revision = document.revision();
         let offset = self.offset;
         self.changed();
+        // An explicit replacement already completed. Refresh its results now;
+        // the typing debounce only coalesces query edits.
+        self.changed = Instant::now() - Duration::from_millis(40);
         if self.advance {
             self.offset = offset;
             self.resume = Some(document.cursor());
@@ -675,6 +678,7 @@ mod tests {
             .accept_prepared(&change.document, change.revision)
             .unwrap();
         search.applied(&document, 1);
+        assert!(search.changed.elapsed() >= Duration::from_millis(35));
         settle(&mut search, &document);
         assert_eq!(document.text(), "foobar foo");
         assert_eq!(search.current().unwrap(), 7..10);

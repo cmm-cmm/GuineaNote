@@ -1,5 +1,30 @@
 # Test plan and reproduction
 
+## Current investigation threshold
+
+Every measured interaction >50 ms requires investigation, even if p99 passes.
+Current scripts retain outliers and use >50 rather than the historical >=100
+gates described below. Ubuntu/SSH verification is outside this iteration by user
+request; checks run on the current native Windows/ConPTY environment.
+
+After a release build, run sequentially (do not build concurrently):
+
+```powershell
+cargo run --release -p guinea-core --example interaction_profile
+python -X utf8 scripts/pty_interaction_latency.py
+python -X utf8 scripts/pty_interaction_latency.py --no-trace
+python -X utf8 scripts/pty_interaction_latency.py --iterations 1000
+python -X utf8 scripts/pty_navigation.py --trace --record-only --cold-runs 100
+python -X utf8 scripts/pty_contention_latency.py --runs 10
+```
+
+Record-only preserves investigative data; it does not make outliers pass.
+Check application and PTY investigations separately, including dropped samples
+and groups with insufficient n. Core microbenchmark is not terminal latency.
+Menu/tab regression covers disjoint hit regions and a separator across VI/EN,
+welcome/editor and 30x9–148x42 layouts. Core tests compare cache-prefix reuse
+against fresh Unicode layout through snapshots, edits and Undo/Redo.
+
 ## Project workflow and grouped interaction latency
 
 Build release first, then run sequentially:

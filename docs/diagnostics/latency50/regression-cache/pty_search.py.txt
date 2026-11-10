@@ -1,0 +1,35 @@
+D:\Project\GuineaNote\target\previews\find-replace-en.png
+D:\Project\GuineaNote\target\previews\find-replace-vi.png
+{
+  "max_input_bytes": 10485760,
+  "sample_count": 13,
+  "max_ms": 71.135,
+  "background_completion": [
+    {
+      "operation": "10MiB search complete",
+      "ms": 123.87
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 83.597
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 153.127
+    }
+  ],
+  "failures": [
+    {
+      "action": "search:replace-all",
+      "ms": 71.135
+    }
+  ]
+}
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 104, in <module>
+    main()
+    ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_search.py", line 100, in main
+    assert not report['failures'],"Search UI response budget exceeded"
+           ^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: Search UI response budget exceeded

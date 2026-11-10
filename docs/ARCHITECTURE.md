@@ -57,6 +57,13 @@ lines for documents <=10 MiB. Small/ASCII lines retain their direct fast paths.
 The per-view LRU holds up to 64 indexes and a 16 MiB text budget, with an exception
 for one oversized active line. Checkpoints preserve exact grapheme/tab widths.
 Single-line edits remap unaffected line origins; newline edits invalidate safely.
+For complete tab-free indexes, small printable-ASCII edits at the start can reuse
+deleted cache-prefix bytes through a logical head offset. Repeated prefix
+typing/Backspace/Undo/Redo avoid moving the full long-line suffix after the first
+insertion. Ropey remains authoritative; Unicode joins, tabs, incomplete indexes
+and other edits keep conservative invalidation. Cache charging includes retained
+prefix storage. This is a display-cache optimization, not a new document backend
+or a hard RSS/capacity bound.
 Inactive source-layout text and review caches each have a 32 MiB aggregate target;
 active working sets, object overhead and pending work are additional memory.
 

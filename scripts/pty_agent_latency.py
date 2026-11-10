@@ -2,6 +2,7 @@
 Release binaries, owned fixtures, no network. API completion is separate.
 """
 import json
+import argparse
 import os
 import platform
 from pathlib import Path
@@ -20,6 +21,10 @@ def ai_active(ui):
 
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--report-dir',type=Path,default=ROOT/'target')
+    parser.add_argument('--record-only',action='store_true')
+    args=parser.parse_args();args.report_dir.mkdir(parents=True,exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="guineanote-ai-perf-") as directory, tempfile.TemporaryDirectory(prefix="guineanote-ai-runtime-") as runtime:
         root = Path(directory)
         os.environ["GUINEANOTE_SESSION_DIR"] = str(Path(runtime) / "sessions")
@@ -75,9 +80,9 @@ def main():
             report = {"platform": platform.platform(), "profile": "release", "file_bytes": size,
                       "workload": "MCP analyze live JSON array while human navigates, opens dialogs and edits another tab",
                       "samples": len(RESULTS), "concurrent_samples": len(active),
-                      "max_ms": max(r["ms"] for r in RESULTS), "budget_ms_strict": 100,
+                      "max_ms": max(r["ms"] for r in RESULTS), "investigation_threshold_ms": 50,
                       "agent_analysis_completion_ms": completion[0]["ms"], "results": RESULTS}
-            assert report["max_ms"] < 100, "UI response budget exceeded"
+            (args.report_dir / "responsiveness-agent.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
             assert data(cli(root, {"op": "read_document", "document": document, "limit": 16}, session))["text"].startswith('[0,0'), "Human changed the locked source"
             settle(ui)
             ui.send("\x11")
@@ -85,12 +90,13 @@ def main():
             ui.send("y")
             ui.wait("TERM_STATE_OK")
             ui.wait("CHILD_EXIT=0")
-            (ROOT / "target/responsiveness-agent.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
             print(json.dumps(report, indent=2))
+            if not args.record_only:
+                assert report["max_ms"] <= 50, "UI response >50 ms requires investigation"
         finally:
             if client:
                 client.close()
-            (ROOT / "target/pty-agent-latency.log").write_bytes(ui.output)
+            (args.report_dir / "pty-agent-latency.log").write_bytes(ui.output)
             ui.close()
 
 

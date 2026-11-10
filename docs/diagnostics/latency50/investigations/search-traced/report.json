@@ -1,0 +1,397 @@
+{
+  "max_input_bytes": 10485760,
+  "samples": [
+    {
+      "action": "search:open-replace",
+      "ms": 19.04
+    },
+    {
+      "action": "search:query-unicode",
+      "ms": 34.44
+    },
+    {
+      "action": "search:replace-one",
+      "ms": 20.667
+    },
+    {
+      "action": "search:replace-all",
+      "ms": 73.491
+    },
+    {
+      "action": "search:close",
+      "ms": 9.277
+    },
+    {
+      "action": "search:undo-all",
+      "ms": 10.52
+    },
+    {
+      "action": "search:undo-one",
+      "ms": 12.265
+    },
+    {
+      "action": "search:open-find",
+      "ms": 10.227
+    },
+    {
+      "action": "search:replace-selected-query",
+      "ms": 31.58
+    },
+    {
+      "action": "search:10MiB-open",
+      "ms": 5.613
+    },
+    {
+      "action": "search:10MiB-query-feedback",
+      "ms": 18.943
+    },
+    {
+      "action": "search:10MiB-last-page-feedback",
+      "ms": 9.209
+    },
+    {
+      "action": "search:10MiB-replace-feedback",
+      "ms": 13.975
+    }
+  ],
+  "sample_count": 13,
+  "max_ms": 73.491,
+  "background_completion": [
+    {
+      "operation": "10MiB search complete",
+      "ms": 166.262
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 126.703
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 203.436
+    }
+  ],
+  "failures": [
+    {
+      "action": "search:replace-all",
+      "ms": 73.491
+    }
+  ],
+  "application_groups": [
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.748,
+      "p95_ms": 1.748,
+      "p99_ms": 1.748,
+      "max_ms": 1.748,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 2.127,
+      "p95_ms": 2.127,
+      "p99_ms": 2.127,
+      "max_ms": 2.127,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.677,
+      "p95_ms": 2.677,
+      "p99_ms": 2.677,
+      "max_ms": 2.677,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 4.0,
+      "p95_ms": 4.0,
+      "p99_ms": 4.0,
+      "max_ms": 4.0,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialogs",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 4.999,
+      "p95_ms": 4.999,
+      "p99_ms": 4.999,
+      "max_ms": 4.999,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.538,
+      "p95_ms": 2.538,
+      "p99_ms": 2.538,
+      "max_ms": 2.538,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 2.568,
+      "p95_ms": 2.568,
+      "p99_ms": 2.568,
+      "max_ms": 2.568,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 4.097,
+      "p95_ms": 4.097,
+      "p99_ms": 4.097,
+      "max_ms": 4.097,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 1.816,
+      "p95_ms": 4.611,
+      "p99_ms": 4.611,
+      "max_ms": 4.611,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 5.386,
+      "p95_ms": 5.386,
+      "p99_ms": 5.386,
+      "max_ms": 5.386,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.554,
+      "p95_ms": 1.554,
+      "p99_ms": 1.554,
+      "max_ms": 1.554,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 25,
+      "p50_ms": 1.8,
+      "p95_ms": 3.864,
+      "p99_ms": 4.099,
+      "max_ms": 4.099,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "session": "1",
+      "operation": "search_ui",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 4.76,
+      "p95_ms": 4.76,
+      "p99_ms": 4.76,
+      "max_ms": 4.76,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.43,
+      "p95_ms": 2.43,
+      "p99_ms": 2.43,
+      "max_ms": 2.43,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 1.384,
+      "p95_ms": 1.384,
+      "p99_ms": 1.384,
+      "max_ms": 1.384,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.84,
+      "p95_ms": 2.84,
+      "p99_ms": 2.84,
+      "max_ms": 2.84,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.346,
+      "p95_ms": 1.346,
+      "p99_ms": 1.346,
+      "max_ms": 1.346,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 1.312,
+      "p95_ms": 2.416,
+      "p99_ms": 2.416,
+      "max_ms": 2.416,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.614,
+      "p95_ms": 2.614,
+      "p99_ms": 2.614,
+      "max_ms": 2.614,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.909,
+      "p95_ms": 1.909,
+      "p99_ms": 1.909,
+      "max_ms": 1.909,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 5,
+      "p50_ms": 2.121,
+      "p95_ms": 2.885,
+      "p99_ms": 2.885,
+      "max_ms": 2.885,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.176,
+      "p95_ms": 2.176,
+      "p99_ms": 2.176,
+      "max_ms": 2.176,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.421,
+      "p95_ms": 1.421,
+      "p99_ms": 1.421,
+      "max_ms": 1.421,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 11,
+      "p50_ms": 2.351,
+      "p95_ms": 3.899,
+      "p99_ms": 3.899,
+      "max_ms": 3.899,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    }
+  ],
+  "application_investigations": [],
+  "dropped_samples": 0,
+  "binary_sha256": "3b802aab18c33a479d569abd09ff0fb3727ee305d91ab64521ea26f32f526cd1",
+  "source_sha256": "fc5fd8ec258d9dcaf821f195e832290770358a2d7b56d3bf192c798c80568ad8"
+}

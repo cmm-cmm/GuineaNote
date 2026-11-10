@@ -1,0 +1,396 @@
+{
+  "max_input_bytes": 10485760,
+  "samples": [
+    {
+      "action": "search:open-replace",
+      "ms": 8.361
+    },
+    {
+      "action": "search:query-unicode",
+      "ms": 22.866
+    },
+    {
+      "action": "search:replace-one",
+      "ms": 18.704
+    },
+    {
+      "action": "search:replace-all",
+      "ms": 49.7
+    },
+    {
+      "action": "search:close",
+      "ms": 12.991
+    },
+    {
+      "action": "search:undo-all",
+      "ms": 9.251
+    },
+    {
+      "action": "search:undo-one",
+      "ms": 11.495
+    },
+    {
+      "action": "search:open-find",
+      "ms": 14.579
+    },
+    {
+      "action": "search:replace-selected-query",
+      "ms": 25.256
+    },
+    {
+      "action": "search:10MiB-open",
+      "ms": 4.171
+    },
+    {
+      "action": "search:10MiB-query-feedback",
+      "ms": 14.543
+    },
+    {
+      "action": "search:10MiB-last-page-feedback",
+      "ms": 7.805
+    },
+    {
+      "action": "search:10MiB-replace-feedback",
+      "ms": 19.756
+    }
+  ],
+  "sample_count": 13,
+  "max_ms": 49.7,
+  "background_completion": [
+    {
+      "operation": "small replace-all and result refresh complete",
+      "ms": 55.618
+    },
+    {
+      "operation": "10MiB search complete",
+      "ms": 128.333
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 86.928
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 102.396
+    }
+  ],
+  "failures": [],
+  "application_groups": [
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.09,
+      "p95_ms": 2.09,
+      "p99_ms": 2.09,
+      "max_ms": 2.09,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 2.635,
+      "p95_ms": 2.635,
+      "p99_ms": 2.635,
+      "max_ms": 2.635,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.685,
+      "p95_ms": 2.685,
+      "p99_ms": 2.685,
+      "max_ms": 2.685,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 5.86,
+      "p95_ms": 5.86,
+      "p99_ms": 5.86,
+      "max_ms": 5.86,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialogs",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 4.66,
+      "p95_ms": 4.66,
+      "p99_ms": 4.66,
+      "max_ms": 4.66,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.283,
+      "p95_ms": 2.283,
+      "p99_ms": 2.283,
+      "max_ms": 2.283,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 2.439,
+      "p95_ms": 2.439,
+      "p99_ms": 2.439,
+      "max_ms": 2.439,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.839,
+      "p95_ms": 2.839,
+      "p99_ms": 2.839,
+      "max_ms": 2.839,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 1.117,
+      "p95_ms": 3.267,
+      "p99_ms": 3.267,
+      "max_ms": 3.267,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 5.281,
+      "p95_ms": 5.281,
+      "p99_ms": 5.281,
+      "max_ms": 5.281,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.219,
+      "p95_ms": 1.219,
+      "p99_ms": 1.219,
+      "max_ms": 1.219,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 25,
+      "p50_ms": 1.511,
+      "p95_ms": 5.188,
+      "p99_ms": 6.01,
+      "max_ms": 6.01,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "session": "1",
+      "operation": "search_ui",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 5.691,
+      "p95_ms": 5.691,
+      "p99_ms": 5.691,
+      "max_ms": 5.691,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.528,
+      "p95_ms": 1.528,
+      "p99_ms": 1.528,
+      "max_ms": 1.528,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 0.846,
+      "p95_ms": 0.846,
+      "p99_ms": 0.846,
+      "max_ms": 0.846,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.884,
+      "p95_ms": 1.884,
+      "p99_ms": 1.884,
+      "max_ms": 1.884,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.828,
+      "p95_ms": 0.828,
+      "p99_ms": 0.828,
+      "max_ms": 0.828,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 1.99,
+      "p95_ms": 2.782,
+      "p99_ms": 2.782,
+      "max_ms": 2.782,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.056,
+      "p95_ms": 1.056,
+      "p99_ms": 1.056,
+      "max_ms": 1.056,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.592,
+      "p95_ms": 1.592,
+      "p99_ms": 1.592,
+      "max_ms": 1.592,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 5,
+      "p50_ms": 1.272,
+      "p95_ms": 1.473,
+      "p99_ms": 1.473,
+      "max_ms": 1.473,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.569,
+      "p95_ms": 1.569,
+      "p99_ms": 1.569,
+      "max_ms": 1.569,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.956,
+      "p95_ms": 0.956,
+      "p99_ms": 0.956,
+      "max_ms": 0.956,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 11,
+      "p50_ms": 1.632,
+      "p95_ms": 1.87,
+      "p99_ms": 1.87,
+      "max_ms": 1.87,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    }
+  ],
+  "application_investigations": [],
+  "dropped_samples": 0,
+  "binary_sha256": "c3fc7d53fec7e5c26718f203da586a2db67c58c163273078ee0a6ddfcf028aba",
+  "source_sha256": "fc1fa9845ab502c54f0c4fca65d72d6bedd4e6ab87535163fbd9e8367dc4508f"
+}

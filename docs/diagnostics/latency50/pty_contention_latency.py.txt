@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_contention_latency.py", line 54, in <module>
+    if __name__=='__main__':main()
+                            ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_contention_latency.py", line 38, in main
+    context='agent_active' if row['agent_active']=='true' else 'agent_idle'
+                              ~~~^^^^^^^^^^^^^^^^
+KeyError: 'agent_active'

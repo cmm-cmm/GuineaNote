@@ -1,0 +1,36 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "file_bytes": 10485754,
+  "typed_transactions": 2401,
+  "bulk_2400_keys_ms": 317.411,
+  "rss_before_bytes": 31703040,
+  "rss_after_bytes": 53334016,
+  "peak_observed_rss_bytes": 53858304,
+  "rss_samples": 23,
+  "sample_interval_ms": 5,
+  "samples": [
+    {
+      "action": "history:next-key",
+      "ms": 3.541
+    },
+    {
+      "action": "history:undo",
+      "ms": 3.184
+    },
+    {
+      "action": "history:redo",
+      "ms": 2.957
+    },
+    {
+      "action": "history:details-open",
+      "ms": 3.909
+    },
+    {
+      "action": "history:details-close",
+      "ms": 6.965
+    }
+  ],
+  "max_ms": 6.965,
+  "failures": [],
+  "source_unchanged": true
+}

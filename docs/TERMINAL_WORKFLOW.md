@@ -5,6 +5,10 @@ thảo thu về một hàng; welcome vẫn có nhãn sản phẩm. Nền navy t�
 chi tiết xanh lá, hổ phách và trắng ấm. F11 mở chế độ tập trung, giữ tab/count
 và status; F11 trở lại workspace. F4/Ctrl+B mở lại cây và thoát focus mode.
 
+Menu chính và toolbar quản lý tab có hàng phân cách riêng. Vùng click của menu,
+nút quản lý tab và nhãn tab được kiểm tra tách biệt ở VI/EN và cửa sổ nhỏ;
+focus mode vẫn dành phần lớn chiều cao cho nội dung.
+
 ## Điều hướng và khám phá lệnh
 
 - Ctrl+E: tìm file trong project; các từ truy vấn phải xuất hiện trong đường dẫn.

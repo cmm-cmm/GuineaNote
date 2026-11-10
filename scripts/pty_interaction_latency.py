@@ -26,8 +26,10 @@ def stats(values):
     rank=lambda p:values[max(0,math.ceil(p*len(values))-1)]
     p50,p95,p99=rank(.5),rank(.95),rank(.99)
     return {'n':len(values),'p50_ms':p50,'p95_ms':p95,'p99_ms':p99,'max_ms':max(values),
+            'over_50ms':sum(v>50 for v in values),
             'over_100ms':sum(v>100 for v in values),
-            'status':('insufficient_samples' if len(values)<20 else
+            'status':('needs_investigation' if max(values)>50 else
+                      'insufficient_samples' if len(values)<20 else
                       'pass' if p50<=10 and p95<=20 and p99<=50 else 'needs_investigation')}
 
 
@@ -46,7 +48,7 @@ def main():
     args=parser.parse_args()
     assert args.iterations>=20
     out=ROOT/'target'/('interaction-'+str(time.time_ns()));out.mkdir()
-    groups=defaultdict(list);dropped=0;sessions=[]
+    groups=defaultdict(list);dropped=0;sessions=[];investigations=[]
     with tempfile.TemporaryDirectory(prefix='guineanote-interaction-') as d:
         root=Path(d)
         for label,size in [('small',1024),('unicode-long-line',10*1024*1024)]:
@@ -118,7 +120,9 @@ def main():
             if trace.exists():
                 for r in csv.DictReader(trace.open(encoding='utf-8')):
                     if r['stage']=='dropped_samples':dropped+=int(r['microseconds'])
-                    if r['stage']=='input_to_flush':groups[(label,r['operation'],r['phase'])].append(int(r['microseconds'])/1000)
+                    if r['stage']=='input_to_flush':
+                        groups[(label,r['operation'],r['phase'])].append(int(r['microseconds'])/1000)
+                        if int(r['microseconds'])>50000:investigations.append({'corpus':label,**r})
     summary=[{'corpus':k[0],'operation':k[1],'phase':k[2],**stats(v)} for k,v in sorted(groups.items())]
     observed=defaultdict(list)
     for r in RESULTS:observed[r['action']].append(r['ms'])
@@ -129,6 +133,8 @@ def main():
             'trace_enabled':not args.no_trace,'dropped_samples':dropped,'sessions':sessions,'application_groups':summary,
             'pty_samples':RESULTS,'pty_groups':[{'operation':k,**stats(v)} for k,v in sorted(observed.items())],
             'warnings':[g for g in summary if g['status']=='needs_investigation'],
+            'investigation_threshold_ms':50,'application_investigations':investigations,
+            'pty_investigations':[r for r in RESULTS if r['ms']>50],
             'limits':['Start is main-loop receipt after decode, excludes adapter queue','Cold is first category per document in process, not cold disk',
                       'No physical-paint measurement','Finite samples and trace overhead; p99 is descriptive','No universal latency SLA claimed']}
     (out/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')

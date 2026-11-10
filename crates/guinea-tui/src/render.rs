@@ -619,6 +619,49 @@ mod tests {
     }
 
     #[test]
+    fn main_menu_is_separated_from_tab_management_and_click_regions() {
+        use crate::i18n::Locale;
+        for locale in [Locale::En, Locale::Vi] {
+            for welcome in [true, false] {
+                for (width, height) in [(30, 9), (40, 12), (80, 24), (100, 28), (148, 42)] {
+                    let mut app = App::new(vec![], false, Config::default());
+                    app.config.language = locale;
+                    if !welcome {
+                        app.tabs[0].document.path = Some("note.rs".into());
+                    }
+                    let mut terminal = Terminal::new(TestBackend::new(width, height)).unwrap();
+                    terminal.draw(|f| draw(f, &mut app)).unwrap();
+                    let menu = app
+                        .hits
+                        .actions
+                        .iter()
+                        .find(|(_, a)| *a == "open")
+                        .unwrap()
+                        .0;
+                    let controls = app
+                        .hits
+                        .actions
+                        .iter()
+                        .find(|(_, a)| *a == "new")
+                        .unwrap()
+                        .0;
+                    assert!(controls.y > menu.bottom(), "{width}x{height}");
+                    for x in 0..width {
+                        assert_eq!(
+                            terminal.backend().buffer()[(x, menu.bottom())].symbol(),
+                            "─"
+                        );
+                    }
+                    for (r, _) in &app.hits.tabs {
+                        assert!(r.y > controls.y);
+                    }
+                    assert!(!menu.intersects(controls));
+                }
+            }
+        }
+    }
+
+    #[test]
     fn tabs_keep_neighbors_and_active_file_visible() {
         let mut app = App::new(vec![], false, Config::default());
         app.tabs[0].document.path = Some("README.md".into());

@@ -1,8 +1,9 @@
 """Cold long-Unicode-line End navigation, followed by cached movement.
-Release binaries, owned fixtures, strict UI response budget below 100 ms.
+Release binaries, owned fixtures, strict UI response budget at most 50 ms.
 Use --record-only to retain exploratory measurements before optimization.
 """
 import csv
+import argparse
 import json
 import os
 import platform
@@ -12,22 +13,32 @@ import tempfile
 import time
 from pty_responsiveness import action, RESULTS
 from pty_smoke import ROOT, Session
+from pty_interaction_latency import source_hash, stats
+from collections import defaultdict
+import hashlib
+import subprocess
 
 BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 
 
 def main():
+    parser=argparse.ArgumentParser()
+    parser.add_argument('--trace',action='store_true')
+    parser.add_argument('--record-only',action='store_true')
+    parser.add_argument('--cold-runs',type=int,default=6)
+    args=parser.parse_args()
+    assert args.cold_runs>0
     completions=[]
     traces=[]
+    groups=defaultdict(list);investigations=[]
     trace_dir = ROOT / "target" / ("navigation-traces-" + str(time.time_ns()))
-    if "--trace" in sys.argv:
-        trace_dir.mkdir(parents=True)
+    trace_dir.mkdir(parents=True)
     with tempfile.TemporaryDirectory(prefix="guineanote-navigation-") as directory:
         root = Path(directory)
         unit = "Việt e\u0301 界 👩‍💻 "
         repeats = 10 * 1024 * 1024 // len(unit.encode())
         two_repeats = (10 * 1024 * 1024 - len("prefix\n")) // len(unit.encode())
-        fixtures=[("unicode",unit*repeats,repeats*11,6,1),
+        fixtures=[("unicode",unit*repeats,repeats*11,args.cold_runs,1),
                   ("ascii-prefix-bare-cr","a"*(10*1024*1024-4)+"\r界",10*1024*1024-2,2,1),
                   ("second-long-line","prefix\n"+unit*two_repeats,two_repeats*11,4,2)]
         for label, content, graphemes, runs, line in fixtures:
@@ -36,7 +47,7 @@ def main():
             for run in range(runs):
                 opened=time.perf_counter()
                 trace_path = trace_dir / f"{label}-{run}.csv"
-                ui = Session([str(BINARY), str(path)], env={"GUINEANOTE_TRACE": str(trace_path)} if "--trace" in sys.argv else None)
+                ui = Session([str(BINARY), str(path)], env={"GUINEANOTE_TRACE": str(trace_path)} if args.trace else None)
                 try:
                     ui.wait("Opened")
                     completions.append({"fixture":label,"process_start_to_opened_ms":round((time.perf_counter()-opened)*1000,3)})
@@ -53,7 +64,7 @@ def main():
                     ui.wait("TERM_STATE_OK")
                     ui.wait("CHILD_EXIT=0")
                 finally:
-                    (ROOT / f"target/pty-navigation-{label}-{run}.log").write_bytes(ui.output)
+                    (trace_dir / f"pty-navigation-{label}-{run}.log").write_bytes(ui.output)
                     ui.close()
                 if trace_path.exists():
                     rows = list(csv.DictReader(trace_path.open(encoding="utf-8")))
@@ -62,6 +73,9 @@ def main():
                         if row["stage"] == "dropped_samples":
                             continue
                         stages.setdefault(row["stage"], []).append(int(row["microseconds"])/1000)
+                        if row['stage']=='input_to_flush':
+                            groups[(label,row['operation'],row['phase'])].append(int(row['microseconds'])/1000)
+                            if int(row['microseconds'])>50000:investigations.append({'fixture':label,'run':run,**row})
                     traces.append({"fixture":label,"session":run,"file":str(trace_path.relative_to(ROOT)),
                                    "dropped_samples":sum(int(r["microseconds"]) for r in rows if r["stage"]=="dropped_samples"),
                                    "stage_max_ms":{k:round(max(v),3) for k,v in stages.items()}})
@@ -69,11 +83,20 @@ def main():
                   "cold_sessions": sum(f[3] for f in fixtures), "traces": traces, "samples": RESULTS, "sample_count": len(RESULTS),
                   "background_open_completion":completions,
                   "max_ms": max(r["ms"] for r in RESULTS),
-                  "failures": [r for r in RESULTS if r["ms"] >= 100]}
+                  "failures": [r for r in RESULTS if r["ms"] > 50],
+                  'investigation_threshold_ms':50,'application_investigations':investigations,
+                  'application_groups':[{'fixture':k[0],'operation':k[1],'phase':k[2],**stats(v)} for k,v in sorted(groups.items())],
+                  'binary_sha256':hashlib.sha256(BINARY.read_bytes()).hexdigest(),'source_sha256':source_hash(),
+                  'git_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
+                  'profile':'release','trace_enabled':args.trace,
+                  'limits':['First process/category is not cold OS disk cache','Main-loop receipt after decode, not adapter queue or pixels','Finite samples; no universal SLA']}
+        (trace_dir/'report.json').write_text(json.dumps(report,indent=2),encoding='utf-8')
+        (ROOT/'target/navigation-latest-path.txt').write_text(str(trace_dir),encoding='utf-8')
         (ROOT / "target/navigation-responsiveness.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
         print(json.dumps(report, indent=2))
-        if "--record-only" not in sys.argv:
-            assert not report["failures"], "Navigation budget exceeded"
+        assert not any(t['dropped_samples'] for t in traces),'Dropped trace rows'
+        if not args.record_only:
+            assert not report["failures"] and not investigations, "Navigation response >50 ms requires investigation"
 
 
 if __name__ == "__main__":

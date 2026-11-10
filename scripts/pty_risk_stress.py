@@ -65,7 +65,7 @@ def main():
                       "peak_observed_rss_bytes": max(rss or [before, after]),
                       "rss_samples": len(rss), "sample_interval_ms": 5,
                       "samples": RESULTS, "max_ms": max(r["ms"] for r in RESULTS),
-                      "failures": [r for r in RESULTS if r["ms"] >= 100],
+                      "failures": [r for r in RESULTS if r["ms"] > 50],
                       "source_unchanged": True}
             (ROOT / "target/risk-history-stress.json").write_text(json.dumps(report,indent=2),encoding="utf-8")
             print(json.dumps(report,indent=2))

@@ -3,13 +3,17 @@
 ## Current interaction targets — 2026-11-10
 
 The adopted goals are p50 <=10 ms, p95 <=20 ms and p99 <=50 ms per operation,
-corpus and phase. >100 ms is an investigation warning. See
+corpus and phase. Every interaction >50 ms requires investigation, even when
+group percentiles pass. This supersedes the previous 100 ms warning. See
 [targets](performance/INTERACTION_LATENCY_TARGETS.md),
 [method](performance/BENCHMARK_METHODOLOGY.md) and
 [new baseline](performance/LATENCY_BASELINE.md). Historical mixed PTY results
 below are retained; they are not interchangeable with application input-to-flush.
 Cold End 916.326 ms remains unexplained. No global SLA or native Unix/SSH
 certification is claimed; no GitHub Actions is activated.
+
+Latest cache/menu work and raw before/after evidence:
+[50 ms investigation report](performance/LATENCY50_IMPROVEMENTS.md).
 
 ## Risk mitigation, 2026-11-10
 

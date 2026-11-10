@@ -12,7 +12,7 @@ from agent_smoke import AGENT, ROOT, PROFILE, SUFFIX, Mcp, cli
 from pty_smoke import Session
 from tui_preview import snapshot
 
-BINARY = ROOT / "target" / PROFILE / ("guineanote" + SUFFIX)
+BINARY = ROOT / "target" / PROFILE / ("guinea" + SUFFIX)
 
 
 def data(response):

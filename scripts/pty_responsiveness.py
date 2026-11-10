@@ -1,7 +1,7 @@
 """Native PTY responsiveness budget (release binary, local development only).
 
 Measures fresh screen changes, including PTY transport and pyte parsing. Fails
-when any measured interactive response reaches 100 ms. I/O/render completion is
+when any measured interactive response exceeds 50 ms. I/O/render completion is
 reported separately from initial UI feedback. Only owned temporary files change.
 """
 import json
@@ -203,11 +203,11 @@ if __name__ == "__main__":
             large_review(root, size)
             workflow(root)
     finally:
-        report = {"budget_ms": 100, "input_bytes_max": size, "platform": platform.platform(),
+        report = {"budget_ms": 50, "input_bytes_max": size, "platform": platform.platform(),
                   "sample_count": len(RESULTS), "samples": RESULTS,
                   "background_completion": COMPLETIONS,
                   "max_ms": max((result["ms"] for result in RESULTS), default=None),
-                  "failures": [result for result in RESULTS if result["ms"] >= 100]}
+                  "failures": [result for result in RESULTS if result["ms"] > 50]}
         output = json.dumps(report, indent=2, ensure_ascii=False)
         (ROOT / "target" / "responsiveness.json").write_text(output, encoding="utf-8")
         print(json.dumps({key: value for key, value in report.items() if key != "samples"}, indent=2))

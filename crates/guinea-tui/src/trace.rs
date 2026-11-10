@@ -23,6 +23,7 @@ struct Sample {
     width: u16,
     height: u16,
     batch: usize,
+    agent_active: bool,
 }
 static SENDER: OnceLock<SyncSender<Sample>> = OnceLock::new();
 static START: OnceLock<Instant> = OnceLock::new();
@@ -49,7 +50,7 @@ fn write(file: File, rx: mpsc::Receiver<Sample>) {
     let mut writer = BufWriter::new(file);
     let _ = writeln!(
         writer,
-        "stage,microseconds,since_start_microseconds,operation,phase,file_bytes,viewport_width,viewport_height,batch_events"
+        "stage,microseconds,since_start_microseconds,operation,phase,file_bytes,viewport_width,viewport_height,batch_events,agent_active"
     );
     for sample in rx {
         if sample.stage == "trace_stop" {
@@ -57,7 +58,7 @@ fn write(file: File, rx: mpsc::Receiver<Sample>) {
         }
         if writeln!(
             writer,
-            "{},{},{},{},{},{},{},{},{}",
+            "{},{},{},{},{},{},{},{},{},{}",
             sample.stage,
             sample.micros,
             sample.since_start,
@@ -66,7 +67,8 @@ fn write(file: File, rx: mpsc::Receiver<Sample>) {
             sample.bytes,
             sample.width,
             sample.height,
-            sample.batch
+            sample.batch,
+            sample.agent_active
         )
         .is_err()
         {
@@ -77,7 +79,7 @@ fn write(file: File, rx: mpsc::Receiver<Sample>) {
     }
     let _ = writeln!(
         writer,
-        "dropped_samples,{},0,,,0,0,0,0",
+        "dropped_samples,{},0,,,0,0,0,0,false",
         DROPPED.load(Ordering::Relaxed)
     );
     let _ = writer.flush();
@@ -140,6 +142,7 @@ pub struct Interaction {
     bytes: usize,
     width: u16,
     height: u16,
+    agent_active: bool,
 }
 pub fn received(app: &crate::app::App, event: &crossterm::event::Event) -> Option<Interaction> {
     use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
@@ -199,6 +202,7 @@ pub fn received(app: &crate::app::App, event: &crossterm::event::Event) -> Optio
         bytes: app.document().buffer().len_bytes(),
         width: app.hits.editor_text.width,
         height: app.hits.editor_text.height,
+        agent_active: app.tabs.iter().any(|tab| tab.ai_action.is_some()),
     })
 }
 #[derive(Default)]
@@ -233,6 +237,7 @@ impl Frames {
                 width: input.width,
                 height: input.height,
                 batch,
+                agent_active: input.agent_active,
                 ..Sample::default()
             });
         }

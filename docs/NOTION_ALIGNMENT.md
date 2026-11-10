@@ -20,10 +20,16 @@ editor state một owner. Không triển khai GUI, LSP, plugin ABI hoặc paged 
 chỉ vì định hướng mới. File safety, Unicode, history và quyền Agent ưu tiên trước.
 
 Mục tiêu tương tác: p50 ≤10 ms, p95 ≤20 ms, p99 ≤50 ms theo category/corpus/phase.
-100 ms là ngưỡng điều tra; không phải SLA toàn cục. Cold End 916.326 ms còn mở.
+Mọi phản hồi >50 ms phải điều tra theo yêu cầu mới nhất, thay ngưỡng 100 ms cũ.
+Cold End 916.326 ms còn mở; không cam kết SLA toàn cục từ một tập đo.
 Các checks chạy local; GitHub Actions chưa kích hoạt theo chỉ đạo người dùng.
 
 ## Thứ tự thực hiện và trạng thái
+
+Điều chỉnh trực tiếp mới nhất của người dùng: **không cần kiểm chứng Ubuntu/SSH
+trong đợt tiếp theo; ưu tiên kiểm chứng độ trễ**. Các mục native/SSH trong roadmap
+bên dưới giữ như khoảng trống evidence, không chặn đợt latency hoặc buộc chuẩn bị
+môi trường remote. Xem [kế hoạch latency hiện hành](performance/INTERACTION_LATENCY_TARGETS.md).
 
 | Gate | Đối chiếu hiện tại | Việc còn lại |
 | --- | --- | --- |

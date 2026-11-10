@@ -108,7 +108,7 @@ def main():
             session.wait("CHILD_EXIT=0")
             for path, content in originals.items():
                 assert path.read_bytes() == content.encode()
-            report = {"sample_count": len(RESULTS), "max_ms": max(r["ms"] for r in RESULTS), "samples": RESULTS, "failures": [r for r in RESULTS if r["ms"] >= 100]}
+            report = {"sample_count": len(RESULTS), "max_ms": max(r["ms"] for r in RESULTS), "samples": RESULTS, "failures": [r for r in RESULTS if r["ms"] > 50]}
             (ROOT / "target/tab-responsiveness.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
             print(json.dumps({k:v for k,v in report.items() if k != "samples"}, indent=2))
             assert not report["failures"], "Tab response budget exceeded"

@@ -217,7 +217,7 @@ def run(binary, panic):
                 try:
                     import psutil
                     processes = psutil.Process(session.pid).children(recursive=True)
-                    editor = next(p for p in processes if p.name().lower().startswith("guineanote"))
+                    editor = next(p for p in processes if p.name().casefold() == binary.name.casefold())
                     before = editor.cpu_times()
                     start = time.monotonic()
                     output_before = len(session.output)

@@ -322,6 +322,9 @@ fn tab_label(tab: &crate::app::Tab, welcome: bool, locale: Locale) -> String {
 }
 
 fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
+    if area.is_empty() {
+        return;
+    }
     frame.render_widget(
         Block::default().style(Style::default().bg(theme.panel)),
         area,
@@ -1159,7 +1162,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
     };
     let areas = Layout::vertical([
         Constraint::Length(header_height),
-        Constraint::Length(0),
+        Constraint::Length(u16::from(header_height > 0)),
         Constraint::Min(1),
         Constraint::Length(1),
         Constraint::Length(1),

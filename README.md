@@ -6,6 +6,9 @@ Research and older measurements retain their historical names.
 
 New terminal workflow: Ctrl+E project files, Ctrl+G disk content search,
 F2 searchable command suggestions and `goto`, F11 focus mode, ANSI16 fallback.
+The main menu and tab-management toolbar have a dedicated separator, including
+compact layouts. Current performance policy investigates every interaction >50 ms;
+see [targets](docs/performance/INTERACTION_LATENCY_TARGETS.md).
 See [workflow and limits](docs/TERMINAL_WORKFLOW.md) and
 [grouped interaction baseline](docs/performance/LATENCY_BASELINE.md).
 

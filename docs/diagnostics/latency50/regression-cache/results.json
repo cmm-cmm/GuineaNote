@@ -1,0 +1,67 @@
+[
+  {
+    "script": "pty_smoke.py",
+    "exit": 0,
+    "seconds": 10.039
+  },
+  {
+    "script": "pty_workspace.py",
+    "exit": 0,
+    "seconds": 4.95
+  },
+  {
+    "script": "pty_project.py",
+    "exit": 0,
+    "seconds": 2.108
+  },
+  {
+    "script": "pty_tabs.py",
+    "exit": 0,
+    "seconds": 3.554
+  },
+  {
+    "script": "pty_dialog_mouse.py",
+    "exit": 0,
+    "seconds": 1.338
+  },
+  {
+    "script": "pty_dialogs_reader.py",
+    "exit": 0,
+    "seconds": 3.309
+  },
+  {
+    "script": "terminal_matrix.py",
+    "exit": 0,
+    "seconds": 2.227
+  },
+  {
+    "script": "pty_search.py",
+    "exit": 1,
+    "seconds": 2.172
+  },
+  {
+    "script": "pty_responsiveness.py",
+    "exit": 0,
+    "seconds": 9.99
+  },
+  {
+    "script": "pty_agent.py",
+    "exit": 0,
+    "seconds": 11.247
+  },
+  {
+    "script": "pty_agent_sessions.py",
+    "exit": 0,
+    "seconds": 0.883
+  },
+  {
+    "script": "pty_recovery.py",
+    "exit": 0,
+    "seconds": 4.44
+  },
+  {
+    "script": "pty_risk_stress.py",
+    "exit": 0,
+    "seconds": 0.969
+  }
+]
