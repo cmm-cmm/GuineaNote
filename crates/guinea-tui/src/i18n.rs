@@ -247,11 +247,11 @@ impl Locale {
             " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F7 Review   F2 Commands   ^Q Quit" => {
                 " ^S Lưu   ^O Mở   ^K Thư mục   ^B Cây   F4 Khung   F6 Tab   F7 Xem   F2 Lệnh   ^Q Thoát"
             }
-            "GUINEANOTE\nResize to at least 30 × 9\nCtrl+Q to quit" => {
-                "GUINEANOTE\nCần tối thiểu 30 × 9 ô\nCtrl+Q để thoát"
+            "GUINEA NOTE\nResize to at least 30 × 9\nCtrl+Q to quit" => {
+                "GUINEA NOTE\nCần tối thiểu 30 × 9 ô\nCtrl+Q để thoát"
             }
-            "GUINEANOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document" => {
-                "GUINEANOTE\n\nCtrl+O  Mở file\nCtrl+K  Mở thư mục\nCtrl+N  Tài liệu mới"
+            "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document" => {
+                "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+K  Mở thư mục\nCtrl+N  Tài liệu mới"
             }
             "\n\nEnter accepts     Esc cancels" => "\n\nEnter chấp nhận     Esc hủy",
             "\n\nnew  open  open-folder  save  save-as  close\nexplorer  focus  refresh  find  replace  quit\n\nType a command · Enter runs · Esc closes" => {
@@ -321,7 +321,7 @@ impl Locale {
     }
 }
 
-pub const HELP_VI: &str = "GuineaNote — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H tìm/thay thế\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nCtrl+P Quản lý thẻ: lọc, chuyển, lưu, đóng\nCtrl+T Thẻ trống · Ctrl+PgUp/PgDn chuyển thẻ\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nCtrl+E tìm file project · Ctrl+G tìm nội dung project\nF11 chế độ tập trung · F2 goto dòng[:cột]\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nTÌM / THAY THẾ\nEnter / Shift+Enter kết quả sau / trước\nTab chuyển ô/kết quả · Ctrl+R thay một\nCtrl+Shift+R thay tất cả · Esc đóng\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info,\nfiles, project-search, focus-mode, goto\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · phục hồi bản nháp định kỳ\nF1 / Esc đóng hướng dẫn";
+pub const HELP_VI: &str = "Guinea Note — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H tìm/thay thế\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nCtrl+P Quản lý thẻ: lọc, chuyển, lưu, đóng\nCtrl+T Thẻ trống · Ctrl+PgUp/PgDn chuyển thẻ\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nCtrl+E tìm file project · Ctrl+G tìm nội dung project\nF11 chế độ tập trung · F2 goto dòng[:cột]\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nTÌM / THAY THẾ\nEnter / Shift+Enter kết quả sau / trước\nTab chuyển ô/kết quả · Ctrl+R thay một\nCtrl+Shift+R thay tất cả · Esc đóng\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info,\nfiles, project-search, focus-mode, goto\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · phục hồi bản nháp định kỳ\nF1 / Esc đóng hướng dẫn";
 
 #[cfg(test)]
 mod tests {

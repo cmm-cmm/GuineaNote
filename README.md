@@ -1,7 +1,7 @@
-# GuineaNote
+# Guinea Note
 
 Current decisions: [Notion alignment](docs/NOTION_ALIGNMENT.md). Product name is
-**Guinea Note**; the executable migration to **guinea** is a separate release task.
+**Guinea Note**; the canonical executable is **guinea**. See the [migration policy](docs/CLI_MIGRATION.md).
 Research and older measurements retain their historical names.
 
 New terminal workflow: Ctrl+E project files, Ctrl+G disk content search,
@@ -20,17 +20,17 @@ cargo run --release -- --language vi .
 cargo run -- --help
 ```
 
-On Windows use `target\release\guineanote.exe`; on Linux/macOS use
-`target/release/guineanote`. Runtime does not require Rust or Node.js.
+On Windows use `target\release\guinea.exe`; on Linux/macOS use
+`target/release/guinea`. Runtime does not require Rust or Node.js.
 Build with current stable Rust and the native platform toolchain (MSVC build
 tools on Windows). During development checks run locally; GitHub Actions/CI
 is intentionally not configured. Linux/macOS runtime verification remains
 pending. No package has been published.
 
-Open a workspace with `guineanote .` or `cargo run -- .` during development.
+Open a workspace with `guinea .` or `cargo run -- .` during development.
 No arguments show the current directory and welcome screen. Open a standalone
-file with `guineanote file.txt`, or combine a folder and files with
-`guineanote . src/main.rs README.md`.
+file with `guinea file.txt`, or combine a folder and files with
+`guinea . src/main.rs README.md`.
 
 The workspace has a lazy directory tree, tab strip, breadcrumbs, syntax colors,
 current-line highlighting and a status/shortcut bar. Directories expand on
@@ -40,7 +40,7 @@ toolbar actions, or place the editor caret, when mouse support is enabled. Use F
 returns from the tree to the editor. The sidebar hides automatically below
 66 columns. Recommended workspace size: 100×28 or larger.
 
-Open several files with `guineanote a.txt b.txt`. Missing paths become buffers;
+Open several files with `guinea a.txt b.txt`. Missing paths become buffers;
 files are created only on save. Use `--readonly` to prevent edits and saves,
 `--config guineanote.example.toml` for explicit TOML configuration, and
 `--help` / `--version` without entering the terminal UI. An interactive terminal

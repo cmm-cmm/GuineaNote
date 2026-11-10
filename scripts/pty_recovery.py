@@ -10,7 +10,7 @@ import tempfile
 import time
 from pty_smoke import ROOT, Session
 
-BINARY = ROOT / "target/release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 
 
 def checkpoints(root):
@@ -29,7 +29,7 @@ def wait_checkpoint(ui, root, payload, previous=()):
 def crash(ui):
     import psutil
     editor = next(p for p in psutil.Process(ui.pid).children(recursive=True)
-                  if p.name().lower().startswith("guineanote"))
+                  if p.name().casefold() == BINARY.name.casefold())
     editor.kill()
     editor.wait(timeout=10)
     # The forced kill intentionally bypasses the editor's normal cleanup.

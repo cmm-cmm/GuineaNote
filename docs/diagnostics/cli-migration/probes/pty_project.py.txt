@@ -1,0 +1,35 @@
+D:\Project\GuineaNote\target\previews\project-files.png
+D:\Project\GuineaNote\target\previews\project-text-search.png
+D:\Project\GuineaNote\target\previews\focus-editor.png
+{
+  "samples": [
+    {
+      "action": "project:open-files",
+      "ms": 18.084
+    },
+    {
+      "action": "project:path-query",
+      "ms": 14.745
+    },
+    {
+      "action": "project:find-across-files",
+      "ms": 3.403
+    },
+    {
+      "action": "project:content-query",
+      "ms": 15.677
+    },
+    {
+      "action": "project:focus-on",
+      "ms": 5.062
+    },
+    {
+      "action": "project:focus-off",
+      "ms": 4.405
+    }
+  ],
+  "sample_count": 6,
+  "max_ms": 18.084,
+  "disk_unchanged": true,
+  "stale_dirty_buffer_retained": true
+}

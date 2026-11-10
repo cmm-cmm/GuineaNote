@@ -15,18 +15,31 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Latest checkpoint — architectural risk mitigation, 2026-11-10
+## Current checkpoint — official executable guinea, 2026-11-10
 
-Superseded for current TUI work by the checkpoint below; risk controls and
-historical evidence remain valid within their documented scope.
+Product Guinea Note; canonical executable guinea/guinea.exe. Root Cargo package
+guineanote, config/preferences/recovery paths, GUINEANOTE_* and Agent/MCP binaries
+and IPC contracts remain unchanged. No legacy editor alias or package publication.
+See [migration policy](CLI_MIGRATION.md) and
+[native evidence](performance/CLI_MIGRATION_VALIDATION.md).
 
-## Latest TUI checkpoint — Notion alignment, 2026-11-10
+134 Rust tests, strict native and Linux/macOS cross-Clippy, fmt and release build
+pass. Native Windows smoke verifies help/version, open/save Unicode/BOM/mixed EOL,
+project, Settings, Agent and recovery on guinea.exe; terminal matrix 6/6 passes.
+The recovery harness's old process-name filter failed once; exact executable
+matching and repeat passed, with original failure retained. 2016 warm samples in
+28 groups meet goals for this run, all-phase max 22.349 ms, zero dropped rows;
+trace on/off use the same binary. No cold-tail/global SLA or native Unix/SSH
+certification. Cold End 916.326 ms remains open; Actions remains inactive.
+
+## Previous TUI checkpoint — Notion alignment, 2026-11-10
 
 Project file/content picker, command suggestions, grapheme-aware goto with
 out-of-range rejection, focus mode, compact editor header, ANSI16 fallback,
 Windows newline handling and grouped input-to-flush tracing are implemented.
 See [terminal workflow](TERMINAL_WORKFLOW.md) and [Notion decisions](NOTION_ALIGNMENT.md).
-The executable rename to guinea is a separate release task.
+The executable rename to guinea is tracked separately in
+[CLI migration](CLI_MIGRATION.md); package/paths/protocol identities stay compatible.
 
 134 Rust tests, fmt, native and Linux/macOS cross-Clippy, release workspace build
 and dependency audit pass. Native Windows functional probes cover tabs,

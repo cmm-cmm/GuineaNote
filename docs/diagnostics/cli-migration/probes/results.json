@@ -1,0 +1,52 @@
+{
+  "binary": "guinea.exe",
+  "binary_sha256": "94ded262c8376943e7a188854b7c73a5fc867a5aeb31b45964afa5c3792c46b3",
+  "cases": [
+    {
+      "script": "pty_smoke.py",
+      "exit": 0,
+      "seconds": 8.124
+    },
+    {
+      "script": "pty_workspace.py",
+      "exit": 0,
+      "seconds": 4.724
+    },
+    {
+      "script": "pty_project.py",
+      "exit": 0,
+      "seconds": 2.205
+    },
+    {
+      "script": "terminal_matrix.py",
+      "exit": 0,
+      "seconds": 2.234
+    },
+    {
+      "script": "pty_agent.py",
+      "exit": 0,
+      "seconds": 9.991
+    },
+    {
+      "script": "pty_recovery.py",
+      "exit": 1,
+      "seconds": 1.668
+    },
+    {
+      "script": "pty_recovery.py",
+      "attempt": 2,
+      "exit": 0,
+      "evidence": "pty_recovery-repeat.txt",
+      "correction": "Exact executable-name matching in owned child tree"
+    }
+  ],
+  "latest_case_status": {
+    "pty_smoke.py": 0,
+    "pty_workspace.py": 0,
+    "pty_project.py": 0,
+    "terminal_matrix.py": 0,
+    "pty_agent.py": 0,
+    "pty_recovery.py": 0
+  },
+  "final_status": "PASS"
+}

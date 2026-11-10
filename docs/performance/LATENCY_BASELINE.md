@@ -1,5 +1,9 @@
 # Baseline độ trễ tương tác — 10/11/2026
 
+Checkpoint executable mới: [kiểm chứng guinea](CLI_MIGRATION_VALIDATION.md),
+2016 warm samples / 28 nhóm, all-phase max 22.349 ms. Phần dưới giữ baseline
+trước migration (checkpoint TUI af420c5), không thay số liệu lịch sử.
+
 Native Windows x64/MSVC release, ConPTY + pyte; viewport 100×28, resize 80×24.
 Đây là baseline của phiên bản có thay đổi chưa commit trên nền `f2ac4214dc8ac19692c3ae4bebac6b86ff8702a3`.
 Commit bao chứa tài liệu này xác định checkpoint; source/binary SHA256 có trong

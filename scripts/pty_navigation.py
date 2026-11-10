@@ -13,7 +13,7 @@ import time
 from pty_responsiveness import action, RESULTS
 from pty_smoke import ROOT, Session
 
-BINARY = ROOT / "target/release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 
 
 def main():

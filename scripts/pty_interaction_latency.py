@@ -18,7 +18,7 @@ from collections import defaultdict
 from pty_smoke import ROOT, Session
 from pty_responsiveness import action, RESULTS
 
-BINARY=ROOT/'target/release'/('guineanote.exe' if os.name=='nt' else 'guineanote')
+BINARY=ROOT/'target/release'/('guinea.exe' if os.name=='nt' else 'guinea')
 
 
 def stats(values):
@@ -35,6 +35,7 @@ def source_hash():
     h=hashlib.sha256()
     paths=[ROOT/'Cargo.toml',ROOT/'Cargo.lock']
     paths+=list((ROOT/'crates').rglob('*.rs'))+list((ROOT/'crates').rglob('Cargo.toml'))
+    paths+=list((ROOT/'src').rglob('*.rs'))
     for p in sorted(paths):
         h.update(str(p.relative_to(ROOT)).replace('\\','/').encode());h.update(b'\0');h.update(p.read_bytes())
     return h.hexdigest()
@@ -124,6 +125,7 @@ def main():
     report={'profile':'release','platform':platform.platform(),'terminal':'ConPTY' if os.name=='nt' else 'native PTY',
             'term':os.getenv('TERM'),'colorterm':os.getenv('COLORTERM'),'git_head':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
             'source_sha256':source_hash(),'binary_sha256':hashlib.sha256(BINARY.read_bytes()).hexdigest(),
+            'source_hash_scope':'Cargo.toml, Cargo.lock, crates/**/*.rs, crates/**/Cargo.toml, src/**/*.rs; includes relative paths and original working-tree bytes',
             'trace_enabled':not args.no_trace,'dropped_samples':dropped,'sessions':sessions,'application_groups':summary,
             'pty_samples':RESULTS,'pty_groups':[{'operation':k,**stats(v)} for k,v in sorted(observed.items())],
             'warnings':[g for g in summary if g['status']=='needs_investigation'],

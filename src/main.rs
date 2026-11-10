@@ -3,10 +3,10 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(
-    name = "guineanote",
+    name = "guinea",
     version,
     about = "Unicode-aware terminal text editor",
-    after_help = "Open a folder with: guineanote .\nOpen individual files with: guineanote a.txt b.txt\nCtrl+B toggles the explorer; F4 switches panes."
+    after_help = "Open a folder with: guinea .\nOpen individual files with: guinea a.txt b.txt\nCtrl+B toggles the explorer; F4 switches panes."
 )]
 struct Args {
     /// Files or a workspace folder. Missing file paths become unsaved buffers.
@@ -46,7 +46,7 @@ fn main() -> std::process::ExitCode {
     ) {
         Ok(()) => std::process::ExitCode::SUCCESS,
         Err(error) => {
-            eprintln!("GuineaNote: {error}");
+            eprintln!("Guinea Note: {error}");
             std::process::ExitCode::FAILURE
         }
     }

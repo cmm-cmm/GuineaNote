@@ -1,0 +1,20 @@
+Unicode-aware terminal text editor
+
+Usage: guinea.exe [OPTIONS] [FILES]...
+
+Arguments:
+  [FILES]...  Files or a workspace folder. Missing file paths become unsaved buffers
+
+Options:
+      --readonly             Disable document edits and saves
+      --config <PATH>        Read editor configuration from a TOML file
+      --language <LANGUAGE>  Interface language: Vietnamese or English (F8 opens Settings) [possible values: vi, en]
+      --agent                Enable local Agent access to this workspace and unsaved buffers
+      --agent-write          Grant Agent patch/save/new/close capabilities for this session
+      --agent-secrets        Explicitly allow Agent reads of sensitive paths such as .env
+  -h, --help                 Print help
+  -V, --version              Print version
+
+Open a folder with: guinea .
+Open individual files with: guinea a.txt b.txt
+Ctrl+B toggles the explorer; F4 switches panes.

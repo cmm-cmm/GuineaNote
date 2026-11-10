@@ -105,7 +105,7 @@ pub fn run_with_agent(
         };
     }
     if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
-        return Err("GuineaNote requires an interactive terminal (try --help)".into());
+        return Err("Guinea Note requires an interactive terminal (try --help)".into());
     }
     let _trace = trace::start()?;
     let _guard = TerminalGuard::enter()?;

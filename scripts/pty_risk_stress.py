@@ -13,7 +13,7 @@ import time
 from pty_smoke import ROOT, Session
 from pty_responsiveness import action, RESULTS
 
-BINARY = ROOT / "target/release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 
 
 def main():
@@ -32,7 +32,7 @@ def main():
         try:
             ui.wait("Opened")
             editor = next(p for p in psutil.Process(ui.pid).children(recursive=True)
-                          if p.name().lower().startswith("guineanote"))
+                          if p.name().casefold() == BINARY.name.casefold())
             def observe():
                 while not stop.wait(.005):
                     try:

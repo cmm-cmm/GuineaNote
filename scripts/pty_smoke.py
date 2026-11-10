@@ -289,7 +289,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--probe-child":
         raise SystemExit(probe_child(sys.argv[2:]))
     parser = argparse.ArgumentParser()
-    parser.add_argument("--binary", type=Path, default=ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote"))
+    parser.add_argument("--binary", type=Path, default=ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea"))
     parser.add_argument("--panic", type=Path)
     args = parser.parse_args()
     run((args.panic or args.binary).resolve(), args.panic is not None)

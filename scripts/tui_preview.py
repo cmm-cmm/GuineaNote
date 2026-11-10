@@ -62,7 +62,7 @@ def snapshot(session, name):
 
 
 def main():
-    binary = ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+    binary = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
     session = Session([str(binary), str(ROOT)], colors=True)
     try:
         session.resize(36, 124)

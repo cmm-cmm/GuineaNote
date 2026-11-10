@@ -12,7 +12,7 @@ Tên sản phẩm là **Guinea Note**, executable đích là **`guinea`**. Repos
 `cmm-cmm/GuineaNote`, Cargo package `guineanote`, crate IDs, config/preferences,
 recovery paths, biến môi trường GUINEANOTE_* và Agent/MCP IPC giữ nguyên.
 Không suy diễn package name còn khả dụng và không publish. Đổi executable là
-hạng mục riêng với kiểm thử migration; không trộn với sửa save/text engine.
+hạng mục riêng với [chính sách migration](CLI_MIGRATION.md); không trộn với sửa save/text engine.
 Các nghiên cứu và raw benchmark cũ giữ nguyên tên, hash và số liệu lịch sử.
 
 Terminal/TUI vẫn là sản phẩm chính: Rust native, Ropey, Ratatui/Crossterm,

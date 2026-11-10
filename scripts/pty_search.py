@@ -11,7 +11,7 @@ from pty_responsiveness import action,RESULTS
 from pty_dialog_mouse import click
 from tui_preview import snapshot
 
-BINARY=ROOT/"target/release"/("guineanote.exe" if os.name=="nt" else "guineanote")
+BINARY=ROOT/"target/release"/("guinea.exe" if os.name=="nt" else "guinea")
 COMPLETIONS=[]
 
 

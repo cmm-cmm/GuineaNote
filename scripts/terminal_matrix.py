@@ -5,7 +5,7 @@ mode requires python3 and the binary already installed; never installs services
 or changes SSH configuration. Examples:
   python scripts/terminal_matrix.py
   python scripts/terminal_matrix.py --tmux
-  python scripts/terminal_matrix.py --ssh user@host --remote-binary /opt/guineanote
+  python scripts/terminal_matrix.py --ssh user@host --remote-binary /opt/guinea
 """
 import argparse
 import base64
@@ -23,7 +23,7 @@ from pty_smoke import ROOT, Session
 
 def main():
     parser=argparse.ArgumentParser()
-    parser.add_argument('--binary',type=Path,default=ROOT/'target/release'/('guineanote.exe' if os.name=='nt' else 'guineanote'))
+    parser.add_argument('--binary',type=Path,default=ROOT/'target/release'/('guinea.exe' if os.name=='nt' else 'guinea'))
     parser.add_argument('--ssh');parser.add_argument('--remote-binary');parser.add_argument('--tmux',action='store_true')
     args=parser.parse_args()
     if args.ssh and (args.ssh.startswith('-') or any(c.isspace() for c in args.ssh) or not args.remote_binary):

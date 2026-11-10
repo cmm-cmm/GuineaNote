@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "D:\Project\GuineaNote\scripts\pty_recovery.py", line 110, in <module>
+    main()
+    ~~~~^^
+  File "D:\Project\GuineaNote\scripts\pty_recovery.py", line 62, in main
+    crash(ui)
+    ~~~~~^^^^
+  File "D:\Project\GuineaNote\scripts\pty_recovery.py", line 31, in crash
+    editor = next(p for p in psutil.Process(ui.pid).children(recursive=True)
+                  if p.name().lower().startswith("guineanote"))
+StopIteration

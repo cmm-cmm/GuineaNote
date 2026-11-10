@@ -1,7 +1,7 @@
 use std::process::{Command, Stdio};
 
 fn binary() -> Command {
-    Command::new(env!("CARGO_BIN_EXE_guineanote"))
+    Command::new(env!("CARGO_BIN_EXE_guinea"))
 }
 
 #[test]
@@ -12,11 +12,13 @@ fn help_and_version_need_no_terminal() {
     assert!(text.contains("--readonly"));
     assert!(text.contains("--config"));
     assert!(text.contains("--language"));
+    assert!(text.contains("Usage: guinea"));
+    assert!(text.contains("guinea a.txt b.txt"));
     let version = binary().arg("--version").output().unwrap();
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8(version.stdout).unwrap().trim(),
-        "guineanote 0.1.0"
+        "guinea 0.1.0"
     );
 }
 

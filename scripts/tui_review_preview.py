@@ -7,7 +7,7 @@ from tui_preview import snapshot
 
 
 def main():
-    binary = ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+    binary = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
     with tempfile.TemporaryDirectory(prefix="guineanote-preview-") as directory:
         root = Path(directory)
         fixtures = [

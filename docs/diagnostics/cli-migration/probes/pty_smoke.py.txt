@@ -1,0 +1,5 @@
+{
+  "pty": "PASS",
+  "panic": false,
+  "cpu_sampling": "NOT TESTED: "
+}

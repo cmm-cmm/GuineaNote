@@ -9,7 +9,7 @@ from pty_responsiveness import action, RESULTS
 from pty_smoke import ROOT, Session
 from tui_preview import snapshot
 
-BINARY=ROOT/"target/release"/("guineanote.exe" if os.name=="nt" else "guineanote")
+BINARY=ROOT/"target/release"/("guinea.exe" if os.name=="nt" else "guinea")
 
 
 def pointer(x,y,button=0,release=True):

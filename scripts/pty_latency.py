@@ -23,12 +23,12 @@ def measure(size, samples=31):
         assert size >= len(prefix) + len(suffix)
         original = prefix + "a" * (size - len(prefix) - len(suffix)) + suffix
         path.write_bytes(original.encode())
-        binary = ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+        binary = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
         session = Session([str(binary), str(path)])
         try:
             session.wait("Opened")
             editor = next(process for process in psutil.Process(session.pid).children(recursive=True)
-                          if process.name().lower().startswith("guineanote"))
+                          if process.name().casefold() == binary.name.casefold())
             memory = editor.memory_info()
             rss_samples = [memory.rss]
             latencies = []

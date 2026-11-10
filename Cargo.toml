@@ -24,11 +24,16 @@ unsafe_code = "forbid"
 
 [package]
 name = "guineanote"
+autobins = false
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
 description = "A Unicode-aware terminal text editor"
+
+[[bin]]
+name = "guinea"
+path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }

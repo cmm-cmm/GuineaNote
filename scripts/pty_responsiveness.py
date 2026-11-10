@@ -13,7 +13,7 @@ import tempfile
 import time
 from pty_smoke import ROOT, Session
 
-BINARY = ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+BINARY = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
 RESULTS = []
 COMPLETIONS = []
 

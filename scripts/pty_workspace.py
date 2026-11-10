@@ -16,7 +16,7 @@ def run():
         source.write_text(original, encoding="utf-8", newline="")
         readme = root / "README.md"
         readme.write_text("# workspace smoke\n", encoding="utf-8", newline="")
-        binary = ROOT / "target" / "release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+        binary = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
         session = Session([str(binary), str(root)], colors=True)
         try:
             session.wait("EXPLORER")

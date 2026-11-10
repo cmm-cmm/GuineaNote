@@ -82,7 +82,7 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.height > 1 {
         let brand = Line::from(vec![
             Span::styled(" G/ ", bold(theme.accent)),
-            Span::styled("GUINEA", bold(theme.text)),
+            Span::styled("GUINEA ", bold(theme.text)),
             Span::styled("NOTE", bold(theme.accent)),
             Span::styled(
                 locale.tr("    A little more focused.").into_owned(),
@@ -494,7 +494,7 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.height < 10 || area.width < 34 {
         frame.render_widget(
             Paragraph::new(
-                locale.tr("GUINEANOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document").into_owned(),
+                locale.tr("GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document").into_owned(),
             )
             .style(text_style(theme.accent))
             .alignment(Alignment::Center),
@@ -1141,7 +1141,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         frame.render_widget(
             Paragraph::new(
                 locale
-                    .tr("GUINEANOTE\nResize to at least 30 × 9\nCtrl+Q to quit")
+                    .tr("GUINEA NOTE\nResize to at least 30 × 9\nCtrl+Q to quit")
                     .into_owned(),
             )
             .style(text_style(theme.accent)),

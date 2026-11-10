@@ -7,7 +7,7 @@ import tempfile
 from pty_smoke import ROOT, Session
 from tui_preview import snapshot as capture
 
-BINARY = ROOT / "target/release" / ("guineanote.exe" if os.name == "nt" else "guineanote")
+BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 F7, F8, F9 = "\x1b[18~", "\x1b[19~", "\x1b[20~"
 
 
