@@ -1,0 +1,265 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "profile": "release",
+  "file_bytes": 10485760,
+  "workload": "MCP analyze live JSON array while human navigates, opens dialogs and edits another tab",
+  "samples": 28,
+  "concurrent_samples": 28,
+  "max_ms": 12.799,
+  "investigation_threshold_ms": 50,
+  "agent_analysis_completion_ms": 1404.003,
+  "results": [
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 12.074,
+      "send_ms": 0.078,
+      "wait_observe_ms": 12.032,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 6.951,
+      "send_ms": 0.052,
+      "wait_observe_ms": 6.913,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 6.025,
+      "send_ms": 0.035,
+      "wait_observe_ms": 6.0,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 4.99,
+      "send_ms": 0.033,
+      "wait_observe_ms": 4.965,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 6.7,
+      "send_ms": 0.04,
+      "wait_observe_ms": 6.672,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 6.257,
+      "send_ms": 0.027,
+      "wait_observe_ms": 6.24,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 6.135,
+      "send_ms": 0.026,
+      "wait_observe_ms": 6.119,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 5.429,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.41,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 5.571,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.557,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 54,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:navigate-locked-source",
+      "ms": 5.544,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.521,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 35,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:blocked-edit-feedback",
+      "ms": 6.02,
+      "send_ms": 0.033,
+      "wait_observe_ms": 6.0,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 136,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-open",
+      "ms": 7.906,
+      "send_ms": 0.049,
+      "wait_observe_ms": 7.868,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1031,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-cancel",
+      "ms": 8.791,
+      "send_ms": 0.038,
+      "wait_observe_ms": 8.765,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 3459,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:tabs-open",
+      "ms": 8.163,
+      "send_ms": 0.033,
+      "wait_observe_ms": 8.139,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1030,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:tabs-cancel",
+      "ms": 8.406,
+      "send_ms": 0.029,
+      "wait_observe_ms": 8.387,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 2263,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:new-other-tab",
+      "ms": 12.799,
+      "send_ms": 0.029,
+      "wait_observe_ms": 12.786,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 2059,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 6.517,
+      "send_ms": 0.04,
+      "wait_observe_ms": 6.488,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 99,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 5.362,
+      "send_ms": 0.028,
+      "wait_observe_ms": 5.343,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 6.64,
+      "send_ms": 0.025,
+      "wait_observe_ms": 6.626,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 6.348,
+      "send_ms": 0.031,
+      "wait_observe_ms": 6.326,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 6.177,
+      "send_ms": 0.027,
+      "wait_observe_ms": 6.162,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 4.666,
+      "send_ms": 0.033,
+      "wait_observe_ms": 4.642,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 4.528,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.509,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 6.429,
+      "send_ms": 0.029,
+      "wait_observe_ms": 6.409,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 51,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 4.627,
+      "send_ms": 0.027,
+      "wait_observe_ms": 4.607,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:type-other-tab",
+      "ms": 4.838,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.824,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 70,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:settings-on-other-tab",
+      "ms": 5.903,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.883,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1030,
+      "AI_active_at_input": true
+    },
+    {
+      "action": "ai:cancel-other-tab-settings",
+      "ms": 8.941,
+      "send_ms": 0.024,
+      "wait_observe_ms": 8.937,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 2461,
+      "AI_active_at_input": true
+    }
+  ]
+}

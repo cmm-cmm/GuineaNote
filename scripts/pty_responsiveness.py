@@ -20,7 +20,10 @@ COMPLETIONS = []
 
 def action(session, name, keys, expected):
     start = time.perf_counter()
+    observer_cpu = time.process_time()
+    output_before = len(session.output)
     session.send(keys)
+    sent = time.perf_counter()
     if callable(expected):
         deadline = time.monotonic()+30
         while not expected("\n".join(session.screen.display)):
@@ -29,7 +32,11 @@ def action(session, name, keys, expected):
     else:
         session.wait(expected, timeout=30)
     elapsed = round((time.perf_counter() - start) * 1000, 3)
-    RESULTS.append({"action": name, "ms": elapsed})
+    RESULTS.append({"action": name, "ms": elapsed,
+                    "send_ms": round((sent-start)*1000,3),
+                    "wait_observe_ms": round((time.perf_counter()-sent)*1000,3),
+                    "observer_cpu_ms": round((time.process_time()-observer_cpu)*1000,3),
+                    "output_bytes": len(session.output)-output_before})
     return elapsed
 
 

@@ -1,0 +1,22 @@
+
+running 29 tests
+...................... 22/29
+view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout --- FAILED
+......
+failures:
+
+---- view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout stdout ----
+
+thread 'view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout' (21036) panicked at crates\guinea-core\src\view.rs:765:17:
+assertion `left == right` failed
+  left: 19488
+ right: 512
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+
+failures:
+    view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout
+
+test result: FAILED. 28 passed; 1 failed; 0 ignored; 0 measured; 0 filtered out; finished in 25.14s
+
+error: test failed, to rerun pass `-p guinea-core --lib`

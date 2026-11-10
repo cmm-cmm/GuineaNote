@@ -15,7 +15,27 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Current checkpoint — 50 ms investigations and menu/tab separation
+## Current checkpoint — paused by user, ASCII layout performance
+
+Development is paused at the user's request. Code, harness and evidence are
+checkpointed together; see [pause/process report](performance/ASCII_LAYOUT_PAUSE.md).
+The dev2 review was rejected and the branch was deleted by explicit user request;
+the current work started independently from dev fe46835.
+
+Long ASCII lines now use the existing layout cache. Printable-ASCII edits before
+the first tab preserve exact cell checkpoints; other edits retain conservative
+fallback. New full ASCII layout copies are bypassed above 16 MiB. Cache RAM
+increases for long ASCII lines; this is documented, not a memory reduction claim.
+
+140 Rust tests, strict native Clippy and release build pass. All scheduled final
+local probes finished before pause and exited 0. Final ASCII corpus: 364 internal
+samples, max 4.346 ms; warm End p95 ASCII/tabbed lines 2.131/2.169 ms versus
+78.776/112.062 ms before. No final ASCII response >50 ms; previous failures and
+intermediate p95 misses remain in raw evidence. Search PTY 55.417 ms and historical
+cold End 916.326 ms remain open investigations. No Ubuntu/SSH runtime validation,
+GitHub Actions or package publication. No new development runs after pause.
+
+## Previous checkpoint — 50 ms investigations and menu/tab separation
 
 Every interactive response >50 ms now requires investigation. Local Windows/
 ConPTY is the current validation scope; Ubuntu/SSH is excluded by user request.

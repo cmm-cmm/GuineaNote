@@ -51,8 +51,8 @@ struct Checkpoint {
     graphemes: usize,
 }
 
-/// Sparse display index for long Unicode lines. Printable ASCII takes the
-/// allocation-free path below. The cached text and index are shared by clones.
+/// Sparse display index for long lines, including ASCII and tabs. Short lines
+/// keep their direct path; cached text and indexes are shared by clones.
 #[derive(Debug, Clone)]
 pub(crate) struct LineLayout<'a> {
     line: usize,
@@ -433,16 +433,18 @@ impl Document {
                 cached.start = cached.start.saturating_add_signed(scalar_delta);
             }
         }
-        // A complete, tab-free index survives small printable-ASCII edits
-        // between ASCII neighbors. All four coordinate units shift equally.
-        // Unicode joins, controls, tabs and incomplete indexes use the normal
-        // conservative rebuild path below.
+        // Complete indexes survive small printable-ASCII edits between ASCII
+        // neighbors. Before the first tab, cell shifts become a multiple of
+        // tab width after that tab; later stops preserve the same alignment.
+        // Other edits keep conservative invalidation below.
         let printable = |b: &u8| matches!(b, 0x20..=0x7e);
-        let retain_index = layout.scanned.byte == layout.text.len()
-            && layout.first_tab.is_none()
-            && bytes.len().max(text.len()) <= 4096
+        let ascii_edit = bytes.len().max(text.len()) <= 4096
             && text.as_bytes().iter().all(printable)
-            && layout.text.as_bytes()[bytes.clone()].iter().all(printable)
+            && layout.text.as_bytes()[bytes.clone()].iter().all(printable);
+        let first_tab = layout.first_tab;
+        let retain_index = layout.scanned.byte == layout.text.len()
+            && first_tab.is_none_or(|(at, _)| at >= chars + bytes.len())
+            && ascii_edit
             && (bytes.start == 0
                 || layout
                     .text
@@ -453,16 +455,31 @@ impl Document {
         let old_end = bytes.end;
         let edit_start = bytes.start;
         let delta = text.len() as isize - bytes.len() as isize;
-        layout.text.replace(bytes, text, retain_index);
+        // Prefix storage reuse is independent of index retention: a tabbed
+        // suffix still needs fresh cell checkpoints after an edit, but its
+        // bytes do not need to move for an eligible ASCII prefix deletion.
+        layout.text.replace(bytes, text, ascii_edit);
         if retain_index {
+            let tab = layout.tab.max(1);
+            let after_tab_delta = first_tab.map_or(delta, |(_, before)| {
+                let shifted = before.saturating_add_signed(delta);
+                let old_after = before + tab - before % tab;
+                let new_after = shifted + tab - shifted % tab;
+                new_after as isize - old_after as isize
+            });
             layout
                 .checkpoints
                 .retain(|p| p.byte <= edit_start || p.byte >= old_end);
             let shift = |p: &mut Checkpoint| {
                 if p.byte >= old_end && p.byte > edit_start {
+                    let cell_delta = if first_tab.is_some_and(|(at, _)| p.chars > at) {
+                        after_tab_delta
+                    } else {
+                        delta
+                    };
                     p.byte = p.byte.saturating_add_signed(delta);
                     p.chars = p.chars.saturating_add_signed(delta);
-                    p.cells = p.cells.saturating_add_signed(delta);
+                    p.cells = p.cells.saturating_add_signed(cell_delta);
                     p.graphemes = p.graphemes.saturating_add_signed(delta);
                 }
             };
@@ -470,6 +487,12 @@ impl Document {
                 shift(point);
             }
             shift(&mut layout.scanned);
+            layout.first_tab = first_tab.map(|(at, before)| {
+                (
+                    at.saturating_add_signed(delta),
+                    before.saturating_add_signed(delta),
+                )
+            });
             layout.revision = self.revision();
             return;
         }
@@ -480,6 +503,12 @@ impl Document {
             .max(1);
         layout.checkpoints.truncate(retain);
         layout.scanned = layout.checkpoints.last().unwrap().clone();
+        if layout
+            .first_tab
+            .is_some_and(|(at, _)| at >= layout.scanned.chars)
+        {
+            layout.first_tab = None;
+        }
         layout.revision = self.revision();
     }
     pub(crate) fn indexed_line(
@@ -508,10 +537,14 @@ impl Document {
                 if range.len() < 8192 {
                     return None;
                 }
-                let bytes = self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0
-                    - self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0;
-                if bytes == range.len() {
-                    return None;
+                // Do not add a full ASCII text copy for oversized opt-in lines.
+                // Their direct path remains available outside the 10 MiB corpus.
+                if range.len() > 16 * 1024 * 1024 {
+                    let bytes = self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0
+                        - self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0;
+                    if bytes == range.len() {
+                        return None;
+                    }
                 }
                 if let Some(old) = cache.take() {
                     others.push_back(old);
@@ -700,6 +733,164 @@ impl Document {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn oversized_ascii_line_does_not_allocate_a_full_layout_copy() {
+        let document = Document::from_text(&"a".repeat(17 * 1024 * 1024));
+        let window = document.line_window(0, 0, 40, 4).unwrap();
+        assert_eq!(window.text, "a".repeat(40));
+        assert_eq!(document.view_cache_bytes(), 0);
+    }
+
+    #[test]
+    fn prefix_ascii_edits_preserve_global_tab_stops_without_reindexing() {
+        let original = format!("abc\t{}", "界 e\u{301} 👩‍💻 ab\t".repeat(1000));
+        for tab in [3, 4, 8] {
+            let mut document = Document::from_text(&original);
+            document.prepare_view(tab);
+            for count in [1, 5, 8] {
+                document.select(0, 0).unwrap();
+                document.insert(&"x".repeat(count)).unwrap();
+                for history in 0..3 {
+                    if history == 1 {
+                        document.undo().unwrap();
+                    }
+                    if history == 2 {
+                        document.redo().unwrap();
+                    }
+                    assert!(
+                        document
+                            .view
+                            .layout_cache
+                            .borrow()
+                            .as_ref()
+                            .is_some_and(|c| c.scanned.byte == c.text.len()),
+                        "index must stay complete"
+                    );
+                    let text = document.text();
+                    document.move_cursor(crate::Movement::Finish, false);
+                    assert_eq!(document.position().1, text.graphemes(true).count());
+                    let expected = cell_column(&text, CharIndex(text.chars().count()), tab)
+                        .unwrap()
+                        .0;
+                    assert_eq!(document.cursor_cell(tab), expected);
+                    for left in [0, 2, 512, expected.saturating_sub(40)] {
+                        let window = document.line_window(0, left, 40, tab).unwrap();
+                        let prefix = document.buffer().slice(0..window.char_start).unwrap();
+                        assert_eq!(
+                            window.cell_start,
+                            cell_column(&prefix, CharIndex(prefix.chars().count()), tab)
+                                .unwrap()
+                                .0
+                        );
+                        assert!(document.is_grapheme_boundary(window.char_start));
+                    }
+                }
+                document.select(0, count).unwrap();
+                document.insert("").unwrap();
+                assert_eq!(document.text(), original);
+                assert!(
+                    document
+                        .view
+                        .layout_cache
+                        .borrow()
+                        .as_ref()
+                        .is_some_and(|c| c.scanned.byte == c.text.len())
+                );
+                document.move_cursor(crate::Movement::Finish, false);
+                assert_eq!(
+                    document.cursor_cell(tab),
+                    cell_column(&original, CharIndex(original.chars().count()), tab)
+                        .unwrap()
+                        .0
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn long_ascii_cache_preserves_combining_edits_at_checkpoints() {
+        let mut document = Document::from_text(&"a".repeat(20_000));
+        document.prepare_view(4);
+        assert!(document.view.layout_cache.borrow().is_some());
+        document.select(512, 512).unwrap();
+        document.insert("\u{301}").unwrap();
+        assert_eq!(document.position(), (0, 512));
+        assert_eq!(document.cursor_cell(4), 512);
+        let window = document.line_window(0, 512, 10, 4).unwrap();
+        assert_eq!(window.char_start, 513);
+        assert!(document.is_grapheme_boundary(window.char_start));
+        document.undo().unwrap();
+        assert_eq!(document.text(), "a".repeat(20_000));
+        document.redo().unwrap();
+        assert_eq!(document.position(), (0, 512));
+
+        let text = format!("{}\u{301}{}", "a".repeat(983), "b".repeat(20_000));
+        let mut joined = Document::from_text(&text);
+        joined.prepare_view(4);
+        joined.move_cursor(crate::Movement::Finish, false);
+        assert_eq!(joined.position().1, 20_983);
+        assert_eq!(joined.cursor_cell(4), 20_983);
+    }
+
+    #[test]
+    fn ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout() {
+        let original = format!("{}\r\nsecond\n", "a\tbc\r".repeat(4000));
+        let mut document = Document::from_text(&original);
+        document.prepare_view(4);
+        document.insert("xyz").unwrap();
+        let snapshot = document.review_snapshot();
+        document.select(0, 3).unwrap();
+        document.insert("").unwrap();
+        assert!(
+            document
+                .view
+                .layout_cache
+                .borrow()
+                .as_ref()
+                .unwrap()
+                .text
+                .head
+                > 0
+        );
+        assert_eq!(document.text(), original);
+        assert_eq!(snapshot.text(), format!("xyz{original}"));
+        for inserted in ["abc", "\t", "e\u{301}", "👩‍💻", "\r\n"] {
+            document.select(512, 512).unwrap();
+            document.insert(inserted).unwrap();
+            for history in 0..3 {
+                if history == 1 {
+                    document.undo().unwrap();
+                }
+                if history == 2 {
+                    document.redo().unwrap();
+                }
+                let text = document
+                    .buffer()
+                    .slice(document.line_bounds(0).unwrap())
+                    .unwrap();
+                document.move_cursor(crate::Movement::Start, false);
+                document.move_cursor(crate::Movement::End, false);
+                assert_eq!(document.position().1, text.graphemes(true).count());
+                for tab in [3, 4, 8] {
+                    let expected = cell_column(&text, CharIndex(text.chars().count()), tab)
+                        .unwrap()
+                        .0;
+                    assert_eq!(document.cursor_cell(tab), expected);
+                    let window = document
+                        .line_window(0, expected.saturating_sub(80), 80, tab)
+                        .unwrap();
+                    assert!(document.is_grapheme_boundary(window.char_start));
+                    assert!(
+                        document
+                            .is_grapheme_boundary(window.char_start + window.text.chars().count())
+                    );
+                }
+            }
+            document.undo().unwrap();
+            assert_eq!(document.text(), original);
+        }
+    }
+
     #[test]
     fn prefix_cache_reuse_preserves_snapshots_unicode_fallback_and_coordinates() {
         let original = format!("marker {}", "e\u{301} 界 👩‍💻 🇻🇳 ".repeat(1500));

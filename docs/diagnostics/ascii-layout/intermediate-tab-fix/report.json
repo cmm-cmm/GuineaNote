@@ -1,0 +1,1792 @@
+{
+  "git_head": "fe46835bf41dc2070523989bc7c9991fc13aab4e",
+  "source_sha256": "1586f0d92cc04dc173d5dc700ae3b3edf86644e36dd6a304e6f644f9699dc860",
+  "binary_sha256": "013e0a7ba7f1c55763c8ce9553aa9c2eda0968dd08c64d3dda1898d2ef2b976a",
+  "profile": "release",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "trace_enabled": true,
+  "iterations": 30,
+  "investigation_threshold_ms": 50,
+  "sessions": [
+    {
+      "fixture": "ascii",
+      "bytes": 10485760,
+      "open_feedback_ms": 1358.4311000304297,
+      "rss_at_open": 32727040,
+      "max_sampled_rss": 32845824,
+      "os_peak_working_set": 37154816
+    },
+    {
+      "fixture": "ascii-tabs",
+      "bytes": 10485759,
+      "open_feedback_ms": 410.8081999584101,
+      "rss_at_open": 32608256,
+      "max_sampled_rss": 32747520,
+      "os_peak_working_set": 36835328
+    }
+  ],
+  "application_groups": [
+    {
+      "fixture": "ascii",
+      "operation": "caret",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.947,
+      "p95_ms": 1.947,
+      "p99_ms": 1.947,
+      "max_ms": 1.947,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "caret",
+      "phase": "warm",
+      "n": 59,
+      "p50_ms": 1.441,
+      "p95_ms": 1.916,
+      "p99_ms": 2.263,
+      "max_ms": 2.263,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.597,
+      "p95_ms": 1.597,
+      "p99_ms": 1.597,
+      "max_ms": 1.597,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "delete",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.794,
+      "p95_ms": 1.794,
+      "p99_ms": 1.794,
+      "max_ms": 1.794,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "delete",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.513,
+      "p95_ms": 2.156,
+      "p99_ms": 2.696,
+      "max_ms": 2.696,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "long_line_end",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.429,
+      "p95_ms": 1.429,
+      "p99_ms": 1.429,
+      "max_ms": 1.429,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "long_line_end",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.477,
+      "p95_ms": 1.857,
+      "p99_ms": 2.013,
+      "max_ms": 2.013,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "long_line_home",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.982,
+      "p95_ms": 1.982,
+      "p99_ms": 1.982,
+      "max_ms": 1.982,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "long_line_home",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.279,
+      "p95_ms": 1.658,
+      "p99_ms": 1.684,
+      "max_ms": 1.684,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.258,
+      "p95_ms": 1.258,
+      "p99_ms": 1.258,
+      "max_ms": 1.258,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "typing",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 3.541,
+      "p95_ms": 3.541,
+      "p99_ms": 3.541,
+      "max_ms": 3.541,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii",
+      "operation": "typing",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.564,
+      "p95_ms": 2.226,
+      "p99_ms": 2.292,
+      "max_ms": 2.292,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "caret",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.29,
+      "p95_ms": 1.29,
+      "p99_ms": 1.29,
+      "max_ms": 1.29,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "caret",
+      "phase": "warm",
+      "n": 59,
+      "p50_ms": 1.407,
+      "p95_ms": 1.984,
+      "p99_ms": 2.779,
+      "max_ms": 2.779,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.094,
+      "p95_ms": 2.094,
+      "p99_ms": 2.094,
+      "max_ms": 2.094,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "delete",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.54,
+      "p95_ms": 1.54,
+      "p99_ms": 1.54,
+      "max_ms": 1.54,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "delete",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.536,
+      "p95_ms": 2.173,
+      "p99_ms": 2.329,
+      "max_ms": 2.329,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "long_line_end",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.256,
+      "p95_ms": 1.256,
+      "p99_ms": 1.256,
+      "max_ms": 1.256,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "long_line_end",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.41,
+      "p95_ms": 2.083,
+      "p99_ms": 2.629,
+      "max_ms": 2.629,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "long_line_home",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.232,
+      "p95_ms": 1.232,
+      "p99_ms": 1.232,
+      "max_ms": 1.232,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "long_line_home",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.255,
+      "p95_ms": 1.912,
+      "p99_ms": 2.23,
+      "max_ms": 2.23,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.642,
+      "p95_ms": 1.642,
+      "p99_ms": 1.642,
+      "max_ms": 1.642,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "typing",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 2.791,
+      "p95_ms": 2.791,
+      "p99_ms": 2.791,
+      "max_ms": 2.791,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "ascii-tabs",
+      "operation": "typing",
+      "phase": "warm",
+      "n": 29,
+      "p50_ms": 1.563,
+      "p95_ms": 2.042,
+      "p99_ms": 2.173,
+      "max_ms": 2.173,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    }
+  ],
+  "application_investigations": [],
+  "pty_samples": [
+    {
+      "action": "ascii:end",
+      "ms": 5.357
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.049
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.64
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.043
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.317
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 8.156
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.952
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.24
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.762
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.605
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.724
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.508
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.969
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.33
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.953
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.915
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.308
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.332
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.751
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.471
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.277
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.202
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.559
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.503
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.036
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.025
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.656
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.01
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.431
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.271
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.932
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.903
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.313
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.554
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.35
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 10.216
+    },
+    {
+      "action": "ascii:end",
+      "ms": 8.793
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.742
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.786
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.84
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.982
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.92
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.686
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.947
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.504
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.942
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.985
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.525
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.975
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.775
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.671
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.51
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.369
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.919
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.345
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.047
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.734
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.856
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.075
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 7.821
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.828
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.05
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.945
+    },
+    {
+      "action": "ascii:home",
+      "ms": 9.146
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.434
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.699
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.818
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.868
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.637
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.755
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.043
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.728
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.168
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.622
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.441
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.79
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.794
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.232
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.214
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.574
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.495
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.239
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.576
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.733
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.569
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.67
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.68
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.675
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.171
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.003
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.908
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.364
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.237
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.34
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.99
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.78
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.276
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.962
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.718
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.229
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.796
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.218
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.238
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.855
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.726
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.453
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.19
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.086
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.5
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.59
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.29
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.359
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.199
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 7.722
+    },
+    {
+      "action": "ascii:end",
+      "ms": 7.77
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.046
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.367
+    },
+    {
+      "action": "ascii:home",
+      "ms": 7.994
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.66
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.737
+    },
+    {
+      "action": "ascii:end",
+      "ms": 7.239
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.467
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.084
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.042
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.048
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 9.734
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.373
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.998
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.583
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.197
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.539
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.933
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.654
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.83
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.844
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.624
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.12
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.405
+    },
+    {
+      "action": "ascii:end",
+      "ms": 8.583
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.516
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.935
+    },
+    {
+      "action": "ascii:home",
+      "ms": 7.451
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.743
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.799
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.594
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.667
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.151
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.839
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.279
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.911
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.107
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.375
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.183
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.092
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.982
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 9.131
+    },
+    {
+      "action": "ascii:end",
+      "ms": 8.327
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.943
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.177
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.003
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.795
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.362
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.723
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.243
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.39
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.86
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.164
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.076
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.16
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.794
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.013
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.436
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.384
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.965
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.437
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.034
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.128
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.953
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.317
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.752
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.073
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 8.396
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.151
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.831
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.187
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.171
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.966
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.576
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.536
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.756
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.989
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.826
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.375
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.882
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.52
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.402
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.675
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.767
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.137
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.699
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.885
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.084
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.416
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.312
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.338
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.934
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.663
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.02
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.282
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 9.527
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.713
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.727
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.901
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.591
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.104
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.16
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.958
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.751
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 8.69
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.704
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.709
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.784
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.052
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.878
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.219
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.072
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.723
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.868
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.742
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 8.457
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 8.568
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.011
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.902
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.495
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.09
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.143
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.565
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.611
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.117
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.967
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.277
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.333
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.344
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.268
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.711
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.455
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 9.576
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 11.365
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 10.539
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.3
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.479
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.308
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.356
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.858
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.464
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.995
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.97
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.806
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.853
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.251
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.671
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.455
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.376
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.878
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.59
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.808
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.004
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.187
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.013
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.336
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.534
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.201
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.821
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.232
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.766
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.825
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.702
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.452
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.772
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.031
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.987
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.435
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.017
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.812
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.854
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.45
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.565
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.277
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.805
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.928
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.967
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.133
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.934
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.931
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.388
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 9.61
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.331
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 10.059
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.518
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.535
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 11.106
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.927
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.744
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.604
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.497
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.0
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 10.275
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.027
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.329
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.345
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.314
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.27
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.654
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.668
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.733
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.322
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.916
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.569
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.083
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 8.815
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.083
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.968
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.548
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.167
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.751
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.271
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.375
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.174
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.845
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 10.065
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 10.685
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 10.512
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 12.835
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.774
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 8.069
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 8.915
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 10.05
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 8.9
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 8.841
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 11.998
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.37
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 9.356
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 13.319
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 10.084
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 9.338
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 8.007
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.551
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.382
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.926
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 9.571
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 8.979
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.86
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 9.072
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.539
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.873
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.119
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 9.401
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.876
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.455
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.999
+    }
+  ],
+  "pty_investigations": [],
+  "dropped_samples": 0,
+  "limits": [
+    "Main-loop receipt after decode; excludes adapter queue and physical paint",
+    "Same terminal 100x28; Windows/ConPTY only when run on Windows",
+    "RSS observations are not an allocator bound; open completion is separate"
+  ]
+}

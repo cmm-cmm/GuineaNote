@@ -1,0 +1,73 @@
+[
+  {
+    "script": "pty_ascii_navigation.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_ascii_navigation.py",
+    "args": [
+      "--no-trace"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "pty_search.py",
+    "args": [
+      "--trace"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "pty_responsiveness.py",
+    "args": [
+      "10485760"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "pty_agent.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_recovery.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "terminal_matrix.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_navigation.py",
+    "args": [
+      "--trace",
+      "--record-only",
+      "--cold-runs",
+      "20"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "pty_contention_latency.py",
+    "args": [
+      "--runs",
+      "10"
+    ],
+    "exit": 0
+  },
+  {
+    "script": "pty_interaction_latency.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_interaction_latency.py",
+    "args": [
+      "--no-trace"
+    ],
+    "exit": 0
+  }
+]

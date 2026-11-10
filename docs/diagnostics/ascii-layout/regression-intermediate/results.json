@@ -1,0 +1,29 @@
+[
+  {
+    "script": "pty_smoke.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_project.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_tabs.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_dialog_mouse.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "script": "pty_search.py",
+    "args": [
+      "--trace"
+    ],
+    "exit": 1
+  }
+]

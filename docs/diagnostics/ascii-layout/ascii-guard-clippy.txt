@@ -1,0 +1,7 @@
+    Checking guinea-core v0.1.0 (D:\Project\GuineaNote\crates\guinea-core)
+    Checking guinea-io v0.1.0 (D:\Project\GuineaNote\crates\guinea-io)
+    Checking guinea-service v0.1.0 (D:\Project\GuineaNote\crates\guinea-service)
+    Checking guinea-tui v0.1.0 (D:\Project\GuineaNote\crates\guinea-tui)
+    Checking guinea-agent v0.1.0 (D:\Project\GuineaNote\crates\guinea-agent)
+    Checking guineanote v0.1.0 (D:\Project\GuineaNote)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.42s

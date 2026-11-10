@@ -1,0 +1,23 @@
+{
+  "report": "D:\\Project\\GuineaNote\\target\\ascii-navigation-1794324162281967300\\report.json",
+  "investigations": 0,
+  "dropped": 0,
+  "sessions": [
+    {
+      "fixture": "ascii",
+      "bytes": 10485760,
+      "open_feedback_ms": 1120.3292999998666,
+      "rss_at_open": 32391168,
+      "max_sampled_rss": 32784384,
+      "os_peak_working_set": 36835328
+    },
+    {
+      "fixture": "ascii-tabs",
+      "bytes": 10485759,
+      "open_feedback_ms": 421.13630002131686,
+      "rss_at_open": 33710080,
+      "max_sampled_rss": 33878016,
+      "os_peak_working_set": 36855808
+    }
+  ]
+}

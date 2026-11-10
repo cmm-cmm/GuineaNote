@@ -64,6 +64,13 @@ insertion. Ropey remains authoritative; Unicode joins, tabs, incomplete indexes
 and other edits keep conservative invalidation. Cache charging includes retained
 prefix storage. This is a display-cache optimization, not a new document backend
 or a hard RSS/capacity bound.
+
+The ASCII checkpoint now uses this same long-line cache, with no Unicode engine
+replacement. Before the first tab, safe printable-ASCII edits shift cells by the
+edit delta until that tab and by the aligned tab-stop delta afterwards. Partial
+index invalidation clears first-tab metadata inside the rewound region. New
+full-line ASCII cache creation is bypassed above 16 MiB; the original direct path
+remains. See the [pause report and RAM observations](performance/ASCII_LAYOUT_PAUSE.md).
 Inactive source-layout text and review caches each have a 32 MiB aggregate target;
 active working sets, object overhead and pending work are additional memory.
 

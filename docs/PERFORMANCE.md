@@ -1,5 +1,10 @@
 # Performance measurements
 
+Current development state: **paused by user**. Latest ASCII/tabbed long-line
+results, failed samples, RAM trade-off and restart notes are in the
+[pause checkpoint](performance/ASCII_LAYOUT_PAUSE.md). Existing measurements below
+remain historical; no universal SLA is inferred.
+
 ## Current interaction targets — 2026-11-10
 
 The adopted goals are p50 <=10 ms, p95 <=20 ms and p99 <=50 ms per operation,

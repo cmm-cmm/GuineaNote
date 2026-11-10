@@ -1,0 +1,2919 @@
+{
+  "git_head": "fe46835bf41dc2070523989bc7c9991fc13aab4e",
+  "source_sha256": "11c3bec02528d8e764d4ee94da2d143bb648cbc1f8be8e026269e9b442a3f7d2",
+  "binary_sha256": "e3df71d5a3c6c2ed24934a1c634cc86684e9d6ed8e3f01d813f400d08ab2e833",
+  "profile": "release",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "trace_enabled": false,
+  "iterations": 30,
+  "investigation_threshold_ms": 50,
+  "sessions": [
+    {
+      "fixture": "ascii",
+      "bytes": 10485760,
+      "open_feedback_ms": 389.6960000274703,
+      "rss_at_open": 31703040,
+      "max_sampled_rss": 32006144,
+      "os_peak_working_set": 36085760
+    },
+    {
+      "fixture": "ascii-tabs",
+      "bytes": 10485759,
+      "open_feedback_ms": 395.5771999899298,
+      "rss_at_open": 31887360,
+      "max_sampled_rss": 32313344,
+      "os_peak_working_set": 36257792
+    }
+  ],
+  "application_groups": [],
+  "application_investigations": [],
+  "pty_samples": [
+    {
+      "action": "ascii:end",
+      "ms": 5.719,
+      "send_ms": 0.045,
+      "wait_observe_ms": 5.706,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 71
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.362,
+      "send_ms": 0.039,
+      "wait_observe_ms": 7.338,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.436,
+      "send_ms": 0.039,
+      "wait_observe_ms": 6.41,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.478,
+      "send_ms": 0.037,
+      "wait_observe_ms": 5.451,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 78
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.463,
+      "send_ms": 0.034,
+      "wait_observe_ms": 6.442,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 99
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.464,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.443,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.506,
+      "send_ms": 0.037,
+      "wait_observe_ms": 5.479,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.654,
+      "send_ms": 0.058,
+      "wait_observe_ms": 6.609,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.154,
+      "send_ms": 0.039,
+      "wait_observe_ms": 7.125,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.495,
+      "send_ms": 0.029,
+      "wait_observe_ms": 6.476,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.23,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.209,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.372,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.351,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.942,
+      "send_ms": 0.023,
+      "wait_observe_ms": 6.927,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.601,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.582,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.066,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.051,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.989,
+      "send_ms": 0.029,
+      "wait_observe_ms": 6.974,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.312,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.29,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.342,
+      "send_ms": 0.024,
+      "wait_observe_ms": 6.329,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 7.074,
+      "send_ms": 0.024,
+      "wait_observe_ms": 7.062,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.158,
+      "send_ms": 0.038,
+      "wait_observe_ms": 5.129,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.866,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.857,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.329,
+      "send_ms": 0.033,
+      "wait_observe_ms": 6.307,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.36,
+      "send_ms": 0.027,
+      "wait_observe_ms": 4.338,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.021,
+      "send_ms": 0.016,
+      "wait_observe_ms": 6.018,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.089,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.066,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.166,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.15,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.811,
+      "send_ms": 0.023,
+      "wait_observe_ms": 5.805,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.736,
+      "send_ms": 0.038,
+      "wait_observe_ms": 5.707,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.615,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.593,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.167,
+      "send_ms": 0.021,
+      "wait_observe_ms": 6.157,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.433,
+      "send_ms": 0.041,
+      "wait_observe_ms": 5.401,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.916,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.906,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.496,
+      "send_ms": 0.035,
+      "wait_observe_ms": 5.471,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.682,
+      "send_ms": 0.036,
+      "wait_observe_ms": 5.655,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.43,
+      "send_ms": 0.026,
+      "wait_observe_ms": 5.412,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.455,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.441,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.199,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.187,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.366,
+      "send_ms": 0.03,
+      "wait_observe_ms": 4.343,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.193,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.171,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.344,
+      "send_ms": 0.027,
+      "wait_observe_ms": 4.324,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.462,
+      "send_ms": 0.026,
+      "wait_observe_ms": 6.452,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 9.868,
+      "send_ms": 0.036,
+      "wait_observe_ms": 9.848,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.535,
+      "send_ms": 0.039,
+      "wait_observe_ms": 6.509,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.985,
+      "send_ms": 0.033,
+      "wait_observe_ms": 4.96,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.335,
+      "send_ms": 0.024,
+      "wait_observe_ms": 8.325,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 9.989,
+      "send_ms": 0.031,
+      "wait_observe_ms": 9.973,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 8.493,
+      "send_ms": 0.085,
+      "wait_observe_ms": 8.427,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.256,
+      "send_ms": 0.062,
+      "wait_observe_ms": 6.204,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.636,
+      "send_ms": 0.035,
+      "wait_observe_ms": 5.614,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.236,
+      "send_ms": 0.036,
+      "wait_observe_ms": 5.209,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.758,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.744,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.707,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.69,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.368,
+      "send_ms": 0.023,
+      "wait_observe_ms": 6.355,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.396,
+      "send_ms": 0.023,
+      "wait_observe_ms": 6.384,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.609,
+      "send_ms": 0.029,
+      "wait_observe_ms": 6.591,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.731,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.715,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.862,
+      "send_ms": 0.031,
+      "wait_observe_ms": 4.841,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.642,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.63,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.262,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.253,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 8.237,
+      "send_ms": 0.034,
+      "wait_observe_ms": 8.218,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 8.821,
+      "send_ms": 0.044,
+      "wait_observe_ms": 8.792,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.155,
+      "send_ms": 0.043,
+      "wait_observe_ms": 6.123,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.703,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.682,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.502,
+      "send_ms": 0.032,
+      "wait_observe_ms": 6.481,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.027,
+      "send_ms": 0.028,
+      "wait_observe_ms": 5.01,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.848,
+      "send_ms": 0.023,
+      "wait_observe_ms": 4.837,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 8.36,
+      "send_ms": 0.041,
+      "wait_observe_ms": 8.331,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.305,
+      "send_ms": 0.03,
+      "wait_observe_ms": 7.29,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.277,
+      "send_ms": 0.037,
+      "wait_observe_ms": 7.253,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.442,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.423,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.507,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.485,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.945,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.934,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.236,
+      "send_ms": 0.033,
+      "wait_observe_ms": 6.212,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.534,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.516,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 6.629,
+      "send_ms": 0.022,
+      "wait_observe_ms": 6.619,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.82,
+      "send_ms": 0.049,
+      "wait_observe_ms": 5.78,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.639,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.622,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.675,
+      "send_ms": 0.023,
+      "wait_observe_ms": 5.662,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.634,
+      "send_ms": 0.03,
+      "wait_observe_ms": 4.611,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.087,
+      "send_ms": 0.023,
+      "wait_observe_ms": 5.071,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.577,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.565,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.946,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.927,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.606,
+      "send_ms": 0.024,
+      "wait_observe_ms": 6.593,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 7.333,
+      "send_ms": 0.031,
+      "wait_observe_ms": 7.315,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.581,
+      "send_ms": 0.035,
+      "wait_observe_ms": 5.555,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.856,
+      "send_ms": 0.028,
+      "wait_observe_ms": 6.846,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.729,
+      "send_ms": 0.053,
+      "wait_observe_ms": 5.686,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 7.027,
+      "send_ms": 0.03,
+      "wait_observe_ms": 7.007,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.142,
+      "send_ms": 0.028,
+      "wait_observe_ms": 6.126,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.543,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.521,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.099,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.082,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.207,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.197,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 9.181,
+      "send_ms": 0.031,
+      "wait_observe_ms": 9.167,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.868,
+      "send_ms": 0.044,
+      "wait_observe_ms": 6.835,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.401,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.381,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.774,
+      "send_ms": 0.036,
+      "wait_observe_ms": 6.753,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.998,
+      "send_ms": 0.038,
+      "wait_observe_ms": 4.97,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.585,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.567,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.704,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.689,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.332,
+      "send_ms": 0.021,
+      "wait_observe_ms": 6.318,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.513,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.498,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.904,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.892,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.551,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.533,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.252,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.239,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.432,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.417,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 7.065,
+      "send_ms": 0.015,
+      "wait_observe_ms": 7.061,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.496,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.475,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.274,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.258,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.264,
+      "send_ms": 0.037,
+      "wait_observe_ms": 5.236,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.31,
+      "send_ms": 0.026,
+      "wait_observe_ms": 6.294,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.536,
+      "send_ms": 0.033,
+      "wait_observe_ms": 5.509,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.207,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.191,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.404,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.392,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.689,
+      "send_ms": 0.022,
+      "wait_observe_ms": 6.676,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.888,
+      "send_ms": 0.032,
+      "wait_observe_ms": 4.864,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.005,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.991,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.132,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.115,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.639,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.625,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.468,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.457,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.736,
+      "send_ms": 0.029,
+      "wait_observe_ms": 6.717,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.907,
+      "send_ms": 0.035,
+      "wait_observe_ms": 4.879,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.073,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.06,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.283,
+      "send_ms": 0.049,
+      "wait_observe_ms": 5.241,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.343,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.326,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 4.844,
+      "send_ms": 0.018,
+      "wait_observe_ms": 4.832,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.463,
+      "send_ms": 0.02,
+      "wait_observe_ms": 5.45,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.47,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.451,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.624,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.612,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.94,
+      "send_ms": 0.023,
+      "wait_observe_ms": 4.924,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.053,
+      "send_ms": 0.018,
+      "wait_observe_ms": 4.04,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.577,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.569,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.539,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.518,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.178,
+      "send_ms": 0.025,
+      "wait_observe_ms": 5.161,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.881,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.865,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.294,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.278,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.408,
+      "send_ms": 0.02,
+      "wait_observe_ms": 5.396,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.284,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.268,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.229,
+      "send_ms": 0.017,
+      "wait_observe_ms": 4.219,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.57,
+      "send_ms": 0.023,
+      "wait_observe_ms": 6.559,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 6.641,
+      "send_ms": 0.031,
+      "wait_observe_ms": 6.621,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 7.568,
+      "send_ms": 0.035,
+      "wait_observe_ms": 7.551,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.575,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.552,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.381,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.365,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.183,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.165,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.174,
+      "send_ms": 0.025,
+      "wait_observe_ms": 5.157,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.508,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.489,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.359,
+      "send_ms": 0.023,
+      "wait_observe_ms": 5.345,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.205,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.182,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 7.672,
+      "send_ms": 0.024,
+      "wait_observe_ms": 7.659,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.164,
+      "send_ms": 0.036,
+      "wait_observe_ms": 5.136,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.977,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.965,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 7.027,
+      "send_ms": 0.025,
+      "wait_observe_ms": 7.012,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 8.837,
+      "send_ms": 0.035,
+      "wait_observe_ms": 8.814,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 7.846,
+      "send_ms": 0.037,
+      "wait_observe_ms": 7.817,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.291,
+      "send_ms": 0.026,
+      "wait_observe_ms": 5.273,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.893,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.876,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.619,
+      "send_ms": 0.027,
+      "wait_observe_ms": 4.598,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.58,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.567,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 5.055,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.041,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.4,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.388,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.061,
+      "send_ms": 0.028,
+      "wait_observe_ms": 6.042,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.956,
+      "send_ms": 0.038,
+      "wait_observe_ms": 6.927,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 4.771,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.751,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 4.747,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.728,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.442,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.428,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 4.433,
+      "send_ms": 0.023,
+      "wait_observe_ms": 4.417,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 6.81,
+      "send_ms": 0.021,
+      "wait_observe_ms": 6.803,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 6.82,
+      "send_ms": 0.041,
+      "wait_observe_ms": 6.789,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 6.516,
+      "send_ms": 0.028,
+      "wait_observe_ms": 6.501,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.633,
+      "send_ms": 0.036,
+      "wait_observe_ms": 5.605,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.813,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.792,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 5.566,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.552,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.008,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.993,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 4.4,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.387,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:end",
+      "ms": 5.418,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.405,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 73
+    },
+    {
+      "action": "ascii:left",
+      "ms": 5.586,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.563,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:right",
+      "ms": 4.412,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.395,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 46
+    },
+    {
+      "action": "ascii:home",
+      "ms": 6.083,
+      "send_ms": 0.021,
+      "wait_observe_ms": 6.071,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 74
+    },
+    {
+      "action": "ascii:type",
+      "ms": 5.926,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.906,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii:delete",
+      "ms": 5.134,
+      "send_ms": 0.026,
+      "wait_observe_ms": 5.117,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 41
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.098,
+      "send_ms": 0.042,
+      "wait_observe_ms": 6.073,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 291
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 9.028,
+      "send_ms": 0.041,
+      "wait_observe_ms": 9.001,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.875,
+      "send_ms": 0.044,
+      "wait_observe_ms": 6.842,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.752,
+      "send_ms": 0.027,
+      "wait_observe_ms": 7.736,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 298
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.022,
+      "send_ms": 0.031,
+      "wait_observe_ms": 6.003,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 101
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.157,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.139,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.777,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.764,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.604,
+      "send_ms": 0.031,
+      "wait_observe_ms": 6.587,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.825,
+      "send_ms": 0.035,
+      "wait_observe_ms": 4.798,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.079,
+      "send_ms": 0.027,
+      "wait_observe_ms": 6.064,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.579,
+      "send_ms": 0.032,
+      "wait_observe_ms": 4.556,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.806,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.784,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.044,
+      "send_ms": 0.033,
+      "wait_observe_ms": 8.022,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.665,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.644,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.287,
+      "send_ms": 0.038,
+      "wait_observe_ms": 7.265,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.921,
+      "send_ms": 0.04,
+      "wait_observe_ms": 6.892,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.097,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.08,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.138,
+      "send_ms": 0.033,
+      "wait_observe_ms": 7.117,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.746,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.722,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.589,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.576,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.769,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.746,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.895,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.87,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.013,
+      "send_ms": 0.032,
+      "wait_observe_ms": 4.991,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.643,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.625,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.955,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.933,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.936,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.919,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.048,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.034,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 4.971,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.959,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.016,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.994,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.107,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.086,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.422,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.4,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.948,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.933,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.846,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.832,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 4.709,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.692,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.775,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.754,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.303,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.293,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.362,
+      "send_ms": 0.026,
+      "wait_observe_ms": 5.343,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.27,
+      "send_ms": 0.018,
+      "wait_observe_ms": 4.259,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.159,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.148,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.965,
+      "send_ms": 0.024,
+      "wait_observe_ms": 6.951,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.887,
+      "send_ms": 0.023,
+      "wait_observe_ms": 4.871,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.217,
+      "send_ms": 0.017,
+      "wait_observe_ms": 4.208,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 4.833,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.816,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.345,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.33,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.045,
+      "send_ms": 0.019,
+      "wait_observe_ms": 6.035,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.64,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.616,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 3.933,
+      "send_ms": 0.018,
+      "wait_observe_ms": 3.92,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.255,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.246,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.783,
+      "send_ms": 0.035,
+      "wait_observe_ms": 5.759,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.586,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.57,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.706,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.694,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 4.612,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.59,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.821,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.811,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.195,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.185,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.006,
+      "send_ms": 0.017,
+      "wait_observe_ms": 5.0,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.938,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.917,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.873,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.854,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.496,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.475,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.301,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.278,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.134,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.122,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 4.621,
+      "send_ms": 0.03,
+      "wait_observe_ms": 4.597,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 3.981,
+      "send_ms": 0.018,
+      "wait_observe_ms": 3.968,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.427,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.418,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.415,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.404,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.748,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.726,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.194,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.185,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.226,
+      "send_ms": 0.024,
+      "wait_observe_ms": 6.214,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.195,
+      "send_ms": 0.054,
+      "wait_observe_ms": 5.148,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.934,
+      "send_ms": 0.023,
+      "wait_observe_ms": 4.919,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.001,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.977,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.154,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.14,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.383,
+      "send_ms": 0.016,
+      "wait_observe_ms": 4.374,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.058,
+      "send_ms": 0.026,
+      "wait_observe_ms": 6.041,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.312,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.297,
+      "observer_cpu_ms": 31.25,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.27,
+      "send_ms": 0.017,
+      "wait_observe_ms": 4.259,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.736,
+      "send_ms": 0.015,
+      "wait_observe_ms": 7.736,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.392,
+      "send_ms": 0.04,
+      "wait_observe_ms": 6.361,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.438,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.426,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.323,
+      "send_ms": 0.038,
+      "wait_observe_ms": 5.294,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.243,
+      "send_ms": 0.02,
+      "wait_observe_ms": 5.229,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.879,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.871,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.759,
+      "send_ms": 0.034,
+      "wait_observe_ms": 5.732,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.009,
+      "send_ms": 0.018,
+      "wait_observe_ms": 3.996,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.559,
+      "send_ms": 0.015,
+      "wait_observe_ms": 4.552,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.306,
+      "send_ms": 0.031,
+      "wait_observe_ms": 6.285,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.586,
+      "send_ms": 0.023,
+      "wait_observe_ms": 5.57,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.606,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.594,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.111,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.101,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.904,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.893,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.549,
+      "send_ms": 0.028,
+      "wait_observe_ms": 4.528,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.426,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.41,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.239,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.226,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.65,
+      "send_ms": 0.017,
+      "wait_observe_ms": 5.643,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.088,
+      "send_ms": 0.025,
+      "wait_observe_ms": 5.073,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.014,
+      "send_ms": 0.029,
+      "wait_observe_ms": 4.993,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.12,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.107,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.137,
+      "send_ms": 0.019,
+      "wait_observe_ms": 6.127,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.951,
+      "send_ms": 0.032,
+      "wait_observe_ms": 4.926,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.257,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.244,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.834,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.833,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.867,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.852,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.129,
+      "send_ms": 0.016,
+      "wait_observe_ms": 6.124,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.019,
+      "send_ms": 0.043,
+      "wait_observe_ms": 5.986,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.87,
+      "send_ms": 0.025,
+      "wait_observe_ms": 5.857,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.155,
+      "send_ms": 0.035,
+      "wait_observe_ms": 7.128,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.055,
+      "send_ms": 0.021,
+      "wait_observe_ms": 6.043,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.072,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.049,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.14,
+      "send_ms": 0.018,
+      "wait_observe_ms": 4.128,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.642,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.631,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 7.127,
+      "send_ms": 0.019,
+      "wait_observe_ms": 7.119,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.836,
+      "send_ms": 0.035,
+      "wait_observe_ms": 7.811,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.714,
+      "send_ms": 0.04,
+      "wait_observe_ms": 7.684,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.988,
+      "send_ms": 0.033,
+      "wait_observe_ms": 4.962,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.71,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.697,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.241,
+      "send_ms": 0.032,
+      "wait_observe_ms": 6.218,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.101,
+      "send_ms": 0.027,
+      "wait_observe_ms": 5.082,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 5.064,
+      "send_ms": 0.021,
+      "wait_observe_ms": 5.054,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.95,
+      "send_ms": 0.037,
+      "wait_observe_ms": 6.924,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.751,
+      "send_ms": 0.03,
+      "wait_observe_ms": 4.729,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.309,
+      "send_ms": 0.032,
+      "wait_observe_ms": 5.288,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.789,
+      "send_ms": 0.029,
+      "wait_observe_ms": 5.769,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.655,
+      "send_ms": 0.025,
+      "wait_observe_ms": 6.642,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.214,
+      "send_ms": 0.032,
+      "wait_observe_ms": 6.191,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.97,
+      "send_ms": 0.031,
+      "wait_observe_ms": 5.95,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.249,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.227,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.684,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.67,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.306,
+      "send_ms": 0.034,
+      "wait_observe_ms": 5.281,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.669,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.652,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.784,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.773,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 4.734,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.715,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.363,
+      "send_ms": 0.019,
+      "wait_observe_ms": 5.35,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.055,
+      "send_ms": 0.018,
+      "wait_observe_ms": 5.046,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.703,
+      "send_ms": 0.07,
+      "wait_observe_ms": 6.645,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.697,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.679,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.462,
+      "send_ms": 0.024,
+      "wait_observe_ms": 4.445,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.19,
+      "send_ms": 0.022,
+      "wait_observe_ms": 5.176,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.171,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.159,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.955,
+      "send_ms": 0.021,
+      "wait_observe_ms": 4.942,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 4.945,
+      "send_ms": 0.022,
+      "wait_observe_ms": 4.932,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 4.246,
+      "send_ms": 0.027,
+      "wait_observe_ms": 4.225,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.171,
+      "send_ms": 0.017,
+      "wait_observe_ms": 4.159,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.069,
+      "send_ms": 0.022,
+      "wait_observe_ms": 6.056,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 4.707,
+      "send_ms": 0.025,
+      "wait_observe_ms": 4.689,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 4.932,
+      "send_ms": 0.019,
+      "wait_observe_ms": 4.922,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 5.54,
+      "send_ms": 0.024,
+      "wait_observe_ms": 5.523,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.729,
+      "send_ms": 0.02,
+      "wait_observe_ms": 5.716,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 4.411,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.399,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 5.912,
+      "send_ms": 0.03,
+      "wait_observe_ms": 5.888,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 5.351,
+      "send_ms": 0.02,
+      "wait_observe_ms": 5.339,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.857,
+      "send_ms": 0.019,
+      "wait_observe_ms": 7.85,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 8.059,
+      "send_ms": 0.031,
+      "wait_observe_ms": 8.041,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 6.251,
+      "send_ms": 0.033,
+      "wait_observe_ms": 6.227,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.667,
+      "send_ms": 0.055,
+      "wait_observe_ms": 6.622,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 7.358,
+      "send_ms": 0.036,
+      "wait_observe_ms": 7.332,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.9,
+      "send_ms": 0.033,
+      "wait_observe_ms": 7.879,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.892,
+      "send_ms": 0.088,
+      "wait_observe_ms": 7.839,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.559,
+      "send_ms": 0.058,
+      "wait_observe_ms": 7.516,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.831,
+      "send_ms": 0.197,
+      "wait_observe_ms": 5.647,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 7.521,
+      "send_ms": 0.057,
+      "wait_observe_ms": 7.48,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 6.922,
+      "send_ms": 0.047,
+      "wait_observe_ms": 6.889,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.402,
+      "send_ms": 0.059,
+      "wait_observe_ms": 6.358,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.143,
+      "send_ms": 0.052,
+      "wait_observe_ms": 7.102,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 7.491,
+      "send_ms": 0.043,
+      "wait_observe_ms": 7.461,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 8.538,
+      "send_ms": 0.049,
+      "wait_observe_ms": 8.51,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 10.622,
+      "send_ms": 0.142,
+      "wait_observe_ms": 10.494,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.068,
+      "send_ms": 0.036,
+      "wait_observe_ms": 9.047,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.115,
+      "send_ms": 0.056,
+      "wait_observe_ms": 6.071,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 6.606,
+      "send_ms": 0.04,
+      "wait_observe_ms": 6.579,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.671,
+      "send_ms": 0.055,
+      "wait_observe_ms": 6.628,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.046,
+      "send_ms": 0.042,
+      "wait_observe_ms": 5.011,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 6.057,
+      "send_ms": 0.023,
+      "wait_observe_ms": 6.044,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 9.645,
+      "send_ms": 0.036,
+      "wait_observe_ms": 9.628,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 6.86,
+      "send_ms": 0.125,
+      "wait_observe_ms": 6.749,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 5.69,
+      "send_ms": 0.048,
+      "wait_observe_ms": 5.654,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:end",
+      "ms": 6.262,
+      "send_ms": 0.043,
+      "wait_observe_ms": 6.229,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 293
+    },
+    {
+      "action": "ascii-tabs:left",
+      "ms": 5.786,
+      "send_ms": 0.04,
+      "wait_observe_ms": 5.757,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:right",
+      "ms": 8.998,
+      "send_ms": 0.04,
+      "wait_observe_ms": 8.978,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 47
+    },
+    {
+      "action": "ascii-tabs:home",
+      "ms": 11.865,
+      "send_ms": 0.07,
+      "wait_observe_ms": 11.812,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 294
+    },
+    {
+      "action": "ascii-tabs:type",
+      "ms": 7.948,
+      "send_ms": 0.043,
+      "wait_observe_ms": 7.916,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 43
+    },
+    {
+      "action": "ascii-tabs:delete",
+      "ms": 7.606,
+      "send_ms": 0.033,
+      "wait_observe_ms": 7.585,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 43
+    }
+  ],
+  "pty_investigations": [],
+  "dropped_samples": 0,
+  "limits": [
+    "Main-loop receipt after decode; excludes adapter queue and physical paint",
+    "Same terminal 100x28; Windows/ConPTY only when run on Windows",
+    "RSS observations are not an allocator bound; open completion is separate"
+  ]
+}

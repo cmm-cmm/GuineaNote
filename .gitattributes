@@ -10,3 +10,4 @@ docs/diagnostics/**/*.log binary
 docs/diagnostics/terminal-workflow/** -text -whitespace
 docs/diagnostics/cli-migration/** -text -whitespace
 docs/diagnostics/latency50/** -text -whitespace
+docs/diagnostics/ascii-layout/** -text -whitespace

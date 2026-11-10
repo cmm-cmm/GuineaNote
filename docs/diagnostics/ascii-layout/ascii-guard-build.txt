@@ -1,0 +1,7 @@
+   Compiling guinea-core v0.1.0 (D:\Project\GuineaNote\crates\guinea-core)
+   Compiling guinea-io v0.1.0 (D:\Project\GuineaNote\crates\guinea-io)
+   Compiling guinea-service v0.1.0 (D:\Project\GuineaNote\crates\guinea-service)
+   Compiling guinea-agent v0.1.0 (D:\Project\GuineaNote\crates\guinea-agent)
+   Compiling guinea-tui v0.1.0 (D:\Project\GuineaNote\crates\guinea-tui)
+   Compiling guineanote v0.1.0 (D:\Project\GuineaNote)
+    Finished `release` profile [optimized] target(s) in 1m 00s
