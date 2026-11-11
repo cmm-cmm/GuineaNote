@@ -34,11 +34,32 @@ impl Drop for Cancel {
 }
 impl Mcp {
     fn new(connection: Connection) -> Self {
-        let tools=guinea_service::tool_schemas().into_iter().filter(|(name,_)|!tool_write(name)||connection.write).map(|(name,mut schema)| {
-            schema["properties"]["request_id"]=json!({"type":"string","minLength":1,"maxLength":128,"description":"Stable idempotency key; reuse the same key and arguments when retrying a write."});
-            if tool_write(&name) {schema["required"].as_array_mut().unwrap().push("request_id".into());}
-            Tool::new(name.clone(),format!("GuineaNote {name}; Unicode scalar ranges; workspace scoped. Writes need an explicit capability and stale revisions are rejected."),schema.as_object().unwrap().clone())
-        }).collect();
+        let tools = guinea_service::tool_schemas()
+            .into_iter()
+            .filter(|(name, _)| !tool_write(name) || connection.write)
+            .filter_map(|(name, mut schema)| {
+                schema["properties"]["request_id"] = json!({
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128,
+                    "description": "Stable idempotency key; reuse the same key and arguments when retrying a write."
+                });
+                if tool_write(&name) {
+                    match &mut schema["required"] {
+                        Value::Array(required) => required.push("request_id".into()),
+                        required => *required = json!(["request_id"]),
+                    }
+                }
+                let schema = schema.as_object()?.clone();
+                Some(Tool::new(
+                    name.clone(),
+                    format!(
+                        "GuineaNote {name}; Unicode scalar ranges; workspace scoped. Writes need an explicit capability and stale revisions are rejected."
+                    ),
+                    schema,
+                ))
+            })
+            .collect();
         Self {
             connection: Arc::new(connection),
             tools,
@@ -146,7 +167,8 @@ impl ServerHandler for Mcp {
             )
             .await?;
         let error = response.error.is_some();
-        let value = serde_json::to_value(response).unwrap();
+        let value = serde_json::to_value(response)
+            .map_err(|e| McpError::internal_error(e.to_string(), None))?;
         Ok(if error {
             CallToolResult::structured_error(value)
         } else {
@@ -187,13 +209,13 @@ impl ServerHandler for Mcp {
                     if tab["review"] == true {
                         continue;
                     }
-                    let document = tab["document"].as_str().unwrap();
-                    let uri = format!(
-                        "guineanote://{}/documents/{document}",
-                        self.connection.session().unwrap()
-                    );
+                    let document = text_field(tab, "document")?;
+                    let session = self.connection.session().ok_or_else(|| {
+                        McpError::internal_error("Live editor session is unavailable", None)
+                    })?;
+                    let uri = format!("guineanote://{session}/documents/{document}");
                     resources.push(
-                        Resource::new(uri, tab["title"].as_str().unwrap())
+                        Resource::new(uri, text_field(tab, "title")?)
                             .with_mime_type("application/json"),
                     );
                 }
@@ -203,7 +225,7 @@ impl ServerHandler for Mcp {
                 if entry["directory"] == true {
                     continue;
                 }
-                let path = entry["path"].as_str().unwrap();
+                let path = text_field(entry, "path")?;
                 let encoded = path.bytes().map(|b| format!("{b:02x}")).collect::<String>();
                 resources.push(
                     Resource::new(format!("guineanote://workspace/files/{encoded}"), path)
@@ -270,12 +292,24 @@ impl ServerHandler for Mcp {
         if let Some(error) = response.error {
             return Err(McpError::invalid_params(error.to_string(), None));
         }
-        let contents =
-            ResourceContents::text(serde_json::to_string(&response).unwrap(), request.uri)
-                .with_mime_type("application/json");
+        let text = serde_json::to_string(&response)
+            .map_err(|e| McpError::internal_error(e.to_string(), None))?;
+        let contents = ResourceContents::text(text, request.uri).with_mime_type("application/json");
         Ok(ReadResourceResult::new(vec![contents]).into())
     }
 }
+/// Editor replies cross a process boundary; a schema mismatch (for example an
+/// editor and MCP binary from different builds) must become a protocol error,
+/// never a panic that terminates the stdio server.
+fn text_field<'a>(value: &'a Value, key: &str) -> Result<&'a str, McpError> {
+    value[key].as_str().ok_or_else(|| {
+        McpError::internal_error(
+            format!("Editor reply is missing string field `{key}`; rebuild matching binaries"),
+            None,
+        )
+    })
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args = Args::parse();
@@ -291,4 +325,17 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .waiting()
         .await?;
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn malformed_editor_reply_fields_become_errors_not_panics() {
+        let reply = json!({"document": 7, "title": "a.txt"});
+        assert!(text_field(&reply, "document").is_err());
+        assert!(text_field(&reply, "missing").is_err());
+        assert_eq!(text_field(&reply, "title").unwrap(), "a.txt");
+    }
 }

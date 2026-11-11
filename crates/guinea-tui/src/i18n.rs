@@ -35,6 +35,7 @@ impl Locale {
             " Files ^E " => " File ^E ",
             " Project ^G " => " Project ^G ",
             "Go to line[:column] (1-based)" => "Đến dòng[:cột] (bắt đầu từ 1)",
+            "Invalid line or column" => "Dòng hoặc cột không hợp lệ",
             "Search result changed; current buffer retained. Find again in this tab." => {
                 "Kết quả tìm đã thay đổi; giữ nội dung hiện tại. Hãy tìm lại trong thẻ này."
             }
