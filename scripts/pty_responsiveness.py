@@ -19,14 +19,24 @@ COMPLETIONS = []
 
 
 def action(session, name, keys, expected):
+    totals = getattr(session, "observer_totals", None)
+    observer_before = dict(totals) if totals is not None else None
     start = time.perf_counter()
     observer_cpu = time.process_time()
     output_before = len(session.output)
     session.send(keys)
     sent = time.perf_counter()
+    seen_states = {}
+    def observed_screen():
+        screen = "\n".join(session.screen.display)
+        if observer_before is not None:
+            for state in ("Replacing", "Searching", "No matches"):
+                if state in screen and state not in seen_states:
+                    seen_states[state] = round((time.perf_counter()-start)*1000, 3)
+        return screen
     if callable(expected):
         deadline = time.monotonic()+30
-        while not expected("\n".join(session.screen.display)):
+        while not expected(observed_screen()):
             assert time.monotonic() < deadline
             session.read(0.005)
     else:
@@ -37,6 +47,17 @@ def action(session, name, keys, expected):
                     "wait_observe_ms": round((time.perf_counter()-sent)*1000,3),
                     "observer_cpu_ms": round((time.process_time()-observer_cpu)*1000,3),
                     "output_bytes": len(session.output)-output_before})
+    if observer_before is not None:
+        from pty_observer import observer_delta
+        stages = observer_delta(observer_before, session.observer_totals)
+        RESULTS[-1]["observer"] = stages
+        RESULTS[-1]["first_seen_search_states_ms"] = seen_states
+        # Includes outer predicate/display checks, loop/timer overhead and
+        # scheduling outside timed stages. Do not label it application time.
+        RESULTS[-1]["observer_unattributed_ms"] = round(
+            elapsed - RESULTS[-1]["send_ms"]
+            - sum(value for key, value in stages.items() if key.endswith("_ms")), 3
+        )
     return elapsed
 
 
@@ -63,9 +84,9 @@ def editor(root, size, unicode=False):
         action(session, f"{label}:redo-end", "\x19", f"Ln 1, Col {graphemes+12} ")
         action(session, f"{label}:backspace-end", "\x7f", f"Ln 1, Col {graphemes+11} ")
         action(session, f"{label}:home", "\x1b[H", "Ln 1, Col 1 ")
-        action(session, f"{label}:settings-open", "\x1b[19~", "SETTINGS · F8")
+        action(session, f"{label}:settings-open", "\x1b[21~", "SETTINGS · F10")
         action(session, f"{label}:language-vi-apply", "v\r", "SOẠN THẢO")
-        action(session, f"{label}:settings-open-vi", "\x1b[19~", "THIẾT LẬP · F8")
+        action(session, f"{label}:settings-open-vi", "\x1b[21~", "THIẾT LẬP · F10")
         action(session, f"{label}:language-en-apply", "e\r", "EDITOR")
         action(session, f"{label}:file-info-open", "\x1b[20~", "FILE DETAILS · F9")
         action(session, f"{label}:file-info-close", "\x1b", lambda s: "FILE DETAILS · F9" not in s)
@@ -111,10 +132,10 @@ def reviews(root):
         session = Session([str(BINARY), str(path)])
         try:
             session.wait("Opened")
-            action(session, f"{filename}:review-chooser", "\x1b[18~", "REVIEW OPTIONS · F7")
-            action(session, f"{filename}:split-feedback", "1", "REVIEW · F7")
+            action(session, f"{filename}:review-chooser", "\x1b[19~", "REVIEW OPTIONS · F8")
+            action(session, f"{filename}:split-feedback", "1", "REVIEW · F8")
             session.wait(expected)
-            action(session, f"{filename}:tab-chooser", "\x1b[18~", "REVIEW OPTIONS · F7")
+            action(session, f"{filename}:tab-chooser", "\x1b[19~", "REVIEW OPTIONS · F8")
             action(session, f"{filename}:review-tab", "2", " REVIEW   Ln")
             session.send("must not edit")
             session.read(0.05)
@@ -135,12 +156,12 @@ def large_review(root, size):
     try:
         session.wait("Opened")
         started = time.perf_counter()
-        action(session, "large-json:review-chooser", "\x1b[18~", "REVIEW OPTIONS · F7")
-        action(session, "large-json:review-feedback", "1", "REVIEW · F7")
+        action(session, "large-json:review-chooser", "\x1b[19~", "REVIEW OPTIONS · F8")
+        action(session, "large-json:review-feedback", "1", "REVIEW · F8")
         for _ in range(3):
-            action(session, "large-json:settings-open", "\x1b[19~", "SETTINGS · F8")
+            action(session, "large-json:settings-open", "\x1b[21~", "SETTINGS · F10")
             action(session, "large-json:vi-during-render", "v\r", "SOẠN THẢO")
-            action(session, "large-json:settings-open-vi", "\x1b[19~", "THIẾT LẬP · F8")
+            action(session, "large-json:settings-open-vi", "\x1b[21~", "THIẾT LẬP · F10")
             action(session, "large-json:en-during-render", "e\r", "EDITOR")
         session.wait("JSON · formatted view", timeout=30)
         COMPLETIONS.append({"operation": "10MiB JSON review completion including locale changes",
@@ -162,7 +183,7 @@ def workflow(root):
     session = Session([str(BINARY), str(first), str(second)])
     try:
         session.wait("beta-marker")
-        action(session, "workflow:next-tab", "\x1b[17~", "alpha-marker")
+        action(session, "workflow:next-tab", "\x1b[18~", "alpha-marker")
         session.send("\x01")
         session.read(0.01)
         action(session, "workflow:copy", "\x03", "Copied to internal clipboard")

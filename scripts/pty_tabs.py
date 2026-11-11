@@ -94,7 +94,7 @@ def main():
             session.send("\x17")
             session.wait("Tabs 1/1")
             session.wait("New buffer")
-            session.send("\x1b[19~")
+            session.send("\x1b[21~")
             session.wait("SETTINGS")
             session.send("v\r")
             session.wait("Thẻ 1/1")

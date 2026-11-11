@@ -33,28 +33,23 @@ pub const COMMANDS: &[Command] = &[
     },
     Command {
         id: "save-as",
-        en: "Save to a new path",
-        vi: "Lưu vào đường dẫn mới",
+        en: "Save to a new path · Alt+S",
+        vi: "Lưu vào đường dẫn mới · Alt+S",
     },
     Command {
         id: "goto",
-        en: "Go to line[:column]",
-        vi: "Đến dòng[:cột]",
+        en: "Go to line[:column] · Ctrl+L",
+        vi: "Đến dòng[:cột] · Ctrl+L",
     },
     Command {
         id: "find",
-        en: "Find in this document · Ctrl+F",
-        vi: "Tìm trong tài liệu · Ctrl+F",
-    },
-    Command {
-        id: "replace",
-        en: "Find and replace · Ctrl+H",
-        vi: "Tìm và thay thế · Ctrl+H",
+        en: "Find and replace · Ctrl+F / Ctrl+H",
+        vi: "Tìm và thay thế · Ctrl+F / Ctrl+H",
     },
     Command {
         id: "tabs",
-        en: "Manage all tabs · Ctrl+P",
-        vi: "Quản lý các thẻ · Ctrl+P",
+        en: "Manage all tabs · Ctrl+P / F12",
+        vi: "Quản lý các thẻ · Ctrl+P / F12",
     },
     Command {
         id: "open-folder",
@@ -83,8 +78,8 @@ pub const COMMANDS: &[Command] = &[
     },
     Command {
         id: "preview",
-        en: "Choose source/review layout · F7",
-        vi: "Chọn bố cục xem trước · F7",
+        en: "Choose source/review layout · F8",
+        vi: "Chọn bố cục xem trước · F8",
     },
     Command {
         id: "source",
@@ -98,8 +93,8 @@ pub const COMMANDS: &[Command] = &[
     },
     Command {
         id: "settings",
-        en: "Interface language · F8",
-        vi: "Ngôn ngữ giao diện · F8",
+        en: "Interface language · F10",
+        vi: "Ngôn ngữ giao diện · F10",
     },
     Command {
         id: "file-info",
@@ -138,13 +133,13 @@ pub const COMMANDS: &[Command] = &[
     },
     Command {
         id: "next",
-        en: "Next tab · F6",
-        vi: "Thẻ tiếp theo · F6",
+        en: "Next tab · F7 / Alt+Right",
+        vi: "Thẻ tiếp theo · F7 / Alt+Right",
     },
     Command {
         id: "prev",
-        en: "Previous tab · Shift+F6",
-        vi: "Thẻ trước · Shift+F6",
+        en: "Previous tab · F6 / Alt+Left",
+        vi: "Thẻ trước · F6 / Alt+Left",
     },
     Command {
         id: "refresh",

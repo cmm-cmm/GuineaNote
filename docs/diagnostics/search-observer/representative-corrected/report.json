@@ -1,0 +1,658 @@
+{
+  "max_input_bytes": 10485760,
+  "samples": [
+    {
+      "action": "search:open-replace",
+      "ms": 6.936,
+      "send_ms": 0.048,
+      "wait_observe_ms": 6.905,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1056,
+      "observer": {
+        "select_wait_ms": 1.202,
+        "receive_ms": 0.055,
+        "append_ms": 0.011,
+        "decode_feed_ms": 0.609,
+        "display_ms": 3.448,
+        "read_calls": 1,
+        "chunks": 3,
+        "bytes": 1056
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 1.563
+    },
+    {
+      "action": "search:query-unicode",
+      "ms": 24.506,
+      "send_ms": 0.042,
+      "wait_observe_ms": 24.471,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 5428,
+      "observer": {
+        "select_wait_ms": 9.09,
+        "receive_ms": 0.164,
+        "append_ms": 0.037,
+        "decode_feed_ms": 3.553,
+        "display_ms": 9.535,
+        "read_calls": 1,
+        "chunks": 11,
+        "bytes": 5428
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 2.085
+    },
+    {
+      "action": "search:replace-one",
+      "ms": 22.43,
+      "send_ms": 0.026,
+      "wait_observe_ms": 22.407,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 901,
+      "observer": {
+        "select_wait_ms": 20.128,
+        "receive_ms": 0.089,
+        "append_ms": 0.01,
+        "decode_feed_ms": 0.515,
+        "display_ms": 0.0,
+        "read_calls": 1,
+        "chunks": 3,
+        "bytes": 901
+      },
+      "first_seen_search_states_ms": {
+        "Searching": 22.411
+      },
+      "observer_unattributed_ms": 1.662
+    },
+    {
+      "action": "search:replace-all",
+      "ms": 7.481,
+      "send_ms": 0.046,
+      "wait_observe_ms": 7.437,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 676,
+      "observer": {
+        "select_wait_ms": 4.726,
+        "receive_ms": 0.077,
+        "append_ms": 0.016,
+        "decode_feed_ms": 0.579,
+        "display_ms": 0.0,
+        "read_calls": 1,
+        "chunks": 4,
+        "bytes": 676
+      },
+      "first_seen_search_states_ms": {
+        "Searching": 7.46
+      },
+      "observer_unattributed_ms": 2.037
+    },
+    {
+      "action": "search:close",
+      "ms": 7.347,
+      "send_ms": 0.019,
+      "wait_observe_ms": 7.335,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 3079,
+      "observer": {
+        "select_wait_ms": 3.395,
+        "receive_ms": 0.056,
+        "append_ms": 0.024,
+        "decode_feed_ms": 1.907,
+        "display_ms": 0.0,
+        "read_calls": 1,
+        "chunks": 4,
+        "bytes": 3079
+      },
+      "first_seen_search_states_ms": {
+        "No matches": 1.236
+      },
+      "observer_unattributed_ms": 1.946
+    },
+    {
+      "action": "search:undo-all",
+      "ms": 4.212,
+      "send_ms": 0.026,
+      "wait_observe_ms": 4.195,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 763,
+      "observer": {
+        "select_wait_ms": 0.096,
+        "receive_ms": 0.015,
+        "append_ms": 0.005,
+        "decode_feed_ms": 0.657,
+        "display_ms": 0.72,
+        "read_calls": 1,
+        "chunks": 1,
+        "bytes": 763
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 2.693
+    },
+    {
+      "action": "search:undo-one",
+      "ms": 5.333,
+      "send_ms": 0.043,
+      "wait_observe_ms": 5.295,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 593,
+      "observer": {
+        "select_wait_ms": 1.185,
+        "receive_ms": 0.028,
+        "append_ms": 0.008,
+        "decode_feed_ms": 0.362,
+        "display_ms": 1.7,
+        "read_calls": 1,
+        "chunks": 2,
+        "bytes": 593
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 2.007
+    },
+    {
+      "action": "search:open-find",
+      "ms": 4.715,
+      "send_ms": 0.02,
+      "wait_observe_ms": 4.701,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 1031,
+      "observer": {
+        "select_wait_ms": 1.431,
+        "receive_ms": 0.027,
+        "append_ms": 0.008,
+        "decode_feed_ms": 0.446,
+        "display_ms": 1.385,
+        "read_calls": 1,
+        "chunks": 2,
+        "bytes": 1031
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 1.398
+    },
+    {
+      "action": "search:replace-selected-query",
+      "ms": 19.173,
+      "send_ms": 0.02,
+      "wait_observe_ms": 19.16,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 5502,
+      "observer": {
+        "select_wait_ms": 6.112,
+        "receive_ms": 0.14,
+        "append_ms": 0.038,
+        "decode_feed_ms": 3.478,
+        "display_ms": 7.983,
+        "read_calls": 1,
+        "chunks": 8,
+        "bytes": 5502
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 1.402
+    },
+    {
+      "action": "search:10MiB-open",
+      "ms": 5.638,
+      "send_ms": 0.041,
+      "wait_observe_ms": 5.605,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1030,
+      "observer": {
+        "select_wait_ms": 1.364,
+        "receive_ms": 0.028,
+        "append_ms": 0.005,
+        "decode_feed_ms": 1.156,
+        "display_ms": 1.459,
+        "read_calls": 1,
+        "chunks": 2,
+        "bytes": 1030
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 1.585
+    },
+    {
+      "action": "search:10MiB-query-feedback",
+      "ms": 14.776,
+      "send_ms": 0.038,
+      "wait_observe_ms": 14.743,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1569,
+      "observer": {
+        "select_wait_ms": 7.872,
+        "receive_ms": 0.096,
+        "append_ms": 0.018,
+        "decode_feed_ms": 1.287,
+        "display_ms": 4.245,
+        "read_calls": 1,
+        "chunks": 8,
+        "bytes": 1569
+      },
+      "first_seen_search_states_ms": {},
+      "observer_unattributed_ms": 1.22
+    },
+    {
+      "action": "search:10MiB-last-page-feedback",
+      "ms": 13.911,
+      "send_ms": 0.041,
+      "wait_observe_ms": 13.872,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 438,
+      "observer": {
+        "select_wait_ms": 11.039,
+        "receive_ms": 0.071,
+        "append_ms": 0.015,
+        "decode_feed_ms": 0.508,
+        "display_ms": 0.0,
+        "read_calls": 2,
+        "chunks": 5,
+        "bytes": 438
+      },
+      "first_seen_search_states_ms": {
+        "Searching": 13.899
+      },
+      "observer_unattributed_ms": 2.237
+    },
+    {
+      "action": "search:10MiB-replace-feedback",
+      "ms": 9.802,
+      "send_ms": 0.043,
+      "wait_observe_ms": 9.762,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 114,
+      "observer": {
+        "select_wait_ms": 8.053,
+        "receive_ms": 0.056,
+        "append_ms": 0.008,
+        "decode_feed_ms": 0.136,
+        "display_ms": 0.0,
+        "read_calls": 1,
+        "chunks": 3,
+        "bytes": 114
+      },
+      "first_seen_search_states_ms": {
+        "Replacing": 9.785
+      },
+      "observer_unattributed_ms": 1.506
+    }
+  ],
+  "sample_count": 13,
+  "max_ms": 24.506,
+  "background_completion": [
+    {
+      "operation": "small replace-all and result refresh complete",
+      "ms": 46.537
+    },
+    {
+      "operation": "10MiB search complete",
+      "ms": 115.335
+    },
+    {
+      "operation": "10MiB previous-page complete",
+      "ms": 78.243
+    },
+    {
+      "operation": "10MiB replace-all complete",
+      "ms": 108.61
+    }
+  ],
+  "failures": [],
+  "application_groups": [
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.974,
+      "p95_ms": 0.974,
+      "p99_ms": 0.974,
+      "max_ms": 0.974,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "commands",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 0.975,
+      "p95_ms": 0.975,
+      "p99_ms": 0.975,
+      "max_ms": 0.975,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.078,
+      "p95_ms": 1.078,
+      "p99_ms": 1.078,
+      "max_ms": 1.078,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialog_input",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 1.743,
+      "p95_ms": 1.743,
+      "p99_ms": 1.743,
+      "max_ms": 1.743,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "dialogs",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.606,
+      "p95_ms": 1.606,
+      "p99_ms": 1.606,
+      "max_ms": 1.606,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.961,
+      "p95_ms": 0.961,
+      "p99_ms": 0.961,
+      "max_ms": 0.961,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "history",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 0.959,
+      "p95_ms": 0.959,
+      "p99_ms": 0.959,
+      "max_ms": 0.959,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.87,
+      "p95_ms": 1.87,
+      "p99_ms": 1.87,
+      "max_ms": 1.87,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 1.046,
+      "p95_ms": 1.731,
+      "p99_ms": 1.731,
+      "max_ms": 1.731,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.678,
+      "p95_ms": 1.678,
+      "p99_ms": 1.678,
+      "max_ms": 1.678,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.884,
+      "p95_ms": 0.884,
+      "p99_ms": 0.884,
+      "max_ms": 0.884,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "1",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 25,
+      "p50_ms": 0.806,
+      "p95_ms": 1.814,
+      "p99_ms": 1.944,
+      "max_ms": 1.944,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "pass"
+    },
+    {
+      "session": "1",
+      "operation": "search_ui",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.538,
+      "p95_ms": 1.538,
+      "p99_ms": 1.538,
+      "max_ms": 1.538,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.162,
+      "p95_ms": 1.162,
+      "p99_ms": 1.162,
+      "max_ms": 1.162,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 1,
+      "p50_ms": 0.794,
+      "p95_ms": 0.794,
+      "p99_ms": 0.794,
+      "max_ms": 0.794,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.093,
+      "p95_ms": 1.093,
+      "p99_ms": 1.093,
+      "max_ms": 1.093,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.818,
+      "p95_ms": 0.818,
+      "p99_ms": 0.818,
+      "max_ms": 0.818,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "2",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 7,
+      "p50_ms": 0.805,
+      "p95_ms": 1.054,
+      "p99_ms": 1.054,
+      "max_ms": 1.054,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "history",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.644,
+      "p95_ms": 0.644,
+      "p99_ms": 0.644,
+      "max_ms": 0.644,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 1.272,
+      "p95_ms": 1.272,
+      "p99_ms": 1.272,
+      "max_ms": 1.272,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "mouse",
+      "phase": "warm",
+      "n": 5,
+      "p50_ms": 0.97,
+      "p95_ms": 1.031,
+      "p99_ms": 1.031,
+      "max_ms": 1.031,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.665,
+      "p95_ms": 0.665,
+      "p99_ms": 0.665,
+      "max_ms": 0.665,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "cold",
+      "n": 1,
+      "p50_ms": 0.735,
+      "p95_ms": 0.735,
+      "p99_ms": 0.735,
+      "max_ms": 0.735,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "session": "3",
+      "operation": "search_query",
+      "phase": "warm",
+      "n": 11,
+      "p50_ms": 0.885,
+      "p95_ms": 0.948,
+      "p99_ms": 0.948,
+      "max_ms": 0.948,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    }
+  ],
+  "application_investigations": [],
+  "dropped_samples": 0,
+  "binary_sha256": "4b0261d9f775d1965d08ee6a3931bbff1bfe6b95e31a79f7460612fb56444c51",
+  "source_sha256": "e4e9e0c27ccdd0c30b7b5e46cd22dd4b504f70906947466ecd663ba9adfe70b6",
+  "git_head": "3cca7bfaf7f494f7f7c355b0803d172d4942a827",
+  "profile": "release",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.15.2",
+  "harness_sha256": {
+    "scripts/agent_smoke.py": "660fb5f2b10580b18f5d92b1f55f186f7120ec89f3c3bccd12ca5489ce309031",
+    "scripts/pty_agent.py": "bb2db7d13c6f1ba09ca16673a831ef7398ea62ecb42c00a98c84124736fddcf4",
+    "scripts/pty_agent_latency.py": "134dd80d5411beb84f3520414bc81871206148c5ffd054b0775542206aedee82",
+    "scripts/pty_agent_sessions.py": "c6ed9ba1c7c656053a962ee96d25f5a88fb6921183741d99b5bce74288437dd1",
+    "scripts/pty_ascii_navigation.py": "6c73d76f05a202c468c517d52cd4fd8c1f12a4225604d5d160b39910472e396c",
+    "scripts/pty_contention_latency.py": "922fc7425d4e60fed62246caaeb2617d21a3600619e527a19a52fafd11b952b3",
+    "scripts/pty_dialog_mouse.py": "15375f7ca47ea2b80c1c17416c78c61588b580b3d9b6760bde3cdb64449f5fe5",
+    "scripts/pty_dialogs_reader.py": "c5a381369c7b96a7710ba52885642fa4b3410be7fe96c6b40c36ded31d4f98e4",
+    "scripts/pty_interaction_latency.py": "a249bc9fe72dcb774da6a72e2e7a13628a5370a92dec387c7afbbf364233a92b",
+    "scripts/pty_latency.py": "59a537e216bb4c67a722b646b73b32aa8b709cb9637f6909b52fb8fb23cc7393",
+    "scripts/pty_navigation.py": "6820550ff6714b524bd9c15f1f1c9078dad2eab38b322a3af4f9c6c7cf2a0298",
+    "scripts/pty_observer.py": "e38a386f79a18e0d467369cd477b688eb4cf59ba5cc41bb2ce229676c37ea5c5",
+    "scripts/pty_project.py": "7520e8cb0ec8daf5a7719f8202f1adbb33016025be175e8590a2666a25b716b2",
+    "scripts/pty_recovery.py": "bc63a40900a62be4b63cbee0d530c1f7082b0c653abaeb2d71118e4ad127cda2",
+    "scripts/pty_responsiveness.py": "d94ab70f4c68e00c3c1d918f832b0066021c3fb0250b0b9f71bc9a73aaeaded5",
+    "scripts/pty_risk_stress.py": "8d32ff80c909738384764764151bcb38b4a33de6c6c1b87fd92089eb213976e5",
+    "scripts/pty_search.py": "6aa17e4ba951b886e18ac9dab9cb2124b25123fe4e57aa955cb780f594663f36",
+    "scripts/pty_search_matrix.py": "d7dce236c91030acd4f983b9aad168977ad7a6a112fc47da480ad793e437d274",
+    "scripts/pty_smoke.py": "e2126cb38e2ad605bb10d71d55700ecabb93597c7a40405c457d009a2493a60c",
+    "scripts/pty_tabs.py": "73114ab83f7d6cf9591db06db421edfdb8e6e9b5a2513c27bff1763c0e98f140",
+    "scripts/pty_workspace.py": "dd2ee34d84acb47c07f94cfd120747a88233794133532df5ffca5f0fb3043cbb",
+    "scripts/terminal_matrix.py": "7c640b887eec9afd5eb190c6682c5e3cfe607cf469966a5d140efe59e9327b58",
+    "scripts/test_pty_observer.py": "0fee6882fb8d2788c606c611c15ae8f6ec2e49dafa5e77b98d7bb1ec2f8dbc5b",
+    "scripts/tui_preview.py": "f6cbc478bc578ddc8f6da6478d44c2803799275b2dcf3600dddb02f63ae9f4f4",
+    "scripts/tui_review_preview.py": "4dd4d726c22bbcd1c54f88070d2df2cd9dbecf2c44bf37fb2415ffc91b6ddcef"
+  },
+  "trace_enabled": true,
+  "observer_profile_enabled": true,
+  "replacement_feedback_definition": "initial_feedback_includes_searching",
+  "record_only": true,
+  "incomplete_traces": [],
+  "status": "within_investigation_threshold",
+  "limits": [
+    "Input-to-flush begins after application event decode; excludes adapter queue and physical paint",
+    "Observer select wait includes application, transport and scheduling; it is not isolated queue time",
+    "Observer stage timers add overhead; compare unprofiled runs on the same binary",
+    "Display time covers checks inside read; outer predicates and scheduling remain unattributed",
+    "Small per-session groups do not certify percentile targets or explain historical outliers"
+  ]
+}

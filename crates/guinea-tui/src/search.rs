@@ -63,7 +63,6 @@ pub enum Command {
 pub struct Search {
     pub query: String,
     pub replacement: String,
-    pub replace_mode: bool,
     pub focus: usize,
     pub entries: Vec<Found>,
     pub total: usize,
@@ -92,12 +91,11 @@ impl Drop for Search {
     }
 }
 impl Search {
-    pub fn new(document: &Document, query: String, replacement: String, replace: bool) -> Self {
+    pub fn new(document: &Document, query: String, replacement: String) -> Self {
         let caret = [query.len(), replacement.len()];
         Self {
             query,
             replacement,
-            replace_mode: replace,
             focus: 0,
             entries: vec![],
             total: 0,
@@ -192,16 +190,31 @@ impl Search {
         }
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         let shift = key.modifiers.contains(KeyModifiers::SHIFT);
+        let alt = key.modifiers.contains(KeyModifiers::ALT);
         match key.code {
             KeyCode::Char('h') if ctrl => {
-                self.replace_mode = true;
                 self.focus = 1;
+                self.selected_field[1] = true;
             }
-            KeyCode::Char('f') if ctrl => self.focus = 0,
+            KeyCode::Char('f') if ctrl => {
+                self.focus = 0;
+                self.selected_field[0] = true;
+            }
             KeyCode::Char('a') if ctrl && self.focus < 2 => self.selected_field[self.focus] = true,
             KeyCode::Char('r') if ctrl && shift => return Command::ReplaceAll,
             KeyCode::Char('r') if ctrl => return Command::Replace,
+            KeyCode::Char('a' | 'A') if alt => return Command::ReplaceAll,
             KeyCode::Enter if self.focus == 2 => return Command::Go,
+            KeyCode::Enter | KeyCode::Char(' ') if self.focus >= 3 => {
+                return match self.focus {
+                    3 => Command::Previous,
+                    4 => Command::Next,
+                    5 => Command::Go,
+                    6 => Command::Replace,
+                    7 => Command::ReplaceAll,
+                    _ => Command::None,
+                };
+            }
             KeyCode::Enter | KeyCode::F(3) => {
                 return if shift {
                     Command::Previous
@@ -212,14 +225,10 @@ impl Search {
             KeyCode::Up => return Command::Previous,
             KeyCode::Down => return Command::Next,
             KeyCode::Tab | KeyCode::BackTab => {
-                let fields = if self.replace_mode {
-                    &[0, 1, 2][..]
-                } else {
-                    &[0, 2][..]
-                };
+                let fields = &[0, 1, 2, 3, 4, 5, 6, 7];
                 let at = fields.iter().position(|&f| f == self.focus).unwrap_or(0);
                 self.focus = fields[(at
-                    + if key.code == KeyCode::BackTab {
+                    + if key.code == KeyCode::BackTab || shift {
                         fields.len() - 1
                     } else {
                         1
@@ -349,7 +358,7 @@ impl Search {
         self.changed = Instant::now() - Duration::from_millis(40);
     }
     pub fn replace(&mut self, document: &Document, all: bool) {
-        if !self.replace_mode || !self.ready() {
+        if !self.ready() {
             return;
         }
         if document.readonly {
@@ -611,6 +620,46 @@ fn scan(text: &str, query: &str, offset: usize, cancel: &AtomicBool) -> Result<S
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn start_replacement(search: &mut Search, document: &Document, all: bool) {
+        // Parallel review/search tests share the bounded worker permits. A
+        // ready query does not guarantee a permit at this exact instant.
+        let deadline = Instant::now() + Duration::from_secs(5);
+        loop {
+            search.replace(document, all);
+            if search.replacing() {
+                return;
+            }
+            assert!(search.ready(), "replacement rejected: {:?}", search.error);
+            assert!(Instant::now() < deadline, "replacement admission timed out");
+            std::thread::sleep(Duration::from_millis(2));
+        }
+    }
+    #[test]
+    fn unified_fields_buttons_and_portable_replace_all_are_keyboard_reachable() {
+        let document = Document::from_text("Việt Việt");
+        let mut search = Search::new(&document, "Việt".into(), "Vietnam".into());
+        for focus in 1..8 {
+            search.key(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE));
+            assert_eq!(search.focus, focus);
+        }
+        assert!(matches!(
+            search.key(KeyEvent::new(KeyCode::Enter, KeyModifiers::NONE)),
+            Command::ReplaceAll
+        ));
+        search.key(KeyEvent::new(KeyCode::Tab, KeyModifiers::NONE));
+        assert_eq!(search.focus, 0);
+        search.key(KeyEvent::new(KeyCode::BackTab, KeyModifiers::NONE));
+        assert_eq!(search.focus, 7);
+        search.key(KeyEvent::new(KeyCode::Char('h'), KeyModifiers::CONTROL));
+        search.paste("e\u{301}👩‍💻");
+        assert_eq!(search.replacement, "e\u{301}👩‍💻");
+        assert_eq!(search.query, "Việt");
+        assert!(matches!(
+            search.key(KeyEvent::new(KeyCode::Char('a'), KeyModifiers::ALT)),
+            Command::ReplaceAll
+        ));
+        assert_eq!(document.text(), "Việt Việt");
+    }
     fn settle(search: &mut Search, document: &Document) -> Option<Change> {
         let deadline = Instant::now() + Duration::from_secs(5);
         loop {
@@ -643,10 +692,10 @@ mod tests {
     fn replacement_is_prepared_off_thread_and_commits_as_one_undo() {
         let original = "Việt 👩‍💻\r\nViệt e\u{301}";
         let mut document = Document::from_text(original);
-        let mut search = Search::new(&document, "Việt".into(), "Vietnam".into(), true);
+        let mut search = Search::new(&document, "Việt".into(), "Vietnam".into());
         settle(&mut search, &document);
         assert_eq!(search.total, 2);
-        search.replace(&document, true);
+        start_replacement(&mut search, &document, true);
         assert_eq!(document.text(), original);
         let changed = settle(&mut search, &document).unwrap();
         assert_eq!(changed.count, 2);
@@ -670,9 +719,9 @@ mod tests {
     #[test]
     fn replace_one_advances_past_newly_inserted_matches() {
         let mut document = Document::from_text("foo foo");
-        let mut search = Search::new(&document, "foo".into(), "foobar".into(), true);
+        let mut search = Search::new(&document, "foo".into(), "foobar".into());
         settle(&mut search, &document);
-        search.replace(&document, false);
+        start_replacement(&mut search, &document, false);
         let change = settle(&mut search, &document).unwrap();
         document
             .accept_prepared(&change.document, change.revision)
@@ -686,7 +735,7 @@ mod tests {
     #[test]
     fn replacement_receipt_keeps_its_original_revision() {
         let mut document = Document::from_text("foo foo");
-        let mut search = Search::new(&document, "foo".into(), "bar".into(), true);
+        let mut search = Search::new(&document, "foo".into(), "bar".into());
         let mut prepared = document.review_snapshot();
         prepared.readonly = false;
         prepared.replace_all("foo", "bar").unwrap();
@@ -717,7 +766,7 @@ mod tests {
     #[test]
     fn changed_queries_discard_stale_results_and_inputs_edit_graphemes() {
         let document = Document::from_text("old new new 👩‍💻");
-        let mut search = Search::new(&document, "old".into(), String::new(), false);
+        let mut search = Search::new(&document, "old".into(), String::new());
         search.poll(&document);
         search.key(KeyEvent::new(KeyCode::Char('u'), KeyModifiers::CONTROL));
         search.paste("new");

@@ -11,3 +11,7 @@ docs/diagnostics/terminal-workflow/** -text -whitespace
 docs/diagnostics/cli-migration/** -text -whitespace
 docs/diagnostics/latency50/** -text -whitespace
 docs/diagnostics/ascii-layout/** -text -whitespace
+# Preserve bytes and checksums of the search observer investigation.
+docs/diagnostics/search-observer/** -text -whitespace
+docs/diagnostics/keyboard/** -text -whitespace
+docs/diagnostics/function-keys/** -text -whitespace

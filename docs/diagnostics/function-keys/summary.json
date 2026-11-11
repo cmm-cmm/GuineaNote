@@ -1,0 +1,26 @@
+{
+  "mapping": {
+    "F6": "previous tab",
+    "F7": "next tab",
+    "F8": "Review",
+    "F10": "Settings",
+    "Alt+M": "Markdown contents"
+  },
+  "rust_tests": 147,
+  "native_probes": 13,
+  "profile": "release",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "binary_sha256": "e9594f85377c1f3938e9d55c0796a83298ce1f553385ae3194b64521875b57f0",
+  "source_sha256": "0acfa818afd050329d5c992f834a2eee2e9646f51cd7d154d382623eaa05cd78",
+  "application_samples": 2050,
+  "application_max_ms": 4.038,
+  "pty_trace_max_ms": 9.94,
+  "pty_off_max_ms": 14.1,
+  "dropped": 0,
+  "state": "working tree, not committed/pushed",
+  "limits": [
+    "Native Windows/ConPTY only; finite samples, no global SLA",
+    "MSVC developer environment initialized for verification; no global PATH change",
+    "Historical keyboard evidence remains unchanged"
+  ]
+}

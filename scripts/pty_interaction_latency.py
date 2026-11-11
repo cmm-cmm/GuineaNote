@@ -66,8 +66,8 @@ def main():
                     action(ui,'caret:'+label,'\x1b[C','Ln 1, Col 2 ')
                     action(ui,'caret:'+label,'\x1b[D','Ln 1, Col 1 ')
                 for _ in range(30):
-                    action(ui,'dialogs:'+label,'\x1b[19~','SETTINGS · F8')
-                    action(ui,'dialog-close:'+label,'\x1b',lambda s:'SETTINGS · F8' not in s)
+                    action(ui,'dialogs:'+label,'\x1b[21~','SETTINGS · F10')
+                    action(ui,'dialog-close:'+label,'\x1b',lambda s:'SETTINGS · F10' not in s)
                 end=8+((size-7)//len(unit.encode()))*8
                 for _ in range(25):
                     action(ui,'long-end:'+label,'\x1b[F',f'Ln 1, Col {end} ')
@@ -105,9 +105,9 @@ def main():
                 ui.send('\x1b[H');ui.wait('Ln 1, Col 1 ')
                 ui.send('\x14');ui.wait('Tabs 2/2')
                 for _ in range(30):
-                    action(ui,'tabs:'+label,'\x1b[17~','Tabs 1/2')
-                    action(ui,'tabs:'+label,'\x1b[17~','Tabs 2/2')
-                ui.send('\x1b[17~');ui.wait('Tabs 1/2')
+                    action(ui,'tabs:'+label,'\x1b[18~','Tabs 1/2')
+                    action(ui,'tabs:'+label,'\x1b[18~','Tabs 2/2')
+                ui.send('\x1b[18~');ui.wait('Tabs 1/2')
                 for _ in range(25):
                     action(ui,'search-open:'+label,'\x06','FIND / REPLACE')
                     action(ui,'search-query:'+label,'m','› m│')

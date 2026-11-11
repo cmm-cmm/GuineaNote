@@ -1,0 +1,2 @@
+   Compiling guineanote v0.1.0 (D:\03 Project_demo\GuineaNote)
+    Finished `release` profile [optimized] target(s) in 1.30s

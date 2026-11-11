@@ -1,0 +1,84 @@
+[
+  {
+    "name": "keyboard",
+    "script": "pty_keyboard.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "dialogs-reader",
+    "script": "pty_dialogs_reader.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "smoke",
+    "script": "pty_smoke.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "search",
+    "script": "pty_search.py",
+    "args": [
+      "--trace"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "tabs",
+    "script": "pty_tabs.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "dialogs-mouse",
+    "script": "pty_dialog_mouse.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "project",
+    "script": "pty_project.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "workspace",
+    "script": "pty_workspace.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "agent",
+    "script": "pty_agent.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "recovery",
+    "script": "pty_recovery.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "terminal-matrix",
+    "script": "terminal_matrix.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "latency-trace",
+    "script": "pty_interaction_latency.py",
+    "args": [],
+    "exit": 0
+  },
+  {
+    "name": "latency-off",
+    "script": "pty_interaction_latency.py",
+    "args": [
+      "--no-trace"
+    ],
+    "exit": 0
+  }
+]

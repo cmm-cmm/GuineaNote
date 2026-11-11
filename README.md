@@ -4,6 +4,10 @@ Current decisions: [Notion alignment](docs/NOTION_ALIGNMENT.md). Product name is
 **Guinea Note**; the canonical executable is **guinea**. See the [migration policy](docs/CLI_MIGRATION.md).
 Research and older measurements retain their historical names.
 
+Keyboard-only workflow: one Find/Replace panel, F12/Ctrl+P tab manager,
+F6/F7 or Alt+Left/Right tab switching, and a scrollable F1 guide.
+See the [complete shortcut reference](docs/KEYBOARD_SHORTCUTS.md).
+
 New terminal workflow: Ctrl+E project files, Ctrl+G disk content search,
 F2 searchable command suggestions and `goto`, F11 focus mode, ANSI16 fallback.
 The main menu and tab-management toolbar have a dedicated separator, including
@@ -55,21 +59,23 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Ctrl+N / Ctrl+O / Ctrl+S | New / open / save |
 | Ctrl+K / Ctrl+B | Open folder / toggle directory tree |
 | F4 / F5 | Switch pane / refresh directory listing |
-| Ctrl+Shift+S, or F2 → `save-as` | Save to a new path |
+| Alt+S / Ctrl+Shift+S | Save to a new path |
 | Ctrl+W / Ctrl+Q | Close tab / quit (dirty buffers require confirmation) |
 | Ctrl+Z / Ctrl+Y | Undo / redo |
 | Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste internally |
-| Ctrl+F / F3 / Ctrl+H | Find dialog / next match / find and replace dialog |
+| Ctrl+F / Ctrl+H | One Find/Replace panel with both fields visible |
+| F3 | Next match; Shift+F3 goes back inside the search panel |
+| Ctrl+L | Go to line[:grapheme column], 1-based |
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
-| F6 / Shift+F6 | Next / previous tab (Ctrl+Tab also when available) |
-| Ctrl+P | All tabs: filter by name/path, select, switch, save or close |
+| F6 / F7 | Previous / next tab; Alt+Left / Alt+Right and Ctrl+Tab remain alternatives |
+| Ctrl+P / F12 | All tabs: type to filter, arrows or Tab/Shift+Tab select, Enter switch, Ctrl+S save, Ctrl+W close |
 | Ctrl+T, Ctrl+PageUp / Ctrl+PageDown | New blank tab, previous / next tab |
-| F7 | Choose split view or open a linked review tab (any UTF-8 file) |
-| F8 | Settings: choose Vietnamese / English, Apply or Cancel |
+| F8 | Choose split view or open a linked review tab (any UTF-8 file) |
+| F10 | Settings: choose Vietnamese / English, Apply or Cancel |
 | F9 | File details: metadata, text statistics and last verified fingerprint |
-| F10 | Show/hide Markdown contents; Tab focuses the visible outline |
-| F1 / F2 | Help / command prompt with fallbacks for every main action |
+| Alt+M | Show/hide Markdown contents; Tab focuses the visible outline |
+| F1 / F2 | Scrollable keyboard guide / action list navigable with arrows and Enter |
 
 Prompts use Enter or the Submit button; Esc or the top-right `x` cancels.
 Confirmations show the affected file and consequences, with Keep working
@@ -88,9 +94,11 @@ a file-picker or tab-manager row to open/switch; one click selects it.
 Ctrl+F and Ctrl+H open a shared search panel with clickable input fields,
 line-numbered context, a match count, Previous/Next and Go to match buttons.
 Search is literal and case-sensitive, with Unicode grapheme boundaries.
-Enter/Shift+Enter selects the next/previous match; Tab cycles fields/results,
-and Enter in results returns to the editor. Ctrl+R replaces the current match;
-Ctrl+Shift+R replaces all. An empty replacement deletes matches. Each replacement
+Enter/Shift+Enter selects the next/previous match in the fields; Tab/Shift+Tab
+cycles both fields, results and every button. Enter or Space activates a focused
+button; Enter in results returns to the editor. Ctrl+R replaces the current match;
+Alt+A replaces all (Ctrl+Shift+R remains an alternative when delivered by the
+terminal). An empty replacement deletes matches. Each replacement
 operation has one Undo step and is saved separately with Ctrl+S. Read-only and
 AI-owned documents cannot be replaced. Results are paged in groups of 200;
 navigation wraps through all matches. Scanning/replacement runs in cancellable
@@ -134,7 +142,7 @@ See the [Vietnamese CLI/MCP guide](docs/AGENT_USAGE.md) for session selection,
 permissions, patch examples and MCP host configuration.
 
 Use `--language vi` / `--language en`, or `language = "vi"` / `"en"` in the
-configuration, for Vietnamese / English. The default is English. F8 opens
+configuration, for Vietnamese / English. The default is English. F10 opens
 Settings; Enter applies the selected language, while Esc cancels. Applied
 preferences are saved for the next launch in `%APPDATA%/GuineaNote/preferences.toml`
 on Windows, or `$XDG_CONFIG_HOME/guineanote/preferences.toml` (otherwise
@@ -151,11 +159,11 @@ Full paths and new filenames also work. F9 opens details for the active file,
 including buffer versus disk size, encoding/newlines, UTC timestamps and the
 last verified SHA-256 fingerprint. Text statistics run in the background.
 
-F7 offers split view and a separate linked, read-only review tab. F6 switches
+F8 offers split view and a separate linked, read-only review tab. F6/F7 switch
 tabs; Esc returns from review to its editable source. Markdown includes a
 contents sidebar, heading hierarchy, reading/task statistics, callout cards,
 aligned tables, numbered syntax-colored code blocks and link references.
-The sidebar appears in a full-width reader with enough space; F10 toggles it,
+The sidebar appears in a full-width reader with enough space; Alt+M toggles it,
 Tab focuses it, and Enter jumps to the selected heading. JSON/JSONL/NDJSON
 is formatted with key/value colors; XML/SVG displays element structure;
 CSV/TSV displays numbered rows and header columns, including quoted/multiline

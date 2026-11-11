@@ -63,15 +63,15 @@ def main():
             for index in range(10):
                 measure("ai:navigate-locked-source", "\x1b[C", f"Ln 1, Col {index+2} ")
             measure("ai:blocked-edit-feedback", "x", "AI is working in this tab")
-            measure("ai:settings-open", "\x1b[19~", "SETTINGS · F8")
-            measure("ai:settings-cancel", "\x1b", lambda s: "SETTINGS · F8" not in s)
+            measure("ai:settings-open", "\x1b[21~", "SETTINGS · F10")
+            measure("ai:settings-cancel", "\x1b", lambda s: "SETTINGS · F10" not in s)
             measure("ai:tabs-open", "\x10", "OPEN TABS · Ctrl+P")
             measure("ai:tabs-cancel", "\x1b", lambda s: "OPEN TABS · Ctrl+P" not in s)
             measure("ai:new-other-tab", "\x14", "Tabs 2/2")
             for index in range(10):
                 measure("ai:type-other-tab", "a", f"Ln 1, Col {index+2} ")
-            measure("ai:settings-on-other-tab", "\x1b[19~", "SETTINGS · F8")
-            measure("ai:cancel-other-tab-settings", "\x1b", lambda s: "SETTINGS · F8" not in s)
+            measure("ai:settings-on-other-tab", "\x1b[21~", "SETTINGS · F10")
+            measure("ai:cancel-other-tab-settings", "\x1b", lambda s: "SETTINGS · F10" not in s)
             worker.join(timeout=45)
             assert not worker.is_alive() and completion and "error" not in completion[0], completion
             ui.wait_until(lambda lines: "AI 1" not in "\n".join(lines))

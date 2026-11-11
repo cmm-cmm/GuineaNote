@@ -76,7 +76,7 @@ def main():
                 expected=b'\xef\xbb\xbf'+'Việt e\u0301 👩‍💻\nsecond\r\nfirst marker\n'.encode()
                 actual=base64.b64decode(remote('import pathlib,base64,json;print(json.dumps(base64.b64encode(pathlib.Path('+repr(file)+').read_bytes()).decode()))')) if args.ssh else file.read_bytes()
                 assert actual==expected, 'Paste/save changed BOM, Unicode or newline bytes'
-                ui.send('\x1b[19~');ui.wait('SETTINGS · F8');ui.send('\x1b');ui.read(.02)
+                ui.send('\x1b[21~');ui.wait('SETTINGS · F10');ui.send('\x1b');ui.read(.02)
                 before=len(ui.output);ui.send('\x1b[C');ui.wait('Ln 3, Col 2 ')
                 emitted=len(ui.output)-before
                 ui.send('\x1b[23~');ui.wait('F11 Workspace');ui.send('\x1b[23~')

@@ -1,0 +1,419 @@
+   Compiling windows-link v0.2.1
+   Compiling cfg-if v1.0.5
+   Compiling memchr v2.8.3
+   Compiling unicode-segmentation v1.13.3
+   Compiling rand_core v0.10.1
+   Compiling foldhash v0.2.0
+   Compiling equivalent v1.0.3
+   Compiling allocator-api2 v0.2.21
+   Compiling smallvec v1.16.5
+   Compiling serde_core v1.0.229
+   Compiling unicode-width v0.2.3
+   Compiling thiserror v2.0.21
+   Compiling windows-sys v0.61.2
+   Compiling typenum v1.20.1
+   Compiling bitflags v2.13.2
+   Compiling getrandom v0.4.3
+   Compiling once_cell v1.21.4
+   Compiling itoa v1.0.18
+   Compiling num-traits v0.2.19
+   Compiling fastrand v2.5.0
+   Compiling hashbrown v0.17.1
+   Compiling str_indices v0.4.4
+   Compiling winapi v0.3.9
+   Compiling pin-project-lite v0.2.17
+   Compiling zmij v1.0.23
+   Compiling futures-core v0.3.34
+   Compiling ropey v1.6.1
+   Compiling ryu v1.0.23
+   Compiling strsim v0.11.1
+   Compiling cpufeatures v0.2.17
+   Compiling bytes v1.12.1
+   Compiling bitflags v1.3.2
+   Compiling ref-cast v1.0.27
+   Compiling generic-array v0.14.7
+   Compiling anstyle v1.0.14
+   Compiling dyn-clone v1.0.20
+   Compiling csv-core v0.1.13
+   Compiling uuid v1.29.2
+   Compiling core_detect v1.0.0
+   Compiling guinea-core v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-core)
+   Compiling guinea-syntax v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-syntax)
+   Compiling widestring v1.2.1
+   Compiling regex-syntax v0.8.11
+   Compiling unicase v2.10.0
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling recvmsg v1.0.0
+   Compiling digest v0.10.7
+   Compiling pulldown-cmark v0.13.6
+   Compiling quick-xml v0.42.0
+   Compiling sha2 v0.10.9
+   Compiling scopeguard v1.2.0
+   Compiling cpufeatures v0.3.1
+   Compiling darling_core v0.24.1
+   Compiling either v1.19.0
+   Compiling serde v1.0.229
+   Compiling indexmap v2.14.2
+   Compiling windows-permissions v0.2.4
+   Compiling csv v1.4.0
+   Compiling itertools v0.14.0
+   Compiling castaway v0.2.4
+   Compiling tempfile v3.27.0
+   Compiling winapi-util v0.1.11
+   Compiling serde_json v1.0.154
+   Compiling socket2 v0.6.5
+   Compiling mio v1.2.4
+   Compiling chrono v0.4.45
+   Compiling convert_case v0.10.0
+   Compiling utf8parse v0.2.2
+   Compiling tokio v1.54.1
+   Compiling static_assertions v1.1.0
+   Compiling once_cell_polyfill v1.70.2
+   Compiling anstyle-wincon v3.0.11
+   Compiling compact_str v0.9.1
+   Compiling unicode-truncate v2.0.1
+   Compiling guinea-io v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-io)
+   Compiling derive_more-impl v2.1.1
+   Compiling schemars v1.2.3
+   Compiling anstyle-parse v1.0.0
+   Compiling strum v0.28.0
+   Compiling anstyle-query v1.1.5
+   Compiling parking_lot_core v0.9.12
+   Compiling lock_api v0.4.14
+   Compiling lru v0.18.5
+   Compiling kasuari v0.4.13
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling parking_lot v0.12.5
+   Compiling crossbeam-utils v0.8.23
+   Compiling derive_more v2.1.1
+   Compiling ratatui-core v0.1.2
+   Compiling anstream v1.0.0
+   Compiling crossterm_winapi v0.9.1
+   Compiling aho-corasick v1.1.5
+   Compiling futures-sink v0.3.34
+   Compiling clap_lex v1.1.1
+   Compiling simdutf8 v0.1.5
+   Compiling crossterm v0.29.0
+   Compiling crossbeam-epoch v0.9.21
+   Compiling same-file v1.0.6
+   Compiling encoding_rs v0.8.44
+   Compiling clap_builder v4.6.7
+   Compiling toml_datetime v0.6.11
+   Compiling serde_spanned v0.6.9
+   Compiling hybrid-array v0.4.15
+   Compiling bstr v1.13.1
+   Compiling darling_macro v0.24.1
+   Compiling line-clipping v0.3.8
+   Compiling regex-automata v0.4.18
+   Compiling darling v0.24.1
+   Compiling winnow v0.7.15
+   Compiling log v0.4.35
+   Compiling instability v0.3.14
+   Compiling arraydeque v0.5.1
+   Compiling toml_write v0.1.2
+   Compiling granit-parser v2.1.0
+   Compiling encoding_rs_io v0.1.8
+   Compiling crossbeam-deque v0.8.8
+   Compiling walkdir v2.5.0
+   Compiling futures-channel v0.3.34
+   Compiling ratatui-crossterm v0.1.2
+   Compiling ratatui-widgets v0.3.2
+   Compiling annotate-snippets v0.12.17
+   Compiling clap v4.6.7
+   Compiling futures-io v0.3.34
+   Compiling ucd-trie v0.1.7
+   Compiling interprocess v2.4.8
+   Compiling deranged v0.5.9
+   Compiling toml_edit v0.22.27
+   Compiling powerfmt v0.2.1
+   Compiling time-core v0.1.9
+   Compiling base64 v0.23.1
+   Compiling globset v0.4.21
+   Compiling slab v0.4.12
+   Compiling futures-task v0.3.34
+   Compiling nohash-hasher v0.2.0
+   Compiling num-conv v0.2.2
+   Compiling guinea-service v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-service)
+   Compiling serde-saphyr v2.1.1
+   Compiling ignore v0.4.34
+   Compiling time v0.3.55
+   Compiling futures-util v0.3.34
+   Compiling ratatui v0.30.2
+   Compiling json5 v1.3.7
+   Compiling block-buffer v0.12.1
+   Compiling toml v0.8.23
+   Compiling crypto-common v0.2.2
+   Compiling fnv v1.0.7
+   Compiling const-oid v0.10.2
+   Compiling wait-timeout v0.2.1
+   Compiling quick-error v1.2.3
+   Compiling bit-vec v0.10.1
+   Compiling rusty-fork v0.3.1
+   Compiling digest v0.11.3
+   Compiling bit-set v0.11.1
+   Compiling chacha20 v0.10.2
+   Compiling tracing-core v0.1.36
+   Compiling rand v0.10.3
+   Compiling rand_xorshift v0.5.0
+   Compiling unarray v0.1.4
+   Compiling sha2 v0.11.1
+   Compiling guinea-tui v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-tui)
+   Compiling tracing v0.1.44
+   Compiling tokio-util v0.7.20
+   Compiling futures-executor v0.3.34
+   Compiling proptest v1.12.0
+   Compiling futures v0.3.34
+   Compiling rmcp v3.9.0
+   Compiling guineanote v0.1.0 (D:\03 Project_demo\GuineaNote)
+   Compiling guinea-agent v0.1.0 (D:\03 Project_demo\GuineaNote\crates\guinea-agent)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 26.17s
+     Running unittests src\lib.rs (target\debug\deps\guinea_agent-70770d9dc6c8be57.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\main.rs (target\debug\deps\guineanote_agent-c48a828022a78a74.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\mcp.rs (target\debug\deps\guineanote_mcp-3e7b2e697c29477c.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\guinea_core-3abda6642306daac.exe)
+
+running 31 tests
+test buffer::tests::checked_ranges_never_panic ... ok
+test document::tests::bare_cr_is_visible_content_and_end_removes_only_one_line_ending ... ok
+test document::tests::join_combining_sequence_snaps_cursor ... ok
+test document::tests::independent_view_states_do_not_fork_text_or_history_and_reject_stale_positions ... ok
+test coordinates::tests::coordinates_are_distinct_and_checked ... ok
+test document::tests::agent_edits_are_atomic_one_undo_and_revision_checked ... ok
+test document::tests::newline_policy_and_readonly ... ok
+test document::tests::save_snapshot_preserves_later_edits_selection_and_history ... ok
+test document::tests::savepoint_and_history_branch ... ok
+test document::tests::selection_search_replace_is_one_transaction ... ok
+test document::tests::unicode_navigation_and_deletion ... ok
+test document::tests::bounded_history_keeps_latest_undo_and_never_marks_trimmed_content_saved ... ok
+test document::tests::worker_snapshot_is_history_free_and_preserves_original_access_and_selection ... ok
+test view::tests::long_ascii_cache_preserves_combining_edits_at_checkpoints ... ok
+test view::tests::partial_ascii_scan_preserves_joining_accents_crlf_and_tabs ... ok
+test document::tests::chunk_edges_match_extended_graphemes ... ok
+test document::tests::search_boundary_check_matches_full_segmentation ... ok
+test buffer::tests::edit_matches_string ... ok
+test view::tests::short_line_edit_keeps_prepared_long_line_with_shifted_coordinates ... ok
+test view::tests::incremental_layout_rebuilds_joins_and_history_at_checkpoints ... ok
+test view::tests::oversized_ascii_line_does_not_allocate_a_full_layout_copy ... ok
+test view::tests::windows_keep_absolute_tabs_and_clusters ... ok
+test document::tests::random_commands_preserve_graphemes_and_undo ... ok
+test view::tests::prefix_ascii_edits_preserve_global_tab_stops_without_reindexing ... ok
+test view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout ... ok
+test view::tests::prefix_cache_reuse_preserves_snapshots_unicode_fallback_and_coordinates ... ok
+test view::tests::multiline_cache_matches_fresh_layout_after_edits_history_and_tab_changes ... ok
+test document::tests::navigation_matches_unicode_segmentation ... ok
+test view::tests::sparse_index_matches_full_unicode_layout_after_edits_and_undo ... ok
+test view::tests::parallel_index_preserves_global_tab_stops_and_cluster_boundaries ... ok
+test view::tests::prepared_indexes_survive_ascii_edits_and_rebuild_for_unicode_and_tabs ... ok
+
+test result: ok. 31 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.26s
+
+     Running unittests src\lib.rs (target\debug\deps\guinea_io-e8a2ec1d6d4386c6.exe)
+
+running 22 tests
+test recovery::tests::recovery_kill_probe ... ok
+test tests::invalid_input_never_becomes_lossy_text ... ok
+test tests::missing_paths_are_not_created_until_save ... ok
+test tests::conflicts_and_save_as_do_not_overwrite ... ok
+test tests::detect_change_during_save_before_replace ... ok
+test tests::save_kill_probe ... ok
+test recovery::tests::successful_save_or_explicit_close_removes_only_its_own_checkpoint ... ok
+test recovery::tests::save_as_provenance_change_updates_checkpoint_without_a_text_edit ... ok
+test recovery::tests::rejected_draft_does_not_starve_other_tabs_or_remove_prior_checkpoint ... ok
+test tests::readonly_and_large_file_are_explicit ... ok
+test tests::replacement_identity_conflict_and_hardlinks_preserve_all_original_names ... ok
+test tests::failures_before_commit_preserve_original_and_history ... ok
+test recovery::tests::corrupted_checkpoints_are_retained_and_quick_quit_does_not_discard_unseen_drafts ... ok
+test recovery::tests::checkpoint_recovers_exact_unsaved_unicode_bom_and_source_without_overwriting ... ok
+test recovery::tests::real_process_kill_recovers_committed_checkpoint ... ok
+test tests::windows_sharing_violation_at_replace_preserves_original_and_dirty ... ok
+test tests::windows_save_preserves_alternate_streams_and_protected_acl ... ok
+test tests::streaming_builder_detects_newlines_across_chunks_without_normalizing_bytes ... ok
+test tests::windows_denied_temp_creation_preserves_original_and_dirty ... ok
+test tests::golden_roundtrips_are_byte_exact ... ok
+test tests::killing_save_process_before_commit_preserves_original ... ok
+test tests::valid_utf8_roundtrips_without_normalization ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.85s
+
+     Running unittests src\lib.rs (target\debug\deps\guinea_service-8c15c0a463f472fa.exe)
+
+running 3 tests
+test live::tests::queue_overload_rejects_acquire_without_waiting_for_an_unowned_release ... ok
+test live::tests::queued_timeout_cannot_later_commit_and_started_commit_returns_its_result ... ok
+test ipc::tests::native_local_transport_permissions_credentials_and_cleanup ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\contract.rs (target\debug\deps\contract-1047bb5f63bbf554.exe)
+
+running 6 tests
+test malformed_data_and_output_are_bounded ... ok
+test recovered_tabs_keep_secret_and_workspace_policy_even_without_a_save_path ... ok
+test scope_secrets_limits_and_typed_schema ... ok
+test paginated_unicode_read_search_analysis_and_conflicts ... ok
+test native_directory_links_cannot_escape_workspace ... ok
+test response_budget_and_invalid_write_ids_do_not_fill_ledger ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running unittests src\lib.rs (target\debug\deps\guinea_syntax-164947076fa44184.exe)
+
+running 5 tests
+test tests::detection_plain_text_and_markdown ... ok
+test tests::lexer_uses_scalar_offsets_and_ignores_comments_inside_strings ... ok
+test tests::extended_sources_config_names_and_shebangs_have_safe_fallbacks ... ok
+test tests::programming_and_data_aliases_and_special_names ... ok
+test tests::semantic_tokens_escape_lifetimes_macros_and_block_comments_are_ordered ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src\lib.rs (target\debug\deps\guinea_tui-ae820a51fa3c0062.exe)
+
+running 68 tests
+test app::tests::mouse_hit_regions_activate_tabs_and_workspace_actions ... ok
+test app::tests::f8_opens_settings_cancel_does_not_change_language_and_apply_is_explicit ... ok
+test app::tests::dirty_close_and_quit_require_explicit_yes ... ok
+test app::tests::closing_inactive_dirty_and_linked_tabs_preserves_selection_and_source ... ok
+test app::tests::readonly_applies_to_new_tabs_and_paste ... ok
+test app::tests::mouse_cursor_placement_uses_cells_and_keeps_graphemes_whole ... ok
+test app::tests::project_shortcuts_palette_completion_and_focus_mode_preserve_text ... ok
+test app::tests::review_chooser_split_and_dirty_source_close_keep_document_safe ... ok
+test app::tests::review_tab_tracks_source_and_cannot_replace_editable_history ... ok
+test app::tests::tab_manager_filters_duplicate_paths_and_cancels_without_editing ... ok
+test app::tests::tabs_clipboard_paste_history_and_fallback ... ok
+test app::tests::windows_release_events_do_not_duplicate_text ... ok
+test config::tests::config_has_safe_defaults_and_rejects_unknown_fields ... ok
+test app::tests::goto_uses_grapheme_columns_and_rejects_out_of_range_without_moving ... ok
+test app::tests::standalone_file_mode_and_open_prompt_accept_folder ... ok
+test app::tests::project_navigation_keeps_dirty_buffer_and_stale_disk_results_safe ... ok
+test app::agent::tests::open_tab_manager_refreshes_when_ai_releases_its_lock ... ok
+test app::tests::idle_does_not_request_redraw_and_large_open_needs_yes ... ok
+test app::agent::tests::ai_lease_locks_source_and_review_and_keeps_other_tabs_editable ... ok
+test i18n::tests::translates_ui_and_keeps_paths_intact ... ok
+test input::tests::altgr_and_control_shortcuts_remain_distinct ... ok
+test input::tests::mouse_transitions_drag_buttons_horizontal_wheel_and_modifiers ... ok
+test input::tests::conpty_linefeed_is_literal_text_not_an_ignored_ctrl_enter ... ok
+test input::tests::surrogate_keyup_between_halves_does_not_drop_emoji ... ok
+test explorer::tests::listing_limit_is_explicit_and_file_content_is_never_read ... ok
+test file_info::tests::reports_buffer_and_disk_separately_without_writing ... ok
+test app::tests::reload_advances_preview_revision_even_for_saved_unedited_source ... ok
+test app::tests::directory_navigation_opens_files_and_preserves_dirty_tabs ... ok
+test explorer::tests::lazy_tree_sorts_expands_collapses_and_refreshes ... ok
+test render::tests::cell_clipping_never_splits_wide_cluster_or_emits_controls ... ok
+test app::tests::tab_manager_refreshes_metadata_after_pending_save_without_losing_filter ... ok
+test render::tests::clipped_syntax_uses_real_string_context_and_falls_back_when_unknown ... ok
+test preferences::tests::persists_only_language_atomically ... ok
+test file_picker::tests::browses_filters_paths_and_never_changes_files ... ok
+test app::agent::tests::lease_drop_after_worker_panic_restores_original_readonly_state ... ok
+test explorer::tests::root_change_discards_old_results_and_errors_do_not_panic ... ok
+test preferences::tests::rapid_changes_keep_last_selected_language ... ok
+test project::tests::project_ignores_generated_files_and_preserves_unicode_match_boundaries ... ok
+test render::tests::explorer_focus_keeps_global_cancellation_feedback_visible ... ok
+test app::tests::worker_open_save_find_replace_and_conflict_keep_tabs_separate ... ok
+test project::tests::results_and_query_are_bounded_and_cancellation_is_observed ... ok
+test render::tests::syntax_prefix_stops_at_viewport_without_splitting_graphemes ... ok
+test render::tests::renders_unicode_viewport_and_handles_tiny_resize ... ok
+test review::data::tests::ini_properties_sections_and_continuations ... ok
+test review::data::tests::notebook_renders_saved_cells_and_text_without_running_or_embedding_outputs ... ok
+test review::data::tests::env_is_literal_and_preserves_duplicates_multiline_quotes_and_hashes ... ok
+test render::tests::monochrome_resets_colors_in_source_and_dialog_cells ... ok
+test review::tests::markdown_formats_blocks_and_never_emits_terminal_escape ... ok
+test review::data::tests::structured_yaml_json5_and_config_dialects ... ok
+test review::tests::rich_markdown_has_navigable_outline_cards_stats_and_bounded_unicode_tables ... ok
+test review::tests::structured_formats_report_errors_and_preserve_source_semantics ... ok
+test render::tests::tabs_keep_neighbors_and_active_file_visible ... ok
+test review::tests::table_cells_remain_aligned_and_later_columns_are_reachable ... ok
+test render::tests::confirmation_buttons_cancel_by_default_and_close_the_clicked_inactive_tab ... ok
+test review::tests::switching_away_from_pending_reviews_does_not_strand_worker_permits ... ok
+test search::tests::replacement_receipt_keeps_its_original_revision ... ok
+test review::tests::stale_results_locale_and_resize_never_replace_source ... ok
+test search::tests::unicode_matches_are_paged_and_never_split_clusters ... ok
+test render::tests::ai_context_and_manager_details_follow_linked_review_and_locale ... ok
+test search::tests::replace_one_advances_past_newly_inserted_matches ... ok
+test search::tests::replacement_is_prepared_off_thread_and_commits_as_one_undo ... ok
+test render::tests::mouse_drag_selects_whole_unicode_clusters_and_wheel_preserves_caret ... ok
+test render::tests::overflowing_tabs_keep_count_active_and_close_hit_regions_correct ... ok
+test render::tests::small_dialog_buttons_stay_inside_and_tabs_require_a_real_double_click ... ok
+test search::tests::changed_queries_discard_stale_results_and_inputs_edit_graphemes ... ok
+test render::tests::ansi_palette_project_and_command_dialogs_fit_small_viewports ... ok
+test render::tests::main_menu_is_separated_from_tab_management_and_click_regions ... ok
+test render::tests::new_dialogs_are_visible_and_safe_when_resized ... ok
+
+test result: ok. 68 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.13s
+
+     Running unittests src\main.rs (target\debug\deps\guinea-95bb3d251effaec9.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\cli.rs (target\debug\deps\cli-752eb4ad97e244ab.exe)
+
+running 4 tests
+test unsupported_language_fails_before_entering_terminal ... ok
+test invalid_config_reports_error_before_touching_terminal ... ok
+test help_and_version_need_no_terminal ... ok
+test file_and_folder_modes_require_an_interactive_terminal ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running tests\file_workflow.rs (target\debug\deps\file_workflow-1cadeff8583b25f4.exe)
+
+running 1 test
+test two_documents_have_independent_history_and_file_metadata ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+   Doc-tests guinea_agent
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_io
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_service
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_tui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

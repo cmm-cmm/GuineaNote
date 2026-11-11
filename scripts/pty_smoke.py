@@ -268,7 +268,7 @@ def run(binary, panic):
                 session.wait("Command (")
                 session.write("\x1b")
                 session.write("\x1bOP")
-                session.wait("keyboard help")
+                session.wait("keyboard guide")
                 session.write("\x1b")
                 session.write("\x11")
                 session.write("y")

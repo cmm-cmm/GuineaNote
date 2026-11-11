@@ -54,7 +54,10 @@ fn surface(
     let block = panel("", theme, true)
         .border_style(fg(if warning { theme.warm } else { theme.secondary }))
         .title(Line::styled(
-            format!(" {title} "),
+            format!(
+                " {} ",
+                clipped(title, rect.width.saturating_sub(8) as usize)
+            ),
             bold(if warning { theme.warm } else { theme.text }).bg(theme.raised),
         ));
     let inner = block.inner(rect);
@@ -303,13 +306,22 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 26,
                 tr(
                     locale,
-                    "FIND / REPLACE · Ctrl+F / Ctrl+H",
-                    "TÌM / THAY THẾ · Ctrl+F / Ctrl+H",
+                    if area.width < 72 {
+                        "FIND / REPLACE"
+                    } else {
+                        "FIND / REPLACE · Ctrl+F / Ctrl+H"
+                    },
+                    if area.width < 72 {
+                        "TÌM / THAY THẾ"
+                    } else {
+                        "TÌM / THAY THẾ · Ctrl+F / Ctrl+H"
+                    },
                 ),
                 theme,
                 hits,
             );
-            let compact = body.height < 18;
+            let compact = body.height < 18 || body.width < 72;
+            let tight = body.height < 7;
             let query_y = if compact { 0 } else { 3 };
             if !compact {
                 text(
@@ -331,11 +343,18 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             }
             for (index, offset, action) in [
                 (0, query_y, "search-query"),
-                (1, if compact { 2 } else { 6 }, "search-replacement"),
+                (
+                    1,
+                    if tight {
+                        1
+                    } else if compact {
+                        2
+                    } else {
+                        6
+                    },
+                    "search-replacement",
+                ),
             ] {
-                if index == 1 && !search.replace_mode {
-                    continue;
-                }
                 if index == 1 && !compact {
                     text(
                         frame,
@@ -349,12 +368,19 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     );
                 }
                 let rect = row(body, offset, 1);
-                let (value, caret) = search.field(index, rect.width.saturating_sub(4) as usize);
+                let prefix = if compact {
+                    if index == 0 { "F › " } else { "R › " }
+                } else {
+                    "› "
+                };
+                let prefix_width = Line::from(prefix).width() as u16;
+                let (value, caret) =
+                    search.field(index, rect.width.saturating_sub(prefix_width + 2) as usize);
                 text(
                     frame,
                     rect,
                     Line::from(vec![
-                        Span::raw("› "),
+                        Span::raw(prefix),
                         Span::styled(
                             value,
                             fg(theme.text).bg(
@@ -379,17 +405,17 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 if search.focus == index && !search.replacing() && rect.height > 0 && rect.width > 3
                 {
                     frame.set_cursor_position((
-                        rect.x + (caret as u16 + 2).min(rect.width - 1),
+                        rect.x + (caret as u16 + prefix_width).min(rect.width - 1),
                         rect.y,
                     ));
                 }
             }
-            let status_y = if compact {
-                if search.replace_mode { 3 } else { 2 }
-            } else if search.replace_mode {
-                8
+            let status_y = if tight {
+                2
+            } else if compact {
+                3
             } else {
-                5
+                8
             };
             let status = if let Some(error) = &search.error {
                 locale.message(error)
@@ -430,7 +456,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 }),
             );
             if !compact {
-                let note = if app.tabs[active].document.readonly && search.replace_mode {
+                let note = if app.tabs[active].document.readonly {
                     tr(
                         locale,
                         "Read-only document · replacement is disabled",
@@ -443,7 +469,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     } else {
                         format!("Replaced {count} matches · Ctrl+Z undoes after closing")
                     }
-                } else if search.replace_mode {
+                } else {
                     format!(
                         "{} → {}",
                         clipped(&search.query, 30),
@@ -453,13 +479,6 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                             clipped(&search.replacement, 42)
                         }
                     )
-                } else {
-                    tr(
-                        locale,
-                        "Select a result · double-click or Go to return to the source",
-                        "Chọn kết quả · nhấp đúp hoặc Về kết quả để về nguồn",
-                    )
-                    .into()
                 };
                 text(
                     frame,
@@ -473,7 +492,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 body,
                 list_y,
                 body.height
-                    .saturating_sub(list_y + if compact { 2 } else { 4 }),
+                    .saturating_sub(list_y + if compact { 3 } else { 4 }),
             );
             search.list = list;
             search.height = list.height.max(1) as usize;
@@ -495,7 +514,16 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     frame,
                     Rect::new(list.x, list.y + row_index as u16, list.width, 1),
                     Line::from(clipped(&line, list.width as usize)),
-                    fg(if chosen { theme.text } else { theme.muted }).bg(if chosen {
+                    fg(if chosen && search.focus == 2 {
+                        theme.canvas
+                    } else if chosen {
+                        theme.text
+                    } else {
+                        theme.muted
+                    })
+                    .bg(if chosen && search.focus == 2 {
+                        theme.accent
+                    } else if chosen {
                         theme.raised
                     } else {
                         theme.panel
@@ -503,7 +531,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 );
             }
             let mut x = body.x + 2;
-            for (en, vi, action, enabled) in [
+            let actions = [
                 (" < Prev ", " < Trước ", "search-previous", search.ready()),
                 (" Next > ", " Sau > ", "search-next", search.ready()),
                 (" Go ", " Về kết quả ", "search-go", search.ready()),
@@ -511,18 +539,23 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     " Replace ",
                     " Thay ",
                     "search-replace",
-                    search.replace_mode && search.ready() && !app.tabs[active].document.readonly,
+                    search.ready() && !app.tabs[active].document.readonly,
                 ),
                 (
                     " Replace all ",
                     " Thay tất cả ",
                     "search-all",
-                    search.replace_mode && search.ready() && !app.tabs[active].document.readonly,
+                    search.ready() && !app.tabs[active].document.readonly,
                 ),
-            ] {
-                if !search.replace_mode && matches!(action, "search-replace" | "search-all") {
-                    continue;
-                }
+            ];
+            // Keep the focused button visible even when the row cannot fit
+            // all actions. Tab/Shift+Tab can reach every action at 30x9.
+            let first = if compact && search.focus >= 3 {
+                search.focus - 3
+            } else {
+                0
+            };
+            for (index, (en, vi, action, enabled)) in actions.into_iter().enumerate().skip(first) {
                 let label = tr(locale, en, vi);
                 let width = Line::from(label).width() as u16;
                 if x + width > body.right() {
@@ -530,7 +563,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 }
                 let rect = Rect::new(
                     x,
-                    body.bottom().saturating_sub(if compact { 1 } else { 3 }),
+                    body.bottom().saturating_sub(if compact { 2 } else { 3 }),
                     width,
                     1,
                 );
@@ -539,14 +572,20 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                     rect,
                     label,
                     theme,
-                    enabled && action == "search-next",
+                    enabled && search.focus == index + 3,
                 );
                 if !enabled {
                     text(
                         frame,
                         rect,
                         Line::from(label),
-                        fg(theme.faint).bg(theme.panel),
+                        fg(theme.faint).bg(theme.panel).add_modifier(
+                            if search.focus == index + 3 {
+                                Modifier::UNDERLINED
+                            } else {
+                                Modifier::empty()
+                            },
+                        ),
                     );
                 }
                 if enabled {
@@ -555,37 +594,21 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 x += width + 1;
             }
             if !compact {
-                let mode = Rect::new(body.right() - 20, body.y + 1, 18, 1);
-                button(
-                    frame,
-                    mode,
-                    tr(
-                        locale,
-                        if search.replace_mode {
-                            " Find only "
-                        } else {
-                            " + Replace "
-                        },
-                        if search.replace_mode {
-                            " Chỉ tìm "
-                        } else {
-                            " + Thay thế "
-                        },
-                    ),
-                    theme,
-                    false,
-                );
-                if !search.replacing() {
-                    hits.modal_actions.push((mode, "search-mode"));
-                }
                 text(
                     frame,
                     row(body, body.height - 1, 1),
                     Line::from(tr(
                         locale,
-                        "Enter Next · Shift+Enter Previous · ^R Replace · ^Shift+R All · Esc Close",
-                        "Enter Sau · Shift+Enter Trước · ^R Thay · ^Shift+R Tất cả · Esc Đóng",
+                        "Tab / Shift+Tab Focus · Enter Act · F3 Next · ^R Replace · Alt+A All · Esc Close",
+                        "Tab / Shift+Tab Chọn · Enter Chạy · F3 Sau · ^R Thay · Alt+A Tất cả · Esc Đóng",
                     )),
+                    fg(theme.muted),
+                );
+            } else {
+                text(
+                    frame,
+                    row(body, body.height.saturating_sub(1), 1),
+                    Line::from("Tab Enter Alt+A Esc"),
                     fg(theme.muted),
                 );
             }
@@ -863,15 +886,39 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 theme,
                 hits,
             );
+            let content = if locale == Locale::Vi {
+                crate::i18n::HELP_VI
+            } else {
+                crate::app::HELP
+            };
+            let view = row(body, 0, body.height.saturating_sub(1));
+            let lines = crate::keyboard::help_lines(content, view.width as usize);
+            app.help_rows = lines.len();
+            app.help_height = view.height.max(1) as usize;
+            app.help_scroll = app
+                .help_scroll
+                .min(app.help_rows.saturating_sub(app.help_height));
             frame.render_widget(
-                Paragraph::new(if locale == Locale::Vi {
-                    crate::i18n::HELP_VI
-                } else {
-                    crate::app::HELP
-                })
-                .style(fg(theme.text))
-                .wrap(Wrap { trim: false }),
-                row(body, 0, body.height),
+                Paragraph::new(
+                    lines
+                        .into_iter()
+                        .skip(app.help_scroll)
+                        .take(app.help_height)
+                        .map(Line::from)
+                        .collect::<Vec<_>>(),
+                )
+                .style(fg(theme.text)),
+                view,
+            );
+            text(
+                frame,
+                row(body, body.height.saturating_sub(1), 1),
+                Line::from(tr(
+                    locale,
+                    "↑↓ PgUp/PgDn · Esc Close",
+                    "↑↓ PgUp/PgDn · Esc Đóng",
+                )),
+                fg(theme.muted),
             );
         }
         Some(Modal::Tabs(manager)) => {
@@ -880,7 +927,11 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 area,
                 100,
                 29,
-                tr(locale, "OPEN TABS · Ctrl+P", "QUẢN LÝ THẺ · Ctrl+P"),
+                tr(
+                    locale,
+                    "OPEN TABS · Ctrl+P / F12",
+                    "QUẢN LÝ THẺ · Ctrl+P / F12",
+                ),
                 theme,
                 hits,
             );
@@ -1076,8 +1127,8 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 row(body, body.height.saturating_sub(1), 1),
                 Line::from(tr(
                     locale,
-                    "Double-click / Enter Switch · Wheel Browse · ^S Save · ^W Close · Esc Cancel",
-                    "Nhấp đúp / Enter Chuyển · Cuộn Duyệt · ^S Lưu · ^W Đóng · Esc Hủy",
+                    "↑↓ / Tab Select · Enter Switch · ^S Save · ^W Close · ^N New · Esc Cancel",
+                    "↑↓ / Tab Chọn · Enter Chuyển · ^S Lưu · ^W Đóng · ^N Mới · Esc Hủy",
                 )),
                 fg(theme.muted),
             );
@@ -1088,7 +1139,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 area,
                 88,
                 20,
-                tr(locale, "SETTINGS · F8", "THIẾT LẬP · F8"),
+                tr(locale, "SETTINGS · F10", "THIẾT LẬP · F10"),
                 theme,
                 hits,
             );
@@ -1206,7 +1257,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 area,
                 90,
                 18,
-                tr(locale, "REVIEW OPTIONS · F7", "CHẾ ĐỘ REVIEW · F7"),
+                tr(locale, "REVIEW OPTIONS · F8", "CHẾ ĐỘ REVIEW · F8"),
                 theme,
                 hits,
             );

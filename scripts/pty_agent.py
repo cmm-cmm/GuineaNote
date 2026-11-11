@@ -143,7 +143,7 @@ def main():
             snapshot(ui, "agent-ai-readonly")
             ui.send("SHOULD_NOT_APPEAR")
             ui.wait("AI is working in this tab")
-            ui.send("\x1b[17~")
+            ui.send("\x1b[18~")
             ui.wait("agent # Title")
             ui.send("other ")
             ui.wait("MODIFIED")
@@ -200,7 +200,7 @@ def main():
             process = launch(root, session_id, {"op": "save_document", "document": large_doc["document"],
                                                 "expected_revision": revision}, "save-client-kill")
             ui.wait("AI · READ ONLY")
-            ui.send("\x1b[19~")
+            ui.send("\x1b[21~")
             ui.wait("SETTINGS")
             if process.poll() is None:
                 process.kill()

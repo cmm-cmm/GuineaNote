@@ -74,6 +74,6 @@ double-click to open/switch; one click selects. Mouse is optional via config.
 The sidebar auto-hides below 66 columns and the minimum compact layout is 30×9.
 
 `Ctrl+P` opens the tab manager, with name/path filtering and switch/save/close.
-Configuration is read only when explicitly supplied with `--config`; F8 language
+Configuration is read only when explicitly supplied with `--config`; F10 language
 preferences are stored separately. Unknown TOML fields,
 invalid tab widths and zero warning thresholds are errors before terminal setup.

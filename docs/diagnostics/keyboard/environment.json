@@ -1,0 +1,26 @@
+{
+  "base_git_head": "3cca7bfaf7f494f7f7c355b0803d172d4942a827",
+  "state": "working tree on dev; not committed or pushed",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "terminal": "ConPTY",
+  "profile": "release",
+  "binary_sha256": "16de88b190e42f2ae1a7663c25cdf1edb206e7ef28d55ca49c1d07eccd9af0c9",
+  "source_sha256": "9c4f55067a98733313f0651257bc3d4051fd4310d142cd94653d5627d5fe0a76",
+  "rust_tests": 146,
+  "native_probes": 12,
+  "keyboard_checks": 8,
+  "keyboard_mouse": false,
+  "keyboard_feedback_samples": 12,
+  "keyboard_feedback_max_ms": 12.884,
+  "application_samples": 2050,
+  "application_max_ms": 4.644,
+  "pty_max_trace_ms": 17.018,
+  "pty_max_off_ms": 27.901,
+  "dropped_samples": 0,
+  "limits": [
+    "Windows/ConPTY native only; no physical-paint or universal SLA",
+    "Ctrl+Tab decoder/dispatcher tested; host interception requires F6 or Alt arrows",
+    "Historical cold End 916.326 ms and exact search 55.417 ms remain open",
+    "Preliminary captures retain harness wait/expected-tab corrections and shared-worker test admission failure"
+  ]
+}

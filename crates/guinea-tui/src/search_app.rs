@@ -2,7 +2,7 @@ use super::*;
 use crate::search::{Command, Search};
 
 impl App {
-    pub(super) fn open_search(&mut self, replace: bool) {
+    pub(super) fn open_search(&mut self) {
         self.tabs[self.active].review.mode = ViewMode::Source;
         let range = self.document().selection().range();
         if !range.is_empty() && range.len() <= 256 {
@@ -15,7 +15,6 @@ impl App {
             self.document(),
             self.search.clone(),
             self.replacement.clone(),
-            replace,
         )));
     }
     pub(super) fn search_key(&mut self, mut search: Search, key: KeyEvent) {
@@ -62,11 +61,6 @@ impl App {
             }
             "search-replacement" => {
                 search.focus = 1;
-                Command::None
-            }
-            "search-mode" => {
-                search.replace_mode = !search.replace_mode;
-                search.focus = 0;
                 Command::None
             }
             "search-next" => Command::Next,

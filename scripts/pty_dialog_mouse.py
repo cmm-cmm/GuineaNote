@@ -104,7 +104,7 @@ def main():
             action(ui,"dialog:mouse-submit",click(ui,"Enter Submit"),lambda s:"Saving " in s or "● Saved" in s)
             ui.wait_file(saved,"draft")
             ui.wait("● Saved")
-            ui.send("\x1b[19~")
+            ui.send("\x1b[21~")
             ui.wait("SETTINGS")
             ui.send(click(ui,"Tiếng Việt"))
             ui.send(click(ui,"Apply","Cancel"))

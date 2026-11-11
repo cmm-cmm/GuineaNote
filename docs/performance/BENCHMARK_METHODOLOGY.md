@@ -48,3 +48,27 @@ lúc đo. Dữ liệu raw được giữ cả khi mục tiêu không đạt. Tr�
 Run trace on/off cùng corpus để quan sát overhead PTY; chỉ trace-on có số nội bộ.
 Open/save/search completion đo riêng. Kiểm tra Unicode/NFD/ZWJ/mixed EOL,
 readonly/AI, crash recovery và cleanup trước khi nhận cải thiện hiệu suất.
+
+## Phân đoạn observer và predicate search — 11/11/2026
+
+`pty_search.py --profile-observer` dùng cùng chính sách đọc/chờ của Session,
+thêm timers cho select wait, receive, append, UTF-8 decode + pyte feed và display
+check bên trong read. `observer_unattributed_ms` giữ phần ngoài các đoạn đó,
+gồm predicate/display bên ngoài, overhead và scheduling; không gọi là CPU editor.
+`process_time` trên Windows có độ phân giải thô và không dùng để kết luận queue.
+
+Select wait gộp thời gian ứng dụng, transport và scheduling. Phép đo này chưa
+tách riêng Win32 adapter queue hoặc physical paint. Các trạng thái Searching,
+Replacing và No matches được ghi ở lần predicate thực sự quan sát thấy; một
+trạng thái ngắn có thể kết thúc trước lượt quan sát đầu tiên.
+
+Replacement nhỏ có thể hoàn tất trước khi vẽ Replacing. Frame Searching tiếp
+theo đã phản hồi thao tác nhưng chưa hoàn tất refresh kết quả. Predicate mới
+nhận cả Searching; legacy mode giữ cách chờ cũ để tái lập. Predicate phải false
+trước click để tránh nhận trạng thái cũ. Background completion vẫn chờ No matches
+và được báo riêng. Không so hai định nghĩa như thể editor đã chạy nhanh hơn.
+
+Matrix chạy tuần tự tám điều kiện (legacy/corrected × trace on/off × profiling
+on/off), xoay thứ tự theo vòng, dùng cùng binary/source/harness fingerprints.
+Percentile tính lại từ raw theo từng điều kiện/category/phase; không trung bình
+các percentile giữa run. Xem [báo cáo](SEARCH_OBSERVER_INVESTIGATION.md).

@@ -1,9 +1,16 @@
 # Performance measurements
 
-Current development state: **paused by user**. Latest ASCII/tabbed long-line
-results, failed samples, RAM trade-off and restart notes are in the
-[pause checkpoint](performance/ASCII_LAYOUT_PAUSE.md). Existing measurements below
-remain historical; no universal SLA is inferred.
+Latest keyboard revision: [keyboard audit](KEYBOARD_AUDIT.md), 146 Rust tests
+and 12 native probes. Same-binary general trace on/off: 2050 internal samples,
+max 4.644 ms; PTY max 17.018/27.901 ms, zero dropped and no >50 ms samples.
+Raw grouped measurements and current hashes are linked from that audit.
+
+Development resumed at the user's request on 2026-11-11. The
+[search observer investigation](performance/SEARCH_OBSERVER_INVESTIGATION.md)
+separates first feedback from result completion and adds optional observer-stage
+timings. This corrects the measurement predicate; it is not an editor speedup.
+The [ASCII pause checkpoint](performance/ASCII_LAYOUT_PAUSE.md) retains earlier
+results, failed samples and RAM trade-offs. Historical measurements remain intact.
 
 ## Current interaction targets — 2026-11-10
 

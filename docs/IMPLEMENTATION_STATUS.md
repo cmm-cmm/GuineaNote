@@ -15,7 +15,58 @@ local commands. Build outputs, Python caches and local environment files are
 excluded from version control. Older CI/Git statements below are historical
 milestone notes, not the current development policy.
 
-## Current checkpoint — paused by user, ASCII layout performance
+## Current mapping — adjacent function keys, 2026-11-11
+
+By the user's latest request: F6 previous tab, F7 next tab, F8 Review and
+F10 Settings. Markdown contents moves to Alt+M to avoid a collision. Hints,
+VI/EN F1, palette descriptions, CLI help and native probes use the new map.
+The keyboard audit below records the preceding checkpoint and its evidence.
+
+147 Rust tests, strict Clippy, fmt, release build, debug `cargo run -- --help`
+and 13 native probes passed with the new mapping. General trace-on: 2050
+input-to-flush samples, max 4.038 ms, no >50 ms samples/warnings or dropped
+rows. [Current evidence](diagnostics/function-keys/summary.json) keeps the
+new runs separate from the preceding keyboard audit.
+
+The containing Git commit closes this checkpoint. Evidence metadata preserves
+the pre-commit measurement state and hashes; the final commit and push are
+recorded on the linked Notion project after remote verification.
+
+## Previous work — unified search and keyboard-only TUI, 2026-11-11
+
+Find/Replace is one panel and one toolbar/palette action. Both fields and all
+action buttons are keyboard reachable, including at 30x9. Added portable Alt+A
+replace-all, Alt-arrow tab switching, F12 tab manager, Ctrl+L goto and Alt+S
+Save As; existing tab bindings remain. VI/EN F1 help now scrolls completely.
+Tab keys preserve dirty confirmation defaults and readonly/Agent restrictions.
+
+146 Rust tests, fmt, strict Clippy, release build and 12 sequential native
+probes passed. The dedicated audit uses mouse=false. General trace-on has
+2050 input-to-flush samples, max 4.644 ms, zero dropped; PTY trace on/off maxima
+17.018/27.901 ms. See [audit/evidence](KEYBOARD_AUDIT.md) and
+[shortcut reference](KEYBOARD_SHORTCUTS.md). These measurements were captured
+in the working tree on dev 3cca7bf; native validation scope is Windows/ConPTY.
+
+## Previous work — resumed, search observation, 2026-11-11
+
+The user requested reading the project on Notion and continuing development.
+Notion still referenced fe46835; local dev had advanced to 3cca7bf. All 166
+artifacts in the ASCII checkpoint manifest matched their stored checksums.
+
+The search harness now measures optional PTY wait/receive/decode/display stages
+and records the first observed search states. Reproductions show that the old
+replace-all predicate skipped visible Searching feedback and waited for final
+No matches instead. The corrected predicate accepts Searching while completion
+remains separately timed. A legacy mode and sequential eight-condition matrix
+preserve the old failure mode for comparison on the same release binary.
+
+140 Rust tests, fmt, strict native Clippy, release workspace build and three
+Python reader tests passed. Native smoke verified idle behavior and terminal
+cleanup. See the [investigation](performance/SEARCH_OBSERVER_INVESTIGATION.md)
+for the comparison, raw evidence and remaining uncertainty. Changes are in the
+working tree on 3cca7bf; the previous checkpoint below remains historical.
+
+## Previous checkpoint — paused by user, ASCII layout performance
 
 Development is paused at the user's request. Code, harness and evidence are
 checkpointed together; see [pause/process report](performance/ASCII_LAYOUT_PAUSE.md).

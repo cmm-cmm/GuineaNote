@@ -82,7 +82,7 @@ pub struct HitRegions {
     pub commands: Vec<(Rect, &'static str)>,
 }
 
-pub const HELP: &str = "Guinea Note — keyboard help\n\nWORKSPACE\nCtrl+K open folder  Ctrl+B show/hide explorer\nF4 switch pane     F5 refresh directory\nTree: ↑↓ select, → expand, ← collapse, Enter open\nTab / Esc returns from the tree to the editor\n\nEDITOR\nCtrl+N new    Ctrl+O open file/folder   Ctrl+S save\nCtrl+W close  Ctrl+Q quit    Ctrl+Shift+S save as\nCtrl+F find   F3 next match  Ctrl+H find/replace\nCtrl+Z undo   Ctrl+Y redo    Ctrl+A select all\nCtrl+C/X/V copy/cut/paste (internal clipboard)\nArrows move, Shift selects, Ctrl+Home/End start/end\nF6 / Shift+F6 next / previous tab\nCtrl+P All tabs: filter, switch, save, close\nCtrl+T New tab · Ctrl+PgUp/PgDn switch tabs\nF7 choose split view / linked read-only review tab\nReview: arrows, PgUp/PgDn, Home/End, mouse wheel\nCtrl+E project files · Ctrl+G search project\nF11 focus mode · F2 goto line[:column]\nF8 Settings (language)   F9 File details\nF10 Toggle Markdown contents · Tab focuses outline\n\nSEARCH PANEL\nEnter / Shift+Enter next / previous match\nTab fields/results · Ctrl+R replace one\nCtrl+Shift+R replace all · Esc close\n\nF2 COMMANDS\nnew, open, open-folder, save, save-as, close, quit,\nexplorer, focus, refresh, next, prev, find, find-next,\nreplace, undo, redo, select-all, copy, cut, paste,\nreload, preview, review-tab, source, split, settings, file-info, tabs, files, project-search, focus-mode, goto, help\n\nEnter submits · Esc cancels · Y confirms discard\nUTF-8 only · resident memory · periodic draft recovery\nF1 / Esc dismisses help";
+pub const HELP: &str = crate::keyboard::GUIDE_EN;
 
 pub struct Tab {
     pub id: u64,
@@ -232,6 +232,9 @@ pub struct App {
     pub preferences: Preferences,
     pub recovery: crate::recovery::Recovery,
     pub palette_index: usize,
+    pub help_scroll: usize,
+    pub help_height: usize,
+    pub help_rows: usize,
     pub focus_mode: bool,
     project_jump: Option<crate::project::Found>,
     mouse_selecting: Option<u64>,
@@ -296,6 +299,9 @@ impl App {
             preferences: Preferences::default(),
             recovery: crate::recovery::Recovery::default(),
             palette_index: 0,
+            help_scroll: 0,
+            help_height: 1,
+            help_rows: 0,
             focus_mode: false,
             project_jump: None,
             mouse_selecting: None,
@@ -360,7 +366,7 @@ impl App {
             return;
         }
         if self.tabs[self.active].review.mode == ViewMode::Review {
-            self.message = "Review is read-only; F7 or Esc returns to source".into();
+            self.message = "Review is read-only; F8 or Esc returns to source".into();
             return;
         }
         let trimmed = self.document().history_status().trimmed;
@@ -761,6 +767,8 @@ impl App {
                     && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode == ViewMode::Review
                     && !key.modifiers.contains(KeyModifiers::CONTROL)
+                    && !(key.modifiers == KeyModifiers::ALT
+                        && matches!(key.code, KeyCode::Char('m' | 'M')))
                     && !matches!(
                         key.code,
                         KeyCode::Up
@@ -774,11 +782,11 @@ impl App {
                             | KeyCode::Esc
                             | KeyCode::Tab
                             | KeyCode::Enter
-                            | KeyCode::F(1..=11)
+                            | KeyCode::F(1..=12)
                             | KeyCode::Char('j' | 'k' | ' ')
                     )
                 {
-                    let message = "Review is read-only; F7 or Esc returns to source";
+                    let message = "Review is read-only; F8 or Esc returns to source";
                     if self.message != message {
                         self.message = message.into();
                         self.redraw = true;
@@ -786,6 +794,16 @@ impl App {
                     return;
                 }
                 self.redraw = true;
+                // Search/project panels can be dismissed safely by tab keys.
+                // Confirmation and save-path dialogs retain their own keys.
+                let tab_context = self.modal.is_none()
+                    || matches!(&self.modal, Some(Modal::Project(_)))
+                    || matches!(&self.modal, Some(Modal::Search(search)) if !search.replacing());
+                if tab_context && let Some(command) = crate::keyboard::tab_command(key) {
+                    self.modal = None;
+                    self.command(command);
+                    return;
+                }
                 if self.modal.is_some() {
                     self.modal_key(key);
                 } else {
@@ -818,6 +836,7 @@ impl App {
                 match key.code {
                     KeyCode::Esc => return,
                     KeyCode::Char('p') if ctrl => return,
+                    KeyCode::F(12) => return,
                     KeyCode::Char('n' | 't') if ctrl => {
                         self.command("new");
                         return;
@@ -845,6 +864,17 @@ impl App {
                     }
                     KeyCode::Up => manager.move_by(-1),
                     KeyCode::Down => manager.move_by(1),
+                    KeyCode::Tab | KeyCode::BackTab => manager.move_by(
+                        if key.code == KeyCode::BackTab
+                            || key.modifiers.contains(KeyModifiers::SHIFT)
+                        {
+                            -1
+                        } else {
+                            1
+                        },
+                    ),
+                    _ if crate::keyboard::tab_command(key) == Some("next") => manager.move_by(1),
+                    _ if crate::keyboard::tab_command(key) == Some("prev") => manager.move_by(-1),
                     KeyCode::PageUp => manager.move_by(-(manager.height as isize)),
                     KeyCode::PageDown => manager.move_by(manager.height as isize),
                     KeyCode::Home => manager.selected = 0,
@@ -866,8 +896,13 @@ impl App {
                 self.modal = Some(Modal::Tabs(manager));
             }
             Modal::Settings { mut selected } => match key.code {
-                KeyCode::Esc | KeyCode::F(8) => self.message = "Cancelled".into(),
-                KeyCode::Left | KeyCode::Up | KeyCode::Right | KeyCode::Down | KeyCode::Tab => {
+                KeyCode::Esc | KeyCode::F(10) => self.message = "Cancelled".into(),
+                KeyCode::Left
+                | KeyCode::Up
+                | KeyCode::Right
+                | KeyCode::Down
+                | KeyCode::Tab
+                | KeyCode::BackTab => {
                     selected = selected.toggle();
                     self.modal = Some(Modal::Settings { selected });
                 }
@@ -885,8 +920,13 @@ impl App {
                 _ => self.modal = Some(Modal::Settings { selected }),
             },
             Modal::ReviewOptions { mut selected } => match key.code {
-                KeyCode::Esc | KeyCode::F(7) => self.message = "Cancelled".into(),
-                KeyCode::Up | KeyCode::Down | KeyCode::Left | KeyCode::Right | KeyCode::Tab => {
+                KeyCode::Esc | KeyCode::F(8) => self.message = "Cancelled".into(),
+                KeyCode::Up
+                | KeyCode::Down
+                | KeyCode::Left
+                | KeyCode::Right
+                | KeyCode::Tab
+                | KeyCode::BackTab => {
                     selected = 1 - selected;
                     self.modal = Some(Modal::ReviewOptions { selected });
                 }
@@ -913,9 +953,24 @@ impl App {
                 self.modal = Some(Modal::FileInfo(info));
             }
             Modal::Help => {
-                if !matches!(key.code, KeyCode::Esc | KeyCode::F(1)) {
-                    self.modal = Some(Modal::Help);
+                match key.code {
+                    KeyCode::Esc | KeyCode::F(1) | KeyCode::Enter => return,
+                    KeyCode::Up => self.help_scroll = self.help_scroll.saturating_sub(1),
+                    KeyCode::Down => self.help_scroll = self.help_scroll.saturating_add(1),
+                    KeyCode::PageUp => {
+                        self.help_scroll = self.help_scroll.saturating_sub(self.help_height)
+                    }
+                    KeyCode::PageDown => {
+                        self.help_scroll = self.help_scroll.saturating_add(self.help_height)
+                    }
+                    KeyCode::Home => self.help_scroll = 0,
+                    KeyCode::End => self.help_scroll = self.help_rows,
+                    _ => {}
                 }
+                self.help_scroll = self
+                    .help_scroll
+                    .min(self.help_rows.saturating_sub(self.help_height));
+                self.modal = Some(Modal::Help);
             }
             Modal::Confirm {
                 action,
@@ -930,7 +985,11 @@ impl App {
                         self.message = "Cancelled".into();
                     }
                 }
-                KeyCode::Tab | KeyCode::BackTab | KeyCode::Left | KeyCode::Right => {
+                KeyCode::Tab | KeyCode::BackTab | KeyCode::Left | KeyCode::Right
+                    if !key
+                        .modifiers
+                        .intersects(KeyModifiers::CONTROL | KeyModifiers::ALT) =>
+                {
                     selected = !selected;
                     self.modal = Some(Modal::Confirm {
                         action,
@@ -986,6 +1045,9 @@ impl App {
                         if let Some((byte, _)) = value.grapheme_indices(true).next_back() {
                             value.truncate(byte);
                         }
+                    }
+                    KeyCode::Char('u') if key.modifiers.contains(KeyModifiers::CONTROL) => {
+                        value.clear()
                     }
                     KeyCode::Char(ch)
                         if !key
@@ -1058,6 +1120,10 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
+        if key.modifiers == KeyModifiers::ALT && matches!(key.code, KeyCode::Char('s' | 'S')) {
+            self.command("save-as");
+            return;
+        }
         if key.code == KeyCode::F(11) {
             self.command("focus-mode");
             return;
@@ -1075,7 +1141,7 @@ impl App {
         ) {
             self.tabs[self.active].follow_cursor = true;
         }
-        if key.code == KeyCode::F(10) {
+        if key.modifiers == KeyModifiers::ALT && matches!(key.code, KeyCode::Char('m' | 'M')) {
             let review = &mut self.tabs[self.active].review;
             review.outline_visible = !review.outline_visible;
             review.outline_focus = false;
@@ -1085,7 +1151,7 @@ impl App {
             self.command("info");
             return;
         }
-        if key.code == KeyCode::F(8) {
+        if key.code == KeyCode::F(10) {
             self.command("settings");
             return;
         }
@@ -1118,6 +1184,7 @@ impl App {
                 KeyCode::Char('q') => self.command("quit"),
                 KeyCode::Char('e') => self.command("files"),
                 KeyCode::Char('g') => self.command("project-search"),
+                KeyCode::Char('l') => self.command("goto"),
                 KeyCode::Char('f') => self.command("find"),
                 KeyCode::Char('h') => self.command("replace"),
                 KeyCode::Char('z') => self.command("undo"),
@@ -1136,7 +1203,7 @@ impl App {
             return;
         }
         match key.code {
-            KeyCode::F(7) => {
+            KeyCode::F(8) => {
                 self.command("preview");
                 return;
             }
@@ -1148,7 +1215,7 @@ impl App {
                 self.command("refresh");
                 return;
             }
-            KeyCode::F(1) | KeyCode::F(2) | KeyCode::F(3) | KeyCode::F(6) => {}
+            KeyCode::F(1) | KeyCode::F(2) | KeyCode::F(3) | KeyCode::F(7) => {}
             _ if self.focus == Focus::Explorer => {
                 self.tree_key(key);
                 return;
@@ -1206,7 +1273,6 @@ impl App {
                 KeyCode::F(1) => self.command("help"),
                 KeyCode::F(2) => self.prompt(InputKind::Command),
                 KeyCode::F(3) => self.command("find-next"),
-                KeyCode::F(6) => self.command(if shift { "prev" } else { "next" }),
                 _ => {}
             }
             return;
@@ -1228,7 +1294,6 @@ impl App {
             KeyCode::F(1) => self.command("help"),
             KeyCode::F(2) => self.prompt(InputKind::Command),
             KeyCode::F(3) => self.command("find-next"),
-            KeyCode::F(6) => self.command(if shift { "prev" } else { "next" }),
             KeyCode::PageUp | KeyCode::PageDown => {
                 let movement = if key.code == KeyCode::PageUp {
                     Movement::Up
@@ -1976,10 +2041,13 @@ impl App {
             "reload" => self.message = "Untitled buffer has no file to reload".into(),
             "next" => { self.active = (self.active + 1) % self.tabs.len(); self.focus = Focus::Editor; }
             "prev" => { self.active = (self.active + self.tabs.len() - 1) % self.tabs.len(); self.focus = Focus::Editor; }
-            "help" => self.modal = Some(Modal::Help),
-            "find" => self.open_search(false),
+            "help" => {
+                self.help_scroll = 0;
+                self.modal = Some(Modal::Help);
+            }
+            "find" => self.open_search(),
             "find-next" => self.find_next(),
-            "replace" => self.open_search(true),
+            "replace" => self.open_search(),
             "undo" => self.edit(|d| d.undo().map(|_| ())),
             "redo" => self.edit(|d| d.redo().map(|_| ())),
             "select-all" => self.document_mut().select_all(),
@@ -2000,6 +2068,33 @@ impl App {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn function_keys_follow_previous_next_review_settings_and_outline_mapping() {
+        let mut app = app();
+        app.command("new");
+        app.command("new");
+        assert_eq!(app.active, 2);
+        app.handle(key(KeyCode::F(6)));
+        assert_eq!(app.active, 1);
+        app.handle(key(KeyCode::F(7)));
+        assert_eq!(app.active, 2);
+        app.handle(key(KeyCode::F(8)));
+        assert!(matches!(app.modal, Some(Modal::ReviewOptions { .. })));
+        app.handle(key(KeyCode::F(8)));
+        assert!(app.modal.is_none());
+        app.handle(key(KeyCode::F(10)));
+        assert!(matches!(app.modal, Some(Modal::Settings { .. })));
+        app.handle(key(KeyCode::F(10)));
+        assert!(app.modal.is_none());
+        app.tabs[app.active].review.mode = ViewMode::Review;
+        let before = app.tabs[app.active].review.outline_visible;
+        app.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('m'),
+            KeyModifiers::ALT,
+        )));
+        assert_eq!(app.tabs[app.active].review.outline_visible, !before);
+        assert_eq!(app.active, 2);
+    }
     #[test]
     fn project_navigation_keeps_dirty_buffer_and_stale_disk_results_safe() {
         let dir = tempfile::tempdir().unwrap();
@@ -2084,6 +2179,35 @@ mod tests {
         assert!(!a.focus_mode);
         assert!(a.explorer_visible);
         assert_eq!(a.focus, Focus::Explorer);
+    }
+
+    #[test]
+    fn tab_keys_leave_search_safely_and_do_not_bypass_dirty_confirmation() {
+        let mut a = app();
+        a.document_mut().insert("first").unwrap();
+        a.command("new");
+        a.document_mut().insert("second").unwrap();
+        a.command("find");
+        a.handle(Event::Paste("query".into()));
+        a.handle(Event::Key(KeyEvent::new(KeyCode::Left, KeyModifiers::ALT)));
+        assert!(a.modal.is_none());
+        assert_eq!(a.active, 0);
+        assert_eq!(a.document().text(), "first");
+        a.handle(key(KeyCode::F(12)));
+        assert!(matches!(a.modal, Some(Modal::Tabs(_))));
+        a.handle(key(KeyCode::Tab));
+        a.handle(key(KeyCode::Enter));
+        assert_eq!(a.active, 1);
+        assert_eq!(a.document().text(), "second");
+        a.command("close");
+        assert!(matches!(a.modal, Some(Modal::Confirm { .. })));
+        a.handle(Event::Key(KeyEvent::new(KeyCode::Right, KeyModifiers::ALT)));
+        a.handle(key(KeyCode::F(12)));
+        assert_eq!(a.active, 1);
+        assert!(matches!(a.modal, Some(Modal::Confirm { .. })));
+        a.handle(key(KeyCode::Enter)); // Safe default: keep working.
+        assert_eq!(a.tabs.len(), 2);
+        assert_eq!(a.document().text(), "second");
     }
 
     #[test]
@@ -2191,13 +2315,13 @@ mod tests {
     fn f8_opens_settings_cancel_does_not_change_language_and_apply_is_explicit() {
         let mut a = app();
         let initial = a.config.language;
-        a.handle(key(KeyCode::F(8)));
+        a.handle(key(KeyCode::F(10)));
         assert!(matches!(a.modal, Some(Modal::Settings { .. })));
         a.handle(key(KeyCode::Right));
         assert_eq!(a.config.language, initial);
         a.handle(key(KeyCode::Esc));
         assert_eq!(a.config.language, initial);
-        a.handle(key(KeyCode::F(8)));
+        a.handle(key(KeyCode::F(10)));
         a.handle(key(KeyCode::Char('v')));
         a.handle(key(KeyCode::Enter));
         assert_eq!(a.config.language, Locale::Vi);
@@ -2245,11 +2369,11 @@ mod tests {
     fn review_chooser_split_and_dirty_source_close_keep_document_safe() {
         let mut a = app();
         a.handle(Event::Paste("source".into()));
-        a.handle(key(KeyCode::F(7)));
+        a.handle(key(KeyCode::F(8)));
         assert!(matches!(a.modal, Some(Modal::ReviewOptions { .. })));
         a.handle(key(KeyCode::Char('1')));
         assert_eq!(a.tabs[a.active].review.mode, ViewMode::Split);
-        a.handle(key(KeyCode::F(7)));
+        a.handle(key(KeyCode::F(8)));
         a.handle(key(KeyCode::Char('2')));
         assert_eq!(a.tabs.len(), 2);
         a.command("source");
@@ -2527,7 +2651,7 @@ mod tests {
         assert_eq!(a.document().text(), "e\u{301} 👩‍💻\r\n");
         a.command("undo");
         assert_eq!(a.document().text(), "");
-        a.handle(key(KeyCode::F(6)));
+        a.handle(key(KeyCode::F(7)));
         assert_eq!(a.document().text(), "e\u{301} 👩‍💻\r\n");
         a.handle(key(KeyCode::F(2)));
         a.handle(Event::Paste("new".into()));

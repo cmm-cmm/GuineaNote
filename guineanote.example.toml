@@ -1,5 +1,5 @@
 # Pass explicitly with --config guineanote.example.toml.
-# Interface: "vi" or "en". --language overrides this; F8 opens language Settings.
+# Interface: "vi" or "en". --language overrides this; F10 opens language Settings.
 language = "vi"
 tab_width = 4
 large_file_warning_bytes = 10485760

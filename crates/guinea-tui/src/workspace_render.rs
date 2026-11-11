@@ -108,10 +108,9 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         (" Open folder  ^K ", "open-folder"),
         (" Files ^E ", "files"),
         (" Project ^G ", "project-search"),
-        (" Find ^F ", "find"),
-        (" Replace ^H ", "replace"),
-        (" Review  F7 ", "preview"),
-        (" Settings F8 ", "settings"),
+        (" Find/Replace ^F ", "find"),
+        (" Review  F8 ", "preview"),
+        (" Settings F10 ", "settings"),
         (" Info F9 ", "info"),
     ] {
         let label = if area.width < 110 {
@@ -120,8 +119,8 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 "open-folder" => " Folder ^K ",
                 "new" => " New ^N ",
                 "save" => " Save ^S ",
-                "preview" => " View F7 ",
-                "settings" => " F8 ",
+                "preview" => " View F8 ",
+                "settings" => " F10 ",
                 "info" => " F9 ",
                 _ => label,
             }
@@ -353,7 +352,16 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         Rect::new(area.x, area.y, count_width, 1),
     );
     let mut x = area.x + count_width + 1;
-    let controls: Vec<(&str, &str)> = if area.width >= 56 {
+    let controls: Vec<(&str, &str)> = if area.width >= 96 {
+        vec![
+            (" + New ^T ", "new"),
+            (" Save ^S ", "save"),
+            (" Close ^W ", "close"),
+            (" < F6 ", "prev"),
+            (" F7 > ", "next"),
+            (" All ^P F12 ", "tabs"),
+        ]
+    } else if area.width >= 56 {
         vec![
             (" + New ", "new"),
             (" Save ", "save"),
@@ -812,7 +820,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     let locale = app.config.language;
     let is_markdown = crate::app::document_language(app.document()) == Language::Markdown;
     let linked = app.tabs[app.active].review_source.is_some();
-    let block = panel(&locale.tr("REVIEW · F7"), theme, true);
+    let block = panel(&locale.tr("REVIEW · F8"), theme, true);
     let body = block.inner(area);
     frame.render_widget(block, area);
     if body.width < 4 || body.height < 3 {
@@ -841,7 +849,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     } else if review.busy() {
         "Updating review…"
     } else {
-        "↑↓ Scroll · F7 View · Esc Source"
+        "↑↓ Scroll · F8 View · Esc Source"
     };
     if is_markdown {
         let reader_title = if locale == Locale::Vi {
@@ -894,9 +902,9 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
         let total = review.lines().len().max(1);
         let percent = (review.top + content.height as usize).min(total) * 100 / total;
         let navigation = if locale == Locale::Vi {
-            format!("{percent}% · F10 Mục lục · Tab Chuyển vùng · Esc Về nguồn")
+            format!("{percent}% · Alt+M Mục lục · Tab Chuyển vùng · Esc Về nguồn")
         } else {
-            format!("{percent}% · F10 Contents · Tab Focus outline · Esc Source")
+            format!("{percent}% · Alt+M Contents · Tab Focus outline · Esc Source")
         };
         frame.render_widget(
             Paragraph::new(if review.busy() || review.error() {
@@ -1121,11 +1129,11 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     let hints = if app.focus_mode {
         " F11 Workspace   ^S Save   ^E Files   ^G Project search   ^P Tabs   F2 Commands"
     } else if app.tabs[app.active].ai_action.is_some() {
-        " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings"
+        " ↑↓ Navigate   ^C Copy   F6/F7 Other tabs   ^T New tab   F10 Settings"
     } else if app.focus == Focus::Explorer {
         " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files"
     } else {
-        " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F7 Review   F2 Commands   ^Q Quit"
+        " ^S Save   ^F Find/Replace   F6 Prev   F7 Next   ^P Tabs   F1 Help   F4 Pane   F8 Review   ^Q Quit"
     };
     frame.render_widget(
         Paragraph::new(locale.tr(hints).into_owned()).style(text_style(theme.muted)),

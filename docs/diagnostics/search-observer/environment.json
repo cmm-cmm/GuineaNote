@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-11",
+  "base_git_head": "3cca7bfaf7f494f7f7c355b0803d172d4942a827",
+  "branch": "dev",
+  "state": "resumed_by_user; working tree changes, not committed or pushed",
+  "native_scope": "Windows x64/MSVC release, ConPTY; no Ubuntu/SSH certification",
+  "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+  "platform": "Windows-11-10.0.26300-SP0",
+  "python": "3.15.2",
+  "dependencies": {
+    "pywinpty": "3.1.2",
+    "psutil": "7.2.2",
+    "pyte": "0.8.2",
+    "wcwidth": "0.9.4",
+    "Pillow": "13.0.0"
+  },
+  "binary_sha256": [
+    "4b0261d9f775d1965d08ee6a3931bbff1bfe6b95e31a79f7460612fb56444c51"
+  ],
+  "source_sha256": [
+    "e4e9e0c27ccdd0c30b7b5e46cd22dd4b504f70906947466ecd663ba9adfe70b6"
+  ],
+  "checkpoint_artifacts_verified": 166,
+  "matrix_runs": 160,
+  "native_sessions": 480,
+  "pty_samples": 2080,
+  "application_samples": 5920,
+  "application_max_ms": 8.567,
+  "application_outliers": 0,
+  "dropped_samples": 0,
+  "legacy_pty_outliers": 25,
+  "corrected_pty_outliers": 0,
+  "representative_run": "3",
+  "representative_legacy_sample": {
+    "action": "search:replace-all",
+    "ms": 58.431,
+    "send_ms": 0.032,
+    "wait_observe_ms": 58.401,
+    "observer_cpu_ms": 0.0,
+    "output_bytes": 937,
+    "observer": {
+      "select_wait_ms": 51.981,
+      "receive_ms": 0.125,
+      "append_ms": 0.033,
+      "decode_feed_ms": 0.871,
+      "display_ms": 0.0,
+      "read_calls": 4,
+      "chunks": 8,
+      "bytes": 937
+    },
+    "first_seen_search_states_ms": {
+      "Searching": 10.042,
+      "No matches": 58.408
+    },
+    "observer_unattributed_ms": 5.389
+  },
+  "validation": {
+    "rust_tests": 140,
+    "python_reader_tests": 3,
+    "fmt": "pass",
+    "clippy": "pass",
+    "release_build": "pass",
+    "native_smoke": "pass"
+  },
+  "limits": [
+    "Same new binary for the entire matrix; historical binary/source hashes differ and are not pooled",
+    "Three fixtures per run; twenty runs per condition; physical paint and adapter queue are not isolated",
+    "Legacy predicate reproduces a feedback/completion confound; exact historical outlier root causes remain unproven",
+    "Historical cold End 916.326 ms and multi-tab RAM soak remain open"
+  ]
+}

@@ -1,5 +1,51 @@
 # Test plan and reproduction
 
+## Keyboard-only TUI audit — 2026-11-11
+
+After `cargo build --workspace --release`, run
+`python -X utf8 scripts/pty_keyboard.py`. It launches with `mouse = false`,
+uses only key input and saves its report/log under the directory named by
+`target/keyboard-latest-path.txt`.
+
+Coverage: unified Find/Replace, all search focus stops, Enter and Alt+A
+replacement, Undo/save byte integrity, F12/Ctrl+P manager filtering, Tab/BackTab,
+F6 previous/F7 next, Alt arrows, Ctrl+PageUp/PageDown, Ctrl+L, Alt+S, F2 list navigation,
+project/file dialogs, pane/focus, review/info/settings, VI/EN help scrolling at
+30x9 and safe dirty-close confirmation. Ctrl+Tab/BackTab variants are also
+checked at dispatcher and native Win32 decoder level; terminal interception
+can require F6 or Alt arrows instead.
+
+Keep `pty_smoke.py`, `pty_search.py --trace`, `pty_tabs.py`,
+`pty_dialog_mouse.py`, project/workspace, Agent/recovery and terminal matrix
+regressions. Run latency probes sequentially after builds. A search unit-test
+helper now waits for shared worker admission instead of assuming a free permit
+while other tests run in parallel; runtime worker limits remain unchanged.
+
+## Search feedback and observer profiling — 2026-11-11
+
+After installing the PTY development dependencies below (plus Pillow for search
+screenshots) and building release, run sequentially:
+
+```powershell
+python -X utf8 -m unittest discover -s scripts -p test_pty_observer.py -v
+python -X utf8 scripts/pty_search.py --trace --profile-observer
+python -X utf8 scripts/pty_search_matrix.py --runs 20 --record-only
+```
+
+The matrix runs the legacy/corrected feedback predicate with trace on/off and
+observer profiling on/off. It rotates condition order; each condition repeats
+the same small Unicode/BOM/CRLF, readonly and 10 MiB replacement/Undo workflow.
+Every run waits for completion and checks file bytes and terminal cleanup.
+Raw logs, CSV, per-action stages, reports and checksums live in the directory
+named by `target/search-matrix-latest-path.txt`.
+
+`--record-only` retains investigative outliers and does not certify acceptance.
+Missing/incomplete traces, dropped samples and correctness failures still fail.
+Without that flag the matrix also fails corrected responses above 50 ms; legacy
+outliers remain evidence. `--legacy-replacement-feedback` on the single probe
+reproduces the old predicate. See the
+[investigation](performance/SEARCH_OBSERVER_INVESTIGATION.md) for its limitations.
+
 ## Current investigation threshold
 
 Every measured interaction >50 ms requires investigation, even if p99 passes.

@@ -1,0 +1,15 @@
+{
+  "artifacts": {
+    "build.txt": "6b91b165ccf26bda798577c4bf0ccaf35c3279517a945e5153524d578fd7956f",
+    "clippy.txt": "7706f4d311fbce29110559299050ea0f9fe686efa9f8ea78baeddc76f598eb3b",
+    "fmt.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "help.txt": "dee77bc19ac431349ac0d7a362aa194e63555dce9737c40b0ee592de3df11cb3",
+    "keyboard.json": "56d7ca2810479275d92a9e93dc09ee8a9de778a7c85ff2dcf60e1a4a6b505aaa",
+    "latency-off.json": "75379ae3c31a5fc0fdd342dd2b536e16f1626f9cfc14cb895cbfcb8c27e49676",
+    "latency-trace.json": "af081633d5114ed72cb04d7030d401ca30b8ebaf855d477ebe219c5d70f926d0",
+    "raw.zip": "1762443e37209f134cb71537e3f47e6c5b11c85ab5894cc0d0e1f090d056a86b",
+    "results.json": "37343cc6f7b8852d9a8908f5c3fa0fe58d3d2c28d68f57ecc9c99490729bf660",
+    "summary.json": "7eea3991bbb9b0ac097a2f259e05611f22323e469c1afc4cef424ddd1cd1d16c",
+    "tests.txt": "e268322aad48fdb35b906f0f0786bab440722a597f0c09d388ba429e46cc8fea"
+  }
+}

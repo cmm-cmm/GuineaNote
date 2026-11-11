@@ -1,0 +1,114 @@
+{
+  "completed": [
+    "Tab manager filtering, Tab/Shift+Tab, F12, F6/Shift+F6, Alt arrows, Ctrl+PageUp/PageDown",
+    "Unified fields and every action reached by Tab; Enter on Replace all; one Undo transaction",
+    "Alt+A replaces all; explicit saves preserve UTF-8 BOM/CRLF/NFD/ZWJ and Undo restores bytes",
+    "30x9 focused action visibility and keyboard guide Home/End scrolling",
+    "Ctrl+L goto, Ctrl+U clear prompt, Alt+S Save As",
+    "F2 action-list navigation, project modes, file picker, pane/focus mode, file details and review chooser",
+    "Dirty close keeps Cancel as default; tab shortcuts cannot select Discard; Tab+Enter explicitly discards",
+    "Vietnamese keyboard guide and settings BackTab, clean exit and unchanged source files"
+  ],
+  "mouse": false,
+  "samples": [
+    {
+      "action": "tabs:alt-left",
+      "ms": 5.227,
+      "send_ms": 0.026,
+      "wait_observe_ms": 5.216,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1273
+    },
+    {
+      "action": "tabs:alt-right",
+      "ms": 3.981,
+      "send_ms": 0.017,
+      "wait_observe_ms": 3.969,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 870
+    },
+    {
+      "action": "tabs:shift-f6",
+      "ms": 3.899,
+      "send_ms": 0.013,
+      "wait_observe_ms": 3.889,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 861
+    },
+    {
+      "action": "tabs:f6",
+      "ms": 4.315,
+      "send_ms": 0.017,
+      "wait_observe_ms": 4.303,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 870
+    },
+    {
+      "action": "tabs:ctrl-pageup",
+      "ms": 4.212,
+      "send_ms": 0.036,
+      "wait_observe_ms": 4.18,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 861
+    },
+    {
+      "action": "tabs:ctrl-pagedown",
+      "ms": 4.026,
+      "send_ms": 0.013,
+      "wait_observe_ms": 4.017,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 870
+    },
+    {
+      "action": "tabs:f12-manager",
+      "ms": 3.389,
+      "send_ms": 0.012,
+      "wait_observe_ms": 3.38,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1029
+    },
+    {
+      "action": "tabs:ctrl-p-manager",
+      "ms": 12.884,
+      "send_ms": 0.026,
+      "wait_observe_ms": 12.864,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 7031
+    },
+    {
+      "action": "search:unified-open",
+      "ms": 10.97,
+      "send_ms": 0.02,
+      "wait_observe_ms": 10.956,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 7033
+    },
+    {
+      "action": "search:alt-a-feedback",
+      "ms": 10.629,
+      "send_ms": 0.031,
+      "wait_observe_ms": 10.605,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 251
+    },
+    {
+      "action": "goto:open",
+      "ms": 3.508,
+      "send_ms": 0.029,
+      "wait_observe_ms": 3.486,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1024
+    },
+    {
+      "action": "save-as:alt-s",
+      "ms": 3.068,
+      "send_ms": 0.021,
+      "wait_observe_ms": 3.053,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 1024
+    }
+  ],
+  "failures": [],
+  "binary_sha256": "16de88b190e42f2ae1a7663c25cdf1edb206e7ef28d55ca49c1d07eccd9af0c9",
+  "source_sha256": "9c4f55067a98733313f0651257bc3d4051fd4310d142cd94653d5627d5fe0a76"
+}

@@ -71,10 +71,10 @@ impl Locale {
             "AI released this tab; original access restored" => {
                 "AI đã trả quyền thẻ; khôi phục trạng thái truy cập ban đầu"
             }
-            " ↑↓ Navigate   ^C Copy   F6 Other tabs   ^T New tab   F8 Settings" => {
-                " ↑↓ Di chuyển   ^C Sao chép   F6 Thẻ khác   ^T Thẻ mới   F8 Thiết lập"
+            " ↑↓ Navigate   ^C Copy   F6/F7 Other tabs   ^T New tab   F10 Settings" => {
+                " ↑↓ Di chuyển   ^C Sao chép   F6/F7 Thẻ khác   ^T Thẻ mới   F10 Thiết lập"
             }
-            "REVIEW · F7" => "XEM TRƯỚC · F7",
+            "REVIEW · F8" => "XEM TRƯỚC · F8",
             "Welcome" => "Chào bạn",
             "Untitled" => "Chưa đặt tên",
             " AI · READ ONLY " => " AI · CHỈ ĐỌC ",
@@ -87,9 +87,15 @@ impl Locale {
             " Save " => " Lưu ",
             " Close " => " Đóng ",
             " All ^P " => " Tất cả ^P ",
+            " All ^P F12 " => " Thẻ ^P F12 ",
+            " + New ^T " => " + Mới ^T ",
+            " Close ^W " => " Đóng ^W ",
+            " ^S Save   ^F Find/Replace   F6 Prev   F7 Next   ^P Tabs   F1 Help   F4 Pane   F8 Review   ^Q Quit" => {
+                " ^S Lưu   ^F Tìm/Thay   F6 Trước   F7 Sau   ^P Thẻ   F1 Trợ giúp   F4 Khung   F8 Xem   ^Q Thoát"
+            }
             "    A little more focused." => "    Tập trung từng ý tưởng.",
             "WORKSPACE  /  v0.1.0 " => "KHÔNG GIAN  /  v0.1.0 ",
-            " Settings F8 " => " Thiết lập F8 ",
+            " Settings F10 " => " Thiết lập F10 ",
             " Info F9 " => " Chi tiết F9 ",
             "Settings saved" => "Đã lưu thiết lập",
             "Saving settings…" => "Đang lưu thiết lập…",
@@ -105,12 +111,13 @@ impl Locale {
             " New  ^N " => " Tạo mới  ^N ",
             " Save  ^S " => " Lưu  ^S ",
             " Find ^F " => " Tìm ^F ",
+            " Find/Replace ^F " => " Tìm/Thay ^F ",
             " Replace ^H " => " Thay ^H ",
             " Open ^O " => " Mở ^O ",
             " Folder ^K " => " Thư mục ^K ",
             " New ^N " => " Mới ^N ",
             " Save ^S " => " Lưu ^S ",
-            " View F7 " => " Xem F7 ",
+            " View F8 " => " Xem F8 ",
             "Search closed" => "Đã đóng tìm kiếm",
             "Input is limited to 4096 UTF-8 bytes" => "Ô nhập giới hạn 4096 byte UTF-8",
             "Document changed; search again before replacing" => {
@@ -124,7 +131,7 @@ impl Locale {
             "Result exceeds 128 MiB; use a shorter replacement or replace one match" => {
                 "Kết quả vượt 128 MiB; giảm nội dung thay thế hoặc thay từng mục"
             }
-            " Review  F7 " => " Xem trước  F7 ",
+            " Review  F8 " => " Xem trước  F8 ",
             "F1 Help   F2 Commands " => "F1 Trợ giúp  F2 Lệnh ",
             "  Loading files…" => "  Đang đọc thư mục…",
             "  Cannot read folder" => "  Không đọc được thư mục",
@@ -161,8 +168,8 @@ impl Locale {
                 "Sẵn sàng — mở file hoặc thư mục để bắt đầu"
             }
             "Already open; switched to its tab" => "File đã mở; đã chuyển sang tab tương ứng",
-            "Review is read-only; F7 or Esc returns to source" => {
-                "Bản xem chỉ đọc; F7 hoặc Esc để về nguồn"
+            "Review is read-only; F8 or Esc returns to source" => {
+                "Bản xem chỉ đọc; F8 hoặc Esc để về nguồn"
             }
             "Finding… edits paused" => "Đang tìm… tạm dừng sửa",
             "Replacing… edits paused" => "Đang thay thế… tạm dừng sửa",
@@ -221,8 +228,8 @@ impl Locale {
             }
             "Match selected (F3 next)" => "Đã chọn kết quả (F3 tìm tiếp)",
             "No grapheme-aligned match" => "Không tìm thấy kết quả khớp trọn cụm ký tự",
-            "F7 Source / Split / Review · review never changes the source" => {
-                "F7 Nguồn / Chia đôi / Xem trước · chế độ xem giữ nguyên dữ liệu nguồn"
+            "F8 Source / Split / Review · review never changes the source" => {
+                "F8 Nguồn / Chia đôi / Xem trước · chế độ xem giữ nguyên dữ liệu nguồn"
             }
             "Review supports Markdown, JSON/JSONL, XML, CSV/TSV, TOML, YAML and INI" => {
                 "Xem trước hỗ trợ Markdown, JSON/JSONL, XML, CSV/TSV, TOML, YAML và INI"
@@ -234,7 +241,7 @@ impl Locale {
                 "Dữ liệu chưa hợp lệ · sửa nguồn để cập nhật bản xem"
             }
             "Updating review…" => "Đang cập nhật bản xem…",
-            "↑↓ Scroll · F7 View · Esc Source" => "↑↓ Cuộn · F7 Chế độ xem · Esc Về nguồn",
+            "↑↓ Scroll · F8 View · Esc Source" => "↑↓ Cuộn · F8 Chế độ xem · Esc Về nguồn",
             "Review worker failed; source retained" => {
                 "Tác vụ xem trước gặp lỗi; nguồn được giữ nguyên"
             }
@@ -244,8 +251,8 @@ impl Locale {
             " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files" => {
                 " ↑↓ Duyệt   → Mở nhánh   ← Thu gọn   Enter Mở   Tab Soạn thảo   ^B Ẩn cây"
             }
-            " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F7 Review   F2 Commands   ^Q Quit" => {
-                " ^S Lưu   ^O Mở   ^K Thư mục   ^B Cây   F4 Khung   F6 Tab   F7 Xem   F2 Lệnh   ^Q Thoát"
+            " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F8 Review   F2 Commands   ^Q Quit" => {
+                " ^S Lưu   ^O Mở   ^K Thư mục   ^B Cây   F4 Khung   F6 Tab   F8 Xem   F2 Lệnh   ^Q Thoát"
             }
             "GUINEA NOTE\nResize to at least 30 × 9\nCtrl+Q to quit" => {
                 "GUINEA NOTE\nCần tối thiểu 30 × 9 ô\nCtrl+Q để thoát"
@@ -321,7 +328,7 @@ impl Locale {
     }
 }
 
-pub const HELP_VI: &str = "Guinea Note — hướng dẫn phím tắt\n\nTHƯ MỤC\nCtrl+K mở thư mục   Ctrl+B hiện/ẩn cây\nF4 chuyển khung     F5 đọc lại thư mục\n↑↓ chọn, → mở nhánh, ← thu gọn, Enter mở file\nTab / Esc trở lại khung soạn thảo\n\nSOẠN THẢO\nCtrl+N tạo mới  Ctrl+O mở  Ctrl+S lưu\nCtrl+W đóng tab  Ctrl+Q thoát  Ctrl+Shift+S lưu thành\nCtrl+F tìm  F3 tìm tiếp  Ctrl+H tìm/thay thế\nCtrl+Z hoàn tác  Ctrl+Y làm lại  Ctrl+A chọn hết\nCtrl+C/X/V sao chép/cắt/dán (bộ nhớ tạm nội bộ)\nPhím mũi tên di chuyển, Shift chọn vùng\nCtrl+Home/End về đầu/cuối file\nF6 / Shift+F6 chuyển tab tiếp / trước\nCtrl+P Quản lý thẻ: lọc, chuyển, lưu, đóng\nCtrl+T Thẻ trống · Ctrl+PgUp/PgDn chuyển thẻ\nF7 Chọn xem song song / mở tab review riêng\nF10 Ẩn/hiện mục lục · Tab chọn mục lục khi đọc\nXem trước: ↑↓, PgUp/PgDn, Home/End, con lăn\nCtrl+E tìm file project · Ctrl+G tìm nội dung project\nF11 chế độ tập trung · F2 goto dòng[:cột]\nF8 Thiết lập ngôn ngữ · F9 Thông tin file\n\nTÌM / THAY THẾ\nEnter / Shift+Enter kết quả sau / trước\nTab chuyển ô/kết quả · Ctrl+R thay một\nCtrl+Shift+R thay tất cả · Esc đóng\n\nF2 nhập lệnh: new, open, save, close, quit,\nopen-folder, explorer, focus, refresh, find, replace,\npreview, review-tab, source, split, settings, file-info,\nfiles, project-search, focus-mode, goto\n\nEnter thực hiện · Esc hủy · Y xác nhận bỏ thay đổi\nChỉ UTF-8 · dữ liệu trong RAM · phục hồi bản nháp định kỳ\nF1 / Esc đóng hướng dẫn";
+pub const HELP_VI: &str = crate::keyboard::GUIDE_VI;
 
 #[cfg(test)]
 mod tests {

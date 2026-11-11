@@ -1,0 +1,23 @@
+{
+  "artifacts": {
+    "build.txt": "0fe8c44cbeeb9a06d8f20c7fa0f557a8346de0665bbe57b9ee5f6263f61adeef",
+    "clippy.txt": "40ee9f4902e5be15fa4c5b73e8daa4bb9d0dccc661eb730d375ed987b4149280",
+    "environment.json": "ea947be3b86b452bd566dbcc83a26a6cf1de913520e9888e561e1edbd815e1ba",
+    "fmt.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "harness-sha256.json": "9d80c2e3ae6c52c2a5755853f8bb3f11ebb8c14f8f64f2fc13737c94d9bb57bf",
+    "harness-snapshot.zip": "fe383ffe69f0372408019863717bfb019ae98167b9ae76138cb8eab6ad056163",
+    "matrix-checksums.json": "c3ae875f65bab28d7e3670a0584ccb3d4feebb30c31cd789dbe1eb947881f086",
+    "matrix-raw.zip": "9f6470b6861d7c058c8804fb84ae115b04d32a8f3f51686ae947df638e5c8e78",
+    "pilot-raw.zip": "698e7d3c4cc6272679e70395c17664f3920e04ebeeec5a62dd67e7b97426b65d",
+    "python-tests.txt": "e75a64b4aa39902207a057871c9844b0fa5c30968c1391142c75a9349bc4d02e",
+    "representative-corrected/1.csv": "3964dbb2558191a15c2d4c8c3f96c2178db8759f52946924551cc41bfb6cee60",
+    "representative-corrected/report.json": "8c983f91f30388f1b3d410a76ecaade929caa400580a906e08aa3c562489008f",
+    "representative-corrected/small.log": "946d878212c5f8b716ca9c765128ecb58d47bf5618d9b35f229357a09322b3c8",
+    "representative-legacy/1.csv": "55b12c93b800d7d4e9e4c4401f451193c1295cc776caa5b5c8e63809a438f061",
+    "representative-legacy/report.json": "a02261171cb0574d51271b4f380177e0095177e1649e8982ed75220bc09507e5",
+    "representative-legacy/small.log": "8a66c85e94d2f2fb773eacc7d051f9948e96a98c29c2f8bb2301ba6ac00c51b1",
+    "summary.json": "493fa8aeaec8cf97a0fe00c9fd0fe00cc128945df85d17bb51eb5b87c6d1702b",
+    "tests.txt": "7eeaf70d94ef1b60856ecd0891d20ed52e4d1116528e05aae486f3c00c8c73ed",
+    "smoke.log": "55401c2faebba4f731d5d64cac31207d607dc987134f084e84fb1c3f44c0b01a"
+  }
+}

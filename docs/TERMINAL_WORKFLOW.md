@@ -11,15 +11,22 @@ focus mode vẫn dành phần lớn chiều cao cho nội dung.
 
 ## Điều hướng và khám phá lệnh
 
+Xem [bảng phím tắt đầy đủ](KEYBOARD_SHORTCUTS.md). F1 cuộn được bằng ↑↓,
+PageUp/PageDown, Home/End ở mọi kích thước hỗ trợ; F2 cho chọn thao tác bằng
+mũi tên và Enter mà không cần gõ lệnh.
+
 - Ctrl+E: tìm file trong project; các từ truy vấn phải xuất hiện trong đường dẫn.
 - Ctrl+G: tìm literal, phân biệt hoa/thường trong **nội dung đã lưu trên đĩa**.
 - Tab đổi Files/Text, Ctrl+U xóa truy vấn, F5 lập lại index; ↑↓/Page chọn,
   Enter hoặc double-click mở, Esc hủy. Chuột chọn/cuộn và các nút có keyboard fallback.
 - F2 có danh sách lệnh VI/EN, lọc theo tên/mô tả; ↑↓ chọn, Tab hoàn tất, Enter chạy.
   Registry gợi ý vẫn gọi dispatcher hiện có; chưa thống nhất mọi disabled reason.
-- F2 `goto`: nhập dòng[:cột grapheme] 1-based. Cột cuối hợp lệ là vị trí sau
+- Ctrl+L (hoặc F2 `goto`): nhập dòng[:cột grapheme] 1-based. Cột cuối hợp lệ là vị trí sau
   grapheme cuối. Dòng/cột 0, vượt phạm vi hoặc sai cú pháp bị từ chối, không sửa file.
-- Ctrl+P quản lý mọi tab; F6/Shift+F6 chuyển; Ctrl+T thêm tab. Các shortcut cũ giữ nguyên.
+- Ctrl+P/F12 quản lý mọi tab; F6/F7 hoặc Alt+→/← chuyển; Ctrl+T thêm tab.
+  Trong danh sách thẻ, Tab/Shift+Tab hoặc ↑↓ chọn, Enter chuyển, Ctrl+S lưu,
+  Ctrl+W đóng. Alt+S mở Lưu thành. Ctrl+F/H dùng một bảng Tìm/Thay thế chung;
+  Tab tới cả hai ô và các nút, Enter kích hoạt, Ctrl+R thay một, Alt+A thay tất cả.
 
 Project search không thay thế tìm kiếm buffer Ctrl+F/H. Nếu file đã đổi hoặc
 buffer đang dirty sau khi search, mở tab nhưng không áp vị trí disk result vào

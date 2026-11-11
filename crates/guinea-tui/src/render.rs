@@ -220,6 +220,97 @@ fn ansi_color(
 mod tests {
     use super::*;
     #[test]
+    fn unified_search_keeps_both_fields_and_focused_actions_visible_without_mouse() {
+        for locale in [crate::i18n::Locale::En, crate::i18n::Locale::Vi] {
+            for size in [(30, 9), (40, 28), (80, 24), (148, 42)] {
+                let mut app = App::new(
+                    vec![],
+                    false,
+                    Config {
+                        language: locale,
+                        mouse: false,
+                        ..Config::default()
+                    },
+                );
+                let mut terminal = Terminal::new(TestBackend::new(size.0, size.1)).unwrap();
+                for command in ["find", "replace"] {
+                    app.command(command);
+                    if let Some(crate::app::Modal::Search(search)) = app.modal.as_mut() {
+                        search.query = "query".into();
+                        search.replacement = "replacement".into();
+                        search.focus = 7;
+                    }
+                    terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+                    let content = terminal
+                        .backend()
+                        .buffer()
+                        .content()
+                        .iter()
+                        .map(|cell| cell.symbol())
+                        .collect::<String>();
+                    assert!(content.contains("query"), "{size:?}");
+                    assert!(content.contains("replacement"), "{size:?}");
+                    assert!(
+                        content.contains(if locale == crate::i18n::Locale::En {
+                            "Searching"
+                        } else {
+                            "Đang tìm"
+                        }),
+                        "Search status hidden at {size:?}"
+                    );
+                    assert!(
+                        content.contains(if locale == crate::i18n::Locale::En {
+                            "Replace all"
+                        } else {
+                            "Thay tất cả"
+                        }),
+                        "{size:?}"
+                    );
+                    for (rect, _) in &app.hits.modal_actions {
+                        assert!(rect.right() <= size.0 && rect.bottom() <= size.1);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn keyboard_guide_scrolls_to_the_last_line_in_a_small_terminal() {
+        use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+        for locale in [crate::i18n::Locale::En, crate::i18n::Locale::Vi] {
+            let mut app = App::new(
+                vec![],
+                false,
+                Config {
+                    language: locale,
+                    ..Config::default()
+                },
+            );
+            let mut terminal = Terminal::new(TestBackend::new(30, 9)).unwrap();
+            app.command("help");
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            assert!(app.help_rows > app.help_height);
+            app.handle(Event::Key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE)));
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            let content = terminal
+                .backend()
+                .buffer()
+                .content()
+                .iter()
+                .map(|cell| cell.symbol())
+                .collect::<String>();
+            assert!(content.contains(if locale == crate::i18n::Locale::En {
+                "recovery"
+            } else {
+                "nháp"
+            }));
+            assert!(app.help_scroll > 0);
+            app.handle(Event::Key(KeyEvent::new(KeyCode::Home, KeyModifiers::NONE)));
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            assert_eq!(app.help_scroll, 0);
+        }
+    }
+    #[test]
     fn ansi_palette_project_and_command_dialogs_fit_small_viewports() {
         for size in [(80, 24), (40, 12), (30, 9)] {
             let mut app = App::new(

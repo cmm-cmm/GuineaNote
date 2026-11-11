@@ -1,0 +1,24 @@
+{
+  "artifacts": {
+    "build.txt": "fc69d47a151e6fcae2ba83d33ac6251d1ef05d0474070eaa7aa5366a16abc7e5",
+    "clippy.txt": "528f4c5ab75ee7d5718d65386e430ea57594a77d5df1ac715653e2cb589d7f00",
+    "environment.json": "ed83b4b735b3527630cfd36fa8f2acaa9a9ae08bf4317e629a9070ea0aee6f1c",
+    "find-replace-vi.png": "ee5d5cd9a77fda5b118eb7c8bfb607e4cc754d4da5aad672c3661ac64b19b23d",
+    "fmt.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "harness-sha256.json": "4e5dd2dec0553965580cebe93ab228d9a7d128905da2ba83424e550a0d1f58fd",
+    "harness.zip": "eb69dc4a19a691f796e653e9c34c5438e6144ffaffc07614d5e07902492ef815",
+    "keyboard-help-small-end.png": "14c30e4a8f23d418d317f5df0907ca5309034419610283f864ad50a08a14db9a",
+    "keyboard-help-vi-end.png": "24ffcc0425269ab285cb97455cc296be0751e74f4baec7f003bf654c87cd93fa",
+    "keyboard-search-small.png": "6a6adbfada2614ac9ef80f3678cf05191c3c8cbfc6b824d31c0ffbed2657c249",
+    "keyboard-search-unified.png": "9d2cf7e03dc26e662f9bff9ab5ed3dfcccc1bb7e29c31efa402f465183ab10b0",
+    "keyboard.json": "b3bfed2fa3cd986453f91315c3ad8f7506a93879da6b283d885313c0bc0112a5",
+    "latency-off.json": "b272879a6fea207226385e9667f930b526e2335451a57f1e6ef9ce5f009953cf",
+    "latency-trace.json": "cc3bb39123dc76c4114f666ea819153fc7c4fea5d46134c9c5d6b0b8e98a8960",
+    "preliminary.zip": "bda1802e7fe4ca3d9e1761b645015750b4f3faf6a8a1b5c7204fb35d96bef777",
+    "raw.zip": "58b26cb2a65057c4d31fddbc2ae8ad602b896f710604560f18ae1a1749d3e06c",
+    "results.json": "f2fc2d47e9cb24252198fcb87b3af4e977ef032bc4f2bf01305214b1abbc700f",
+    "search.json": "a038ba7ed56956bd05a4d17ee8858d86699552bdfb5f2336334d0b0d02898ecd",
+    "terminal-matrix.json": "946c42f539ad6ebc1c28922c53ed3ac4b9a3e2247a16c910ea06df9e6c6e71af",
+    "tests.txt": "282f18464fc78e2b64c0ea94336352003c8f99196bd349348c1d0571d64c2752"
+  }
+}

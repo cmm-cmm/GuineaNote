@@ -45,3 +45,45 @@ lịch sử; số mới được ghi riêng trong status/baseline cùng hash và
 
 Đính chính nghiên cứu: dependency workspace `guinea-service` đã có version 0.1.0
 ở baseline; nhận xét thiếu version trong snapshot nghiên cứu 06 không đúng.
+
+## Tiếp tục theo yêu cầu người dùng — 11/11/2026
+
+Đã đọc trực tiếp project chính, kế hoạch G0–G4, workstream và đặc tả latency
+trên Notion. Các trang vẫn ghi source fe46835; HEAD local thực tế là 3cca7bf,
+chứa checkpoint ASCII mới hơn. Manifest của checkpoint khớp đủ 166 artifact.
+Yêu cầu tiếp tục hiện tại thay trạng thái tạm dừng trước đó; tài liệu pause và
+raw evidence cũ được giữ làm lịch sử.
+
+Hạng mục tiếp tục: profiling observer search và phân biệt feedback/completion,
+theo phần còn mở của checkpoint ASCII. Đã bổ sung legacy/corrected comparison,
+trace/profiling on/off trên cùng binary, cùng kiểm tra Unicode/file bytes/Undo,
+readonly và cleanup. [Báo cáo](performance/SEARCH_OBSERVER_INVESTIGATION.md)
+ghi kết quả và hash của đợt này. Thay đổi còn ở working tree trên nền 3cca7bf;
+không suy ra trạng thái toàn bộ G0–G4 đã Done.
+
+Đã thêm checkpoint 11/11 trực tiếp vào project chính và
+[workstream latency](https://app.notion.com/p/41427da1dc088110a64bc768bbf90ed0),
+ghi rõ kết quả kiểm chứng, giới hạn và trạng thái chưa commit/push.
+
+## Yêu cầu tiếp theo: TUI thao tác hoàn toàn bằng phím
+
+Người dùng yêu cầu hợp nhất Find/Replace và rà soát phím cho toàn bộ giao diện,
+đặc biệt quản lý/chuyển tab. Đã triển khai theo yêu cầu trực tiếp này; xem
+[bảng phím](KEYBOARD_SHORTCUTS.md) và [kiểm chứng](KEYBOARD_AUDIT.md).
+146 Rust tests và 12 native probes pass, gồm mouse=false và bảo vệ dirty/AI.
+Không suy ra toàn bộ G2 hoặc gate phát hành đã hoàn thành.
+
+Điều chỉnh phím trực tiếp tiếp theo: F6 thẻ trước, F7 thẻ sau, F8 Review,
+F10 Settings; Alt+M mục lục để tránh trùng F10. Đã cập nhật cả dispatcher,
+toolbar/F1/F2/VI–EN và native probes. Kiểm chứng mới: 147 Rust tests và 13
+native probes pass; [evidence riêng](diagnostics/function-keys/summary.json).
+
+## Chốt checkpoint theo yêu cầu commit/push
+
+Commit bao chứa tài liệu này gom contributor guide, correction của observer,
+bảng Find/Replace hợp nhất, điều hướng bàn phím và mapping cuối cùng. Các raw
+report giữ nguyên trạng thái lúc đo trước commit. Source/binary hiện hành đã
+đối chiếu khớp hash với checkpoint 147 Rust tests và 13 native probes; đủ 50
+artifact của ba manifest mới khớp checksum. Commit hash cuối cùng được ghi trên
+project và workstream Notion sau khi đối chiếu remote dev. Các gate còn mở và
+giới hạn Windows/ConPTY vẫn được giữ, không đổi thành Done từ kết quả local.

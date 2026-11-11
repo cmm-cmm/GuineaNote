@@ -7,6 +7,7 @@ mod file_info;
 mod file_picker;
 mod i18n;
 mod input;
+mod keyboard;
 mod preferences;
 mod project;
 mod recovery;

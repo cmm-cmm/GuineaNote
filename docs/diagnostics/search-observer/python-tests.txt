@@ -1,0 +1,8 @@
+test_fragmented_unicode_stops_at_visible_feedback (test_pty_observer.ObserverTests.test_fragmented_unicode_stops_at_visible_feedback) ... ok
+test_no_output_does_not_decode_or_change_screen (test_pty_observer.ObserverTests.test_no_output_does_not_decode_or_change_screen) ... ok
+test_transport_error_preserves_already_observed_output (test_pty_observer.ObserverTests.test_transport_error_preserves_already_observed_output) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.002s
+
+OK

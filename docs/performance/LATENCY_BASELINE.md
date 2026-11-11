@@ -1,5 +1,9 @@
 # Baseline độ trễ tương tác — 10/11/2026
 
+Đợt tiếp tục 11/11/2026: [điều tra observer search](SEARCH_OBSERVER_INVESTIGATION.md)
+đối chiếu hai định nghĩa feedback trên cùng binary mới build. Đây là correction
+của harness; không thay baseline input-to-flush hoặc số liệu lịch sử bên dưới.
+
 Checkpoint executable mới: [kiểm chứng guinea](CLI_MIGRATION_VALIDATION.md),
 2016 warm samples / 28 nhóm, all-phase max 22.349 ms. Phần dưới giữ baseline
 trước migration (checkpoint TUI af420c5), không thay số liệu lịch sử.

@@ -156,14 +156,15 @@ pub fn received(app: &crate::app::App, event: &crossterm::event::Event) -> Optio
         Event::Key(key) if key.kind != KeyEventKind::Release => {
             let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
             match key.code {
-                KeyCode::F(6) | KeyCode::PageUp | KeyCode::PageDown
-                    if ctrl || key.code == KeyCode::F(6) =>
+                KeyCode::F(7) | KeyCode::PageUp | KeyCode::PageDown
+                    if ctrl || key.code == KeyCode::F(7) =>
                 {
                     "tabs"
                 }
-                KeyCode::F(2 | 7 | 8 | 9) => "dialogs",
+                KeyCode::F(2 | 8 | 9 | 10) => "dialogs",
                 KeyCode::F(11) => "focus_mode",
                 KeyCode::Char('p' | 't' | 'n') if ctrl => "tabs",
+                _ if crate::keyboard::tab_command(*key).is_some() => "tabs",
                 KeyCode::Char('e' | 'g') if ctrl => "project_open",
                 KeyCode::Char('f' | 'h') if ctrl => "search_ui",
                 KeyCode::Char('z' | 'y') if ctrl => "history",

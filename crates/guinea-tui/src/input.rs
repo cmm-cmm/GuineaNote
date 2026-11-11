@@ -282,8 +282,11 @@ impl WindowsKeys {
             0x2e => KeyCode::Delete,
             vk @ 0x70..=0x87 => KeyCode::F((vk - 0x70 + 1) as u8),
             vk @ 0x41..=0x5a
-                if modifiers.contains(KeyModifiers::CONTROL)
-                    && !modifiers.contains(KeyModifiers::ALT) =>
+                if (modifiers.contains(KeyModifiers::CONTROL)
+                    && !modifiers.contains(KeyModifiers::ALT))
+                    || (unit == 0
+                        && modifiers.contains(KeyModifiers::ALT)
+                        && !modifiers.contains(KeyModifiers::CONTROL)) =>
             {
                 KeyCode::Char(
                     char::from_u32(u32::from(vk))
@@ -379,5 +382,11 @@ mod tests {
         let key = decoder.decode(19, true, 0x53, 0x08).unwrap();
         assert_eq!(key.code, KeyCode::Char('s'));
         assert_eq!(key.modifiers, KeyModifiers::CONTROL);
+        let key = decoder.decode(0, true, 0x41, 0x02).unwrap();
+        assert_eq!(key.code, KeyCode::Char('a'));
+        assert_eq!(key.modifiers, KeyModifiers::ALT);
+        let key = decoder.decode(0, true, 0x09, 0x18).unwrap();
+        assert_eq!(key.code, KeyCode::BackTab);
+        assert_eq!(crate::keyboard::tab_command(key), Some("prev"));
     }
 }
