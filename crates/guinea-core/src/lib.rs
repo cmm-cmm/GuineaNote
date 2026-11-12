@@ -1,6 +1,7 @@
 mod buffer;
 pub mod coordinates;
 mod document;
+mod editing;
 mod graphemes;
 pub mod search;
 mod view;

@@ -85,7 +85,22 @@ pub enum Movement {
     End,
     Start,
     Finish,
+    /// Previous/next word boundary (Unicode word segmentation), crossing
+    /// line ends like Notepad++/Scintilla Ctrl+Left/Right.
+    WordLeft,
+    WordRight,
 }
+
+/// Typing-style edits that may merge into one Undo step.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Typing {
+    Insert,
+    Backspace,
+    Delete,
+}
+
+/// Consecutive typing merges into one Undo step unless paused this long.
+const TYPING_WINDOW: std::time::Duration = std::time::Duration::from_secs(1);
 
 #[derive(Debug, Clone)]
 struct Snapshot {
@@ -148,6 +163,7 @@ pub struct Document {
     redo: Vec<Transaction>,
     revision: u64,
     newline_policy: LineEnding,
+    typing_group: Option<(Typing, std::time::Instant)>,
 }
 
 impl Default for Document {
@@ -206,6 +222,7 @@ impl Document {
             redo: Vec::new(),
             revision: 0,
             newline_policy,
+            typing_group: None,
         }
     }
 
@@ -249,6 +266,7 @@ impl Document {
             redo: Vec::new(),
             revision: self.revision,
             newline_policy: self.newline_policy,
+            typing_group: None,
         }
     }
     /// Read-only linked view; never retains editable history or copies text.
@@ -278,6 +296,7 @@ impl Document {
         self.redo.clear();
     }
     fn push_history(&mut self, tx: Transaction) {
+        self.typing_group = None;
         self.history_bytes = self.history_bytes.saturating_add(tx.charge);
         self.undo.push_back(tx);
         self.trim_history();
@@ -346,6 +365,7 @@ impl Document {
     }
 
     pub fn mark_saved(&mut self) {
+        self.typing_group = None;
         self.saved_state = self.content_state;
         self.saved_bom = self.bom;
     }
@@ -363,6 +383,8 @@ impl Document {
     /// Edits and selection made while I/O was running remain in this document.
     pub fn accept_saved_snapshot(&mut self, saved: &Self) {
         assert_eq!(self.id, saved.id);
+        // Later typing must not merge into the step that reached the save.
+        self.typing_group = None;
         self.path = saved.path.clone();
         self.recovery_source = saved.recovery_source.clone();
         self.fingerprint = saved.fingerprint.clone();
@@ -410,10 +432,12 @@ impl Document {
         }
         self.view.selection = Selection { anchor, head };
         self.view.preferred_column = None;
+        self.typing_group = None;
         Ok(())
     }
 
     pub fn select_all(&mut self) {
+        self.typing_group = None;
         self.view.selection = Selection {
             anchor: 0,
             head: self.buffer.len_chars(),
@@ -466,6 +490,88 @@ impl Document {
 
     pub fn insert(&mut self, text: &str) -> Result<(), EditError> {
         self.replace_range(self.view.selection.range(), text)
+    }
+
+    /// Insert typed text. Contiguous typing within [`TYPING_WINDOW`] of the
+    /// previous keystroke extends the same Undo step (including newlines, so a
+    /// paste delivered as key events stays one step); caret moves, other
+    /// edits, Undo/Redo and saves start a new step.
+    pub fn type_text(&mut self, text: &str) -> Result<(), EditError> {
+        self.typed(Typing::Insert, self.view.selection.range(), text)
+    }
+
+    /// Backspace that merges with preceding typed Backspaces.
+    pub fn type_backspace(&mut self) -> Result<(), EditError> {
+        let range = if self.view.selection.is_empty() {
+            self.previous(self.cursor())..self.cursor()
+        } else {
+            self.view.selection.range()
+        };
+        self.typed(Typing::Backspace, range, "")
+    }
+
+    /// Forward Delete that merges with preceding typed Deletes.
+    pub fn type_delete(&mut self) -> Result<(), EditError> {
+        let range = if self.view.selection.is_empty() {
+            self.cursor()..self.next(self.cursor())
+        } else {
+            self.view.selection.range()
+        };
+        self.typed(Typing::Delete, range, "")
+    }
+
+    /// End the current typing group; the next keystroke starts a new Undo step.
+    pub fn break_typing(&mut self) {
+        self.typing_group = None;
+    }
+
+    fn typed(&mut self, kind: Typing, range: Range<usize>, text: &str) -> Result<(), EditError> {
+        let group = self.typing_group.take();
+        let selection_replaced = !self.view.selection.is_empty();
+        let revision = self.revision;
+        self.replace_range(range, text)?;
+        if self.revision == revision {
+            return Ok(());
+        }
+        let mergeable = !selection_replaced
+            && group.is_some_and(|(previous, at)| previous == kind && at.elapsed() < TYPING_WINDOW)
+            && self.undo.len() >= 2;
+        if mergeable && let Some(new) = self.undo.pop_back() {
+            let previous = self.undo.back_mut().expect("two undo steps");
+            let contiguous = match kind {
+                Typing::Insert => {
+                    new.removed == 0 && new.start == previous.start + previous.inserted
+                }
+                Typing::Backspace => {
+                    previous.inserted == 0
+                        && new.inserted == 0
+                        && new.start + new.removed == previous.start
+                }
+                Typing::Delete => {
+                    previous.inserted == 0 && new.inserted == 0 && new.start == previous.start
+                }
+            };
+            if contiguous {
+                match kind {
+                    Typing::Insert => previous.inserted += new.inserted,
+                    Typing::Backspace => {
+                        previous.start = new.start;
+                        previous.removed += new.removed;
+                    }
+                    Typing::Delete => previous.removed += new.removed,
+                }
+                previous.after = new.after;
+                // Each step charges a 4096-byte base; a merged step keeps one.
+                previous.charge = previous
+                    .charge
+                    .saturating_add(new.charge.saturating_sub(4096));
+                self.history_bytes = self.history_bytes.saturating_sub(4096);
+            } else {
+                self.undo.push_back(new);
+            }
+        }
+        self.typing_group = Some((kind, std::time::Instant::now()));
+        Ok(())
     }
 
     /// Validate every scalar/grapheme range before changing anything. All edits
@@ -631,6 +737,8 @@ impl Document {
             Movement::Finish => self.buffer.len_chars(),
             Movement::Home => self.buffer.line_to_char(line).expect("valid line"),
             Movement::End => self.line_end(line),
+            Movement::WordLeft => self.word_left(self.cursor()),
+            Movement::WordRight => self.word_right(self.cursor()),
             Movement::Up | Movement::Down => {
                 let goal = self
                     .view
@@ -661,6 +769,7 @@ impl Document {
                 }
             }
         };
+        self.typing_group = None;
         self.view.selection.head = idx;
         if !extend {
             self.view.selection.anchor = idx;
@@ -678,6 +787,7 @@ impl Document {
         if self.readonly {
             return Err(EditError::ReadOnly);
         }
+        self.typing_group = None;
         if let Some(tx) = self.undo.pop_back() {
             let replacement = self.view.layout_cache.borrow().as_ref().map(|_| {
                 tx.before
@@ -701,6 +811,7 @@ impl Document {
         if self.readonly {
             return Err(EditError::ReadOnly);
         }
+        self.typing_group = None;
         if let Some(tx) = self.redo.pop() {
             let replacement = self.view.layout_cache.borrow().as_ref().map(|_| {
                 tx.after
