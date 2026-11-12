@@ -22,9 +22,9 @@ pub(crate) fn source_highlights(
     line: usize,
     window: &guinea_core::LineWindow,
     language: guinea_syntax::Language,
+    state: guinea_syntax::LineState,
 ) -> Option<guinea_syntax::Highlights> {
     use guinea_core::TextBuffer;
-    use guinea_syntax::SyntaxProvider;
     let origin = document.buffer().line_to_char(line).ok()?;
     let offset = window.char_start.checked_sub(origin)?;
     let visible = window.text.chars().count();
@@ -35,8 +35,12 @@ pub(crate) fn source_highlights(
         .buffer()
         .slice(origin..window.char_start + visible)
         .ok()?;
-    let mut highlights =
-        guinea_syntax::BasicSyntax.highlight_line(language, &prefix, document.revision());
+    let (mut highlights, _) = guinea_syntax::BasicSyntax.highlight_line_from(
+        language,
+        &prefix,
+        document.revision(),
+        state,
+    );
     highlights.spans.retain_mut(|span| {
         let start = span.chars.start.max(offset);
         let end = span.chars.end.min(offset + visible);
@@ -351,13 +355,28 @@ mod tests {
     fn clipped_syntax_uses_real_string_context_and_falls_back_when_unknown() {
         let document = guinea_core::Document::from_text("let value = \"true + 42\";");
         let window = document.line_window(0, 13, 8, 4).unwrap();
-        let result =
-            source_highlights(&document, 0, &window, guinea_syntax::Language::Rust).unwrap();
+        let result = source_highlights(
+            &document,
+            0,
+            &window,
+            guinea_syntax::Language::Rust,
+            Default::default(),
+        )
+        .unwrap();
         assert!(!result.spans.is_empty());
         assert!(result.spans.iter().all(|s| s.kind == TokenKind::String));
         let document = guinea_core::Document::from_text(&format!("{}true", " ".repeat(17000)));
         let window = document.line_window(0, 17000, 4, 4).unwrap();
-        assert!(source_highlights(&document, 0, &window, guinea_syntax::Language::Rust).is_none());
+        assert!(
+            source_highlights(
+                &document,
+                0,
+                &window,
+                guinea_syntax::Language::Rust,
+                Default::default()
+            )
+            .is_none()
+        );
     }
 
     #[test]

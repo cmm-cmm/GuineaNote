@@ -17,7 +17,7 @@ See [risk register](RISK_MITIGATION.md) for evidence and remaining limits.
 | guinea-core | Private Ropey storage, checked coordinates, Document transactions/history, opaque ContentSnapshot, detachable ViewState |
 | guinea-io | Streaming strict UTF-8/BOM reads/writes, stable identity and conflict checks, platform metadata, private recovery store |
 | guinea-tui | Sole application state owner; commands, tabs, viewport, dialogs, input and rendering |
-| guinea-syntax | Filename/content detection and revision-tagged basic line-local lexer |
+| guinea-syntax | Filename/content detection and revision-tagged basic lexer with multi-line `LineState` |
 | guinea-service | Typed Agent operations, workspace/secret policy, bounded analysis, live revision/lease protocol |
 | guinea-agent | Separate JSON CLI and official rmcp stdio adapter; authenticated local IPC |
 
@@ -89,7 +89,13 @@ of custom dirty-region rendering is made.
 
 Source lexing starts at the actual line origin and clips resulting spans. Beyond
 16384 scalars of required context it renders plain text. This avoids false string
-colors when horizontally scrolled; multiline grammar state remains future work.
+colors when horizontally scrolled. Multi-line context (block comments, Python
+triple strings, JS/TS templates, markup comments) comes from a per-tab
+`SyntaxStates` cache of line-start states: `Document::earliest_change_since`
+limits recomputation to lines from the first edit, each frame scans at most
+512 Ki scalars toward the viewport, lines over 64 Ki scalars are assumed to end
+in the normal state, and lines without a known state render plain while
+propagation continues on later frames.
 NO_COLOR resets foreground/background cells; basic_colors selects the existing
 256-color theme. The dark navy design and green/amber/white details remain.
 

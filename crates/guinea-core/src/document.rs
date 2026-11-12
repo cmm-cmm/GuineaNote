@@ -164,6 +164,9 @@ pub struct Document {
     revision: u64,
     newline_policy: LineEnding,
     typing_group: Option<(Typing, std::time::Instant)>,
+    /// (revision, first changed scalar) for recent revisions; lets display
+    /// caches such as multi-line syntax state recompute only changed lines.
+    change_log: VecDeque<(u64, usize)>,
 }
 
 impl Default for Document {
@@ -223,6 +226,7 @@ impl Document {
             revision: 0,
             newline_policy,
             typing_group: None,
+            change_log: VecDeque::new(),
         }
     }
 
@@ -267,6 +271,7 @@ impl Document {
             revision: self.revision,
             newline_policy: self.newline_policy,
             typing_group: None,
+            change_log: VecDeque::new(),
         }
     }
     /// Read-only linked view; never retains editable history or copies text.
@@ -377,6 +382,30 @@ impl Document {
         self.content_state = self.next_content_state;
         self.next_content_state += 1;
         self.revision += 1;
+        self.note_change(0);
+    }
+
+    fn note_change(&mut self, start: usize) {
+        self.change_log.push_back((self.revision, start));
+        while self.change_log.len() > 64 {
+            self.change_log.pop_front();
+        }
+    }
+
+    /// The first scalar that may differ from `revision`'s text, `usize::MAX`
+    /// when nothing changed, or `None` when the log no longer covers it.
+    pub fn earliest_change_since(&self, revision: u64) -> Option<usize> {
+        if revision >= self.revision {
+            return Some(usize::MAX);
+        }
+        let newer = self
+            .change_log
+            .iter()
+            .filter(|(at, _)| *at > revision)
+            .collect::<Vec<_>>();
+        let covered = newer.len() as u64 == self.revision - revision
+            && newer.first().is_some_and(|(at, _)| *at == revision + 1);
+        covered.then(|| newer.iter().map(|(_, start)| *start).min().unwrap_or(0))
     }
 
     /// Merge only metadata from the snapshot committed by a background save.
@@ -474,6 +503,7 @@ impl Document {
             self.content_state = self.next_content_state;
             self.next_content_state += 1;
             self.revision += 1;
+            self.note_change(range.start);
             self.apply_layout_edit(layout_edit, text);
             self.clear_redo();
             self.push_history(Transaction {
@@ -640,6 +670,7 @@ impl Document {
         self.content_state = self.next_content_state;
         self.next_content_state += 1;
         self.revision += 1;
+        self.note_change(0);
         self.view.preferred_column = None;
         self.clear_view_cache();
         self.clear_redo();
@@ -799,6 +830,7 @@ impl Document {
                 self.prepare_layout_edit(&(tx.start..tx.start + tx.inserted), text)
             });
             self.restore(&tx.before);
+            self.note_change(tx.start);
             self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.redo.push(tx);
             Ok(true)
@@ -823,6 +855,7 @@ impl Document {
                 self.prepare_layout_edit(&(tx.start..tx.start + tx.removed), text)
             });
             self.restore(&tx.after);
+            self.note_change(tx.start);
             self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.undo.push_back(tx);
             Ok(true)

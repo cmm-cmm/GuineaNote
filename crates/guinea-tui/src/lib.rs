@@ -16,6 +16,7 @@ mod recovery;
 mod render;
 mod review;
 mod search;
+mod syntax_state;
 mod tab_manager;
 mod theme;
 mod trace;

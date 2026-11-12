@@ -661,6 +661,302 @@ impl SyntaxProvider for BasicSyntax {
     }
 }
 
+/// Lexical context carried from the end of one line to the start of the next.
+/// The basic lexer is line-local; this state adds the multi-line constructs
+/// whose absence caused the most visible mis-highlighting.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub enum LineState {
+    #[default]
+    Normal,
+    /// Inside `/* … */` (C-family, Rust, Go, JS/TS, CSS, PHP, JSON5).
+    BlockComment,
+    /// Inside a Python triple-quoted string opened with this quote.
+    TripleString(char),
+    /// Inside a JavaScript/TypeScript template literal.
+    Template,
+    /// Inside `<!-- … -->` (XML, HTML, Markdown).
+    MarkupComment,
+}
+
+impl LineState {
+    /// Whether `language` has constructs that span lines in this lexer.
+    pub fn tracked(language: Language) -> bool {
+        slash_comment_language(language)
+            || matches!(
+                language,
+                Language::Python | Language::Xml | Language::Html | Language::Markdown
+            )
+    }
+}
+
+fn markup_language(language: Language) -> bool {
+    matches!(
+        language,
+        Language::Xml | Language::Html | Language::Markdown
+    )
+}
+
+/// Scalar index just past `needle` at or after `from`, or `None`.
+fn find_after(chars: &[char], from: usize, needle: &str) -> Option<usize> {
+    let needle: Vec<char> = needle.chars().collect();
+    if chars.len() < needle.len() {
+        return None;
+    }
+    (from..=chars.len() - needle.len())
+        .find(|&i| chars[i..i + needle.len()] == needle[..])
+        .map(|i| i + needle.len())
+}
+
+fn find_unescaped(chars: &[char], from: usize, quote: char) -> Option<usize> {
+    let mut i = from;
+    while i < chars.len() {
+        if chars[i] == '\\' {
+            i += 2;
+        } else if chars[i] == quote {
+            return Some(i + 1);
+        } else {
+            i += 1;
+        }
+    }
+    None
+}
+
+fn closing(chars: &[char], from: usize, state: LineState) -> Option<usize> {
+    match state {
+        LineState::BlockComment => find_after(chars, from, "*/"),
+        LineState::MarkupComment => find_after(chars, from, "-->"),
+        LineState::TripleString(q) => {
+            find_after(chars, from, &std::iter::repeat_n(q, 3).collect::<String>())
+        }
+        LineState::Template => find_unescaped(chars, from, '`'),
+        LineState::Normal => Some(from),
+    }
+}
+
+impl BasicSyntax {
+    /// State at the end of `line` when it starts in `state`. Strings and line
+    /// comments are skipped so delimiters inside them do not count.
+    pub fn end_state(&self, language: Language, line: &str, state: LineState) -> LineState {
+        if !LineState::tracked(language) {
+            return LineState::Normal;
+        }
+        let chars: Vec<char> = line.chars().collect();
+        let (mut i, mut state) = (0, state);
+        loop {
+            if state != LineState::Normal {
+                match closing(&chars, i, state) {
+                    Some(end) => (i, state) = (end, LineState::Normal),
+                    None => return state,
+                }
+                continue;
+            }
+            let Some(&c) = chars.get(i) else {
+                return LineState::Normal;
+            };
+            let next = chars.get(i + 1).copied();
+            if markup_language(language) {
+                if chars[i..].starts_with(&['<', '!', '-', '-']) {
+                    (i, state) = (i + 4, LineState::MarkupComment);
+                } else {
+                    i += 1;
+                }
+            } else if slash_comment_language(language) && c == '/' && next == Some('*') {
+                (i, state) = (i + 2, LineState::BlockComment);
+            } else if (slash_comment_language(language) && c == '/' && next == Some('/'))
+                || (language == Language::Python && c == '#')
+            {
+                return LineState::Normal;
+            } else if language == Language::Python
+                && matches!(c, '"' | '\'')
+                && next == Some(c)
+                && chars.get(i + 2) == Some(&c)
+            {
+                (i, state) = (i + 3, LineState::TripleString(c));
+            } else if matches!(language, Language::JavaScript | Language::TypeScript) && c == '`' {
+                (i, state) = (i + 1, LineState::Template);
+            } else if c == '"' || (c == '\'' && language != Language::Rust) {
+                // Ordinary strings end on this line (or at its end).
+                i = find_unescaped(&chars, i + 1, c).unwrap_or(chars.len());
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    /// Highlight `line` starting in `state`; returns the spans and end state.
+    /// A leading continuation (comment/string body) is one span; the rest of
+    /// the line uses the line-local lexer.
+    pub fn highlight_line_from(
+        &self,
+        language: Language,
+        line: &str,
+        revision: u64,
+        state: LineState,
+    ) -> (Highlights, LineState) {
+        let end = self.end_state(language, line, state);
+        if state == LineState::Normal || !LineState::tracked(language) {
+            let mut highlights = self.highlight_line(language, line, revision);
+            if markup_language(language) {
+                mark_markup_comments(line, &mut highlights.spans);
+            }
+            return (highlights, end);
+        }
+        let chars: Vec<char> = line.chars().collect();
+        let close = closing(&chars, 0, state).unwrap_or(chars.len());
+        let kind = if matches!(state, LineState::BlockComment | LineState::MarkupComment) {
+            TokenKind::Comment
+        } else {
+            TokenKind::String
+        };
+        let mut spans = Vec::new();
+        if close > 0 {
+            spans.push(HighlightSpan {
+                chars: 0..close,
+                kind,
+            });
+        }
+        if close < chars.len() {
+            let rest: String = chars[close..].iter().collect();
+            let (tail, _) = self.highlight_line_from(language, &rest, revision, LineState::Normal);
+            spans.extend(tail.spans.into_iter().map(|span| HighlightSpan {
+                chars: span.chars.start + close..span.chars.end + close,
+                kind: span.kind,
+            }));
+        }
+        (Highlights { revision, spans }, end)
+    }
+}
+
+/// Replace spans inside same-line `<!-- … -->` with one comment span.
+fn mark_markup_comments(line: &str, spans: &mut Vec<HighlightSpan>) {
+    let chars: Vec<char> = line.chars().collect();
+    let mut from = 0;
+    while let Some(open) = find_after(&chars, from, "<!--") {
+        let start = open - 4;
+        let end = find_after(&chars, open, "-->").unwrap_or(chars.len());
+        spans.retain(|s| s.chars.end <= start || s.chars.start >= end);
+        let at = spans.partition_point(|s| s.chars.start < start);
+        spans.insert(
+            at,
+            HighlightSpan {
+                chars: start..end,
+                kind: TokenKind::Comment,
+            },
+        );
+        from = end;
+    }
+}
+
+#[cfg(test)]
+mod line_state_tests {
+    use super::*;
+
+    fn walk(language: Language, lines: &[&str]) -> Vec<LineState> {
+        let mut state = LineState::Normal;
+        lines
+            .iter()
+            .map(|line| {
+                let at = state;
+                state = BasicSyntax.end_state(language, line, state);
+                at
+            })
+            .collect()
+    }
+
+    #[test]
+    fn block_comments_and_strings_carry_across_lines() {
+        let states = walk(
+            Language::Rust,
+            &[
+                "let a = 1; /* open",
+                "still comment \"*/ x",
+                "let s = \"/*\";",
+                "// /* no",
+            ],
+        );
+        assert_eq!(
+            states,
+            [
+                LineState::Normal,
+                LineState::BlockComment,
+                LineState::Normal,
+                LineState::Normal
+            ]
+        );
+        let (h, end) = BasicSyntax.highlight_line_from(
+            Language::Rust,
+            "still */ let x",
+            0,
+            LineState::BlockComment,
+        );
+        assert_eq!(end, LineState::Normal);
+        assert_eq!(
+            h.spans[0],
+            HighlightSpan {
+                chars: 0..8,
+                kind: TokenKind::Comment
+            }
+        );
+        assert!(
+            h.spans
+                .iter()
+                .any(|s| s.kind == TokenKind::Keyword && s.chars == (9..12))
+        );
+    }
+
+    #[test]
+    fn python_triple_strings_js_templates_and_markup_comments() {
+        assert_eq!(
+            walk(
+                Language::Python,
+                &["x = \"\"\"doc", "body # not comment", "end\"\"\" # c", "y"]
+            ),
+            [
+                LineState::Normal,
+                LineState::TripleString('"'),
+                LineState::TripleString('"'),
+                LineState::Normal
+            ]
+        );
+        assert_eq!(
+            walk(
+                Language::JavaScript,
+                &["const t = `a", "b ${x} \\` c", "d`;", ""]
+            ),
+            [
+                LineState::Normal,
+                LineState::Template,
+                LineState::Template,
+                LineState::Normal
+            ]
+        );
+        assert_eq!(
+            walk(Language::Html, &["<p>x</p><!-- a", "b", "--> <b>", ""]),
+            [
+                LineState::Normal,
+                LineState::MarkupComment,
+                LineState::MarkupComment,
+                LineState::Normal
+            ]
+        );
+        let (h, _) = BasicSyntax.highlight_line_from(
+            Language::Xml,
+            "<a/><!-- c --><b/>",
+            0,
+            LineState::Normal,
+        );
+        assert!(
+            h.spans
+                .iter()
+                .any(|s| s.kind == TokenKind::Comment && s.chars == (4..14))
+        );
+        assert_eq!(
+            BasicSyntax.end_state(Language::Toml, "/* x", LineState::Normal),
+            LineState::Normal
+        );
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

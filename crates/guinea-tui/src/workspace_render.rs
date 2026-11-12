@@ -761,6 +761,11 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             tab.left = cursor_cell + 1 - width;
         }
     }
+    let highlight = app.config.syntax && language != Language::Plain;
+    app.syntax_pending = highlight
+        && !tab
+            .syntax
+            .prepare(document, language, tab.top + body.height as usize);
     let caret_window = if caret_pending {
         document.caret_window(width, tab_width).ok()
     } else {
@@ -807,8 +812,12 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 Rect::new(body.x, body.y + offset, gutter as u16, 1),
             );
         }
-        let highlights = if app.config.syntax && language != Language::Plain {
-            crate::render::source_highlights(document, line_idx, &window, language)
+        let highlights = if highlight {
+            tab.syntax
+                .state(document, language, line_idx)
+                .and_then(|state| {
+                    crate::render::source_highlights(document, line_idx, &window, language, state)
+                })
         } else {
             None
         };

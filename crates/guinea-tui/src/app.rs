@@ -95,6 +95,7 @@ pub struct Tab {
     pub left: usize,
     pub follow_cursor: bool,
     pub review: Review,
+    pub syntax: crate::syntax_state::SyntaxStates,
 }
 
 impl Tab {
@@ -111,6 +112,7 @@ impl Tab {
             left: 0,
             follow_cursor: true,
             review: Review::default(),
+            syntax: crate::syntax_state::SyntaxStates::default(),
         }
     }
     pub fn title(&self, locale: Locale) -> String {
@@ -237,6 +239,8 @@ pub struct App {
     pub help_rows: usize,
     pub focus_mode: bool,
     pub layout: crate::layout_worker::LayoutWorker,
+    /// Multi-line syntax state still propagating toward the viewport.
+    pub syntax_pending: bool,
     project_jump: Option<crate::project::Found>,
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
@@ -310,6 +314,7 @@ impl App {
             help_rows: 0,
             focus_mode: false,
             layout: crate::layout_worker::LayoutWorker::default(),
+            syntax_pending: false,
             project_jump: None,
             mouse_selecting: None,
             last_modal_click: None,
@@ -333,6 +338,7 @@ impl App {
     pub fn background_work(&self) -> bool {
         !self.agent_leases.is_empty()
             || self.layout.busy()
+            || self.syntax_pending
             || self.clipboard.busy()
             || (cfg!(not(windows)) && self.agent.is_some())
             || self.busy()
@@ -493,6 +499,9 @@ impl App {
         self.poll_agent();
         self.poll_search();
         if self.layout.poll(&self.tabs) {
+            self.redraw = true;
+        }
+        if self.syntax_pending {
             self.redraw = true;
         }
         self.poll_clipboard();

@@ -205,9 +205,12 @@ operations can be expensive. The 100 ms interaction budget is measured on the
 local 10 MiB corpus, with full I/O/parse completion reported separately; it is
 not a universal timing guarantee. Syntax distinguishes functions, types,
 constants, properties, attributes, escapes, operators and punctuation, with
-italic comments and separate semantic colors. It is a lightweight line-local lexer, without
-multiline grammar state; horizontally-scrolled lines use real line-origin context
-up to a bounded prefix, then plain text. No bounded-memory large-file support,
+italic comments and separate semantic colors. It is a lightweight lexer that carries
+block comments, Python triple-quoted strings, JS/TS template literals and
+`<!-- -->` comments across lines (state is recomputed from the edited line, within
+a per-frame budget; lines whose state is not yet known render plain, never
+mis-colored). Horizontally-scrolled lines use real line-origin context up to a
+bounded prefix, then plain text. No bounded-memory large-file support,
 LSP, plugin runtime or Git integration. macOS/Linux clipboard tools
 (pbcopy, wl-copy, xclip, xsel) are not yet runtime-verified.
 
