@@ -205,6 +205,14 @@ impl Locale {
             "Cancelled" => "Đã hủy",
             "Document is read-only" | "document is read-only" => "Tài liệu chỉ cho phép đọc",
             "Copied to internal clipboard" => "Đã sao chép vào bộ nhớ tạm của ứng dụng",
+            "Copied to clipboard" => "Đã sao chép vào bộ nhớ tạm",
+            "Copied through the terminal (OSC 52)" => "Đã sao chép qua terminal (OSC 52)",
+            "Selection too large for OSC 52; copied to internal clipboard" => {
+                "Vùng chọn quá lớn cho OSC 52; đã sao chép vào bộ nhớ tạm của ứng dụng"
+            }
+            "Pasting from system clipboard…" => "Đang dán từ bộ nhớ tạm hệ thống…",
+            "Paste cancelled: the active tab changed" => "Đã hủy dán: thẻ đang mở đã thay đổi",
+            "Clipboard is empty" => "Bộ nhớ tạm đang trống",
             "That path is not an accessible folder" => {
                 "Đường dẫn không phải thư mục có thể truy cập"
             }
@@ -316,6 +324,14 @@ impl Locale {
                 "Đã áp dụng cho phiên này; lưu thiết lập thất bại: ",
             ),
             ("Opening ", "Đang mở "),
+            (
+                "System clipboard unavailable; copied internally: ",
+                "Không dùng được bộ nhớ tạm hệ thống; đã sao chép nội bộ: ",
+            ),
+            (
+                "System clipboard unavailable; pasted internal clipboard: ",
+                "Không dùng được bộ nhớ tạm hệ thống; đã dán bộ nhớ nội bộ: ",
+            ),
             ("Saving ", "Đang lưu "),
             ("Unknown command: ", "Lệnh không tồn tại: "),
         ] {

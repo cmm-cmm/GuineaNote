@@ -14,6 +14,8 @@ pub struct Config {
     pub recovery: bool,
     pub no_color: bool,
     pub ansi_colors: bool,
+    /// `auto`, `system`, `osc52` or `internal`; see `clipboard.rs`.
+    pub clipboard: crate::clipboard::Mode,
 }
 
 impl Default for Config {
@@ -32,6 +34,7 @@ impl Default for Config {
             no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
             ansi_colors: std::env::var("TERM")
                 .is_ok_and(|term| matches!(term.as_str(), "linux" | "vt100" | "vt102" | "ansi")),
+            clipboard: crate::clipboard::Mode::from_env().unwrap_or_default(),
         }
     }
 }

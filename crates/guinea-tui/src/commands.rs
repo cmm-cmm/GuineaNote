@@ -118,8 +118,8 @@ pub const COMMANDS: &[Command] = &[
     },
     Command {
         id: "paste",
-        en: "Paste internal clipboard · Ctrl+V",
-        vi: "Dán bộ nhớ nội bộ · Ctrl+V",
+        en: "Paste from clipboard · Ctrl+V",
+        vi: "Dán từ bộ nhớ tạm · Ctrl+V",
     },
     Command {
         id: "cut",

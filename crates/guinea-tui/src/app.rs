@@ -244,7 +244,8 @@ pub struct App {
     quit_after_settings: bool,
     readonly: bool,
     next_untitled: usize,
-    clipboard: String,
+    pub clipboard: crate::clipboard::Clipboard,
+    paste_target: Option<u64>,
     search: String,
     replacement: String,
     search_options: guinea_core::SearchOptions,
@@ -279,6 +280,7 @@ impl App {
             .collect::<Vec<_>>();
         let mut document = Document::default();
         document.readonly = readonly;
+        let clipboard = crate::clipboard::Clipboard::new(config.clipboard);
         Self {
             agent: None,
             agent_leases: std::collections::HashMap::new(),
@@ -313,7 +315,8 @@ impl App {
             next_untitled: 2,
             saving: false,
             quit_after_settings: false,
-            clipboard: String::new(),
+            clipboard,
+            paste_target: None,
             search: String::new(),
             replacement: String::new(),
             search_options: guinea_core::SearchOptions::default(),
@@ -326,6 +329,7 @@ impl App {
     pub fn background_work(&self) -> bool {
         !self.agent_leases.is_empty()
             || self.layout.busy()
+            || self.clipboard.busy()
             || (cfg!(not(windows)) && self.agent.is_some())
             || self.busy()
             || self.preferences.busy()
@@ -487,6 +491,7 @@ impl App {
         if self.layout.poll(&self.tabs) {
             self.redraw = true;
         }
+        self.poll_clipboard();
         if let Some(Modal::Project(project)) = &mut self.modal {
             self.redraw |= project.poll();
         }
@@ -1336,6 +1341,58 @@ impl App {
         }
     }
 
+    fn copy_selection(&mut self) {
+        use crate::clipboard::Copied;
+        let text = self.document().selected_text();
+        self.message = match self.clipboard.copy(text) {
+            Copied::System => "Copied to clipboard",
+            Copied::Osc52 => "Copied through the terminal (OSC 52)",
+            Copied::Internal => "Copied to internal clipboard",
+            Copied::TooLargeForOsc52 => {
+                "Selection too large for OSC 52; copied to internal clipboard"
+            }
+        }
+        .into();
+    }
+
+    fn paste(&mut self) {
+        match self.clipboard.paste() {
+            crate::clipboard::Paste::Ready(text) => self.edit(|d| d.insert(&text)),
+            crate::clipboard::Paste::Pending => {
+                self.paste_target = Some(self.document().id);
+                self.message = "Pasting from system clipboard…".into();
+            }
+        }
+    }
+
+    fn poll_clipboard(&mut self) {
+        for event in self.clipboard.poll() {
+            self.redraw = true;
+            let (text, fallback) = match event {
+                crate::clipboard::Event::CopyFailed(error) => {
+                    self.message =
+                        format!("System clipboard unavailable; copied internally: {error}");
+                    continue;
+                }
+                crate::clipboard::Event::Pasted(text) => (text, None),
+                crate::clipboard::Event::PasteFallback(text, error) => (text, Some(error)),
+            };
+            let target = self.paste_target.take();
+            if target != Some(self.document().id) || self.modal.is_some() {
+                self.message = "Paste cancelled: the active tab changed".into();
+            } else if text.is_empty() {
+                self.message = "Clipboard is empty".into();
+            } else {
+                self.edit(|d| d.insert(&text));
+                self.tabs[self.active].follow_cursor = true;
+                if let Some(error) = fallback {
+                    self.message =
+                        format!("System clipboard unavailable; pasted internal clipboard: {error}");
+                }
+            }
+        }
+    }
+
     fn find_next(&mut self) {
         let needle = self.search.clone();
         let options = self.search_options;
@@ -2087,14 +2144,14 @@ impl App {
             "undo" => self.edit(|d| d.undo().map(|_| ())),
             "redo" => self.edit(|d| d.redo().map(|_| ())),
             "select-all" => self.document_mut().select_all(),
-            "copy" => { self.clipboard = self.document().selected_text(); self.message = "Copied to internal clipboard".into(); }
+            "copy" => self.copy_selection(),
             "cut" => {
                 if self.document().readonly { self.message = "Document is read-only".into(); }
                 else if !self.document().selection().is_empty() {
-                    self.clipboard = self.document().selected_text(); self.edit(|d| d.insert(""));
+                    self.copy_selection(); self.edit(|d| d.insert(""));
                 }
             }
-            "paste" => { let text = self.clipboard.clone(); self.edit(|d| d.insert(&text)); }
+            "paste" => self.paste(),
             _ => self.message = format!("Unknown command: {command}. F1 lists commands."),
         }
         self.redraw = true;

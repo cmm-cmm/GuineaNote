@@ -62,7 +62,7 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Alt+S / Ctrl+Shift+S | Save to a new path |
 | Ctrl+W / Ctrl+Q | Close tab / quit (dirty buffers require confirmation) |
 | Ctrl+Z / Ctrl+Y | Undo / redo |
-| Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste internally |
+| Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste (system clipboard) |
 | Ctrl+F / Ctrl+H | One Find/Replace panel with both fields visible |
 | F3 | Next match; Shift+F3 goes back inside the search panel |
 | Ctrl+L | Go to line[:grapheme column], 1-based |
@@ -80,8 +80,10 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 Prompts use Enter or the Submit button; Esc or the top-right `x` cancels.
 Confirmations show the affected file and consequences, with Keep working
 selected initially. Click a decision, or use Tab/Left/Right then Enter. Y also
-confirms; N/Esc cancels. Save first, then close/quit, to keep edits. Clipboard
-is internal; normal terminal paste depends on the terminal. File operations
+confirms; N/Esc cancels. Save first, then close/quit, to keep edits. Copy/cut/
+paste use the system clipboard locally (`clipboard = "auto"`), the internal
+clipboard over SSH, or OSC 52 with `clipboard = "osc52"`; see the example config.
+Terminal paste (bracketed paste) also works. File operations
 and full-document search/replace run in the background. Open/search/replace
 temporarily pause edits with visible feedback. Saving allows continued editing;
 completion marks the committed snapshot saved and keeps later edits dirty.
@@ -200,7 +202,8 @@ constants, properties, attributes, escapes, operators and punctuation, with
 italic comments and separate semantic colors. It is a lightweight line-local lexer, without
 multiline grammar state; horizontally-scrolled lines use real line-origin context
 up to a bounded prefix, then plain text. No bounded-memory large-file support,
-system clipboard integration, LSP, plugin runtime or Git integration.
+LSP, plugin runtime or Git integration. macOS/Linux clipboard tools
+(pbcopy, wl-copy, xclip, xsel) are not yet runtime-verified.
 
 Crash recovery is enabled by default. Dirty tabs are checkpointed by a separate
 worker about once per second and reopen after a crash as independent unsaved

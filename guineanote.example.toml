@@ -11,6 +11,10 @@ basic_colors = false
 # ANSI 16-color palette (auto-selected for TERM=linux/vt100/vt102/ansi).
 ansi_colors = false
 
+# Clipboard: "auto" (system locally, internal over SSH), "system",
+# "osc52" (copy through the terminal, e.g. over SSH) or "internal".
+clipboard = "auto"
+
 # Private periodic draft checkpoints; source files still save explicitly.
 recovery = true
 # NO_COLOR is honored by default. Set explicitly to override it.

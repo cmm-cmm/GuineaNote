@@ -58,7 +58,7 @@ FILES AND EDITING
 Ctrl+O open · Ctrl+K folder · Ctrl+S save
 Alt+S / Ctrl+Shift+S save as · Ctrl+L go to line
 Ctrl+Z / Ctrl+Y undo / redo · Ctrl+A select all
-Ctrl+C / Ctrl+X / Ctrl+V copy / cut / internal paste
+Ctrl+C / Ctrl+X / Ctrl+V copy / cut / paste (system clipboard)
 Arrows move · Shift selects · Ctrl+Home/End start/end
 Ctrl+Q quit; dirty tabs require confirmation
 
@@ -113,7 +113,7 @@ FILE VÀ SOẠN THẢO
 Ctrl+O mở · Ctrl+K thư mục · Ctrl+S lưu
 Alt+S / Ctrl+Shift+S lưu thành · Ctrl+L đến dòng
 Ctrl+Z / Ctrl+Y hoàn tác / làm lại · Ctrl+A chọn hết
-Ctrl+C / Ctrl+X / Ctrl+V sao chép / cắt / dán nội bộ
+Ctrl+C / Ctrl+X / Ctrl+V sao chép / cắt / dán (bộ nhớ tạm hệ thống)
 Mũi tên di chuyển · Shift chọn · Ctrl+Home/End đầu/cuối
 Ctrl+Q thoát; thay đổi chưa lưu cần xác nhận
 

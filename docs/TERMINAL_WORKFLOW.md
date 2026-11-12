@@ -54,7 +54,10 @@ hard RSS bound; parser ignore và allocation hệ thống cần profile riêng.
 
 `NO_COLOR`, `no_color`, `basic_colors` (256 màu), `ansi_colors` (16 màu), truecolor.
 TERM linux/vt100/vt102/ansi chọn ANSI16 mặc định. Không bắt buộc Nerd Font.
-`mouse=false` cho keyboard-only. Clipboard nội bộ; OSC52 chưa triển khai.
+`mouse=false` cho keyboard-only. Clipboard: `clipboard = "auto"` dùng bộ nhớ tạm
+hệ thống khi chạy local (Windows API; pbcopy/wl-copy/xclip/xsel chưa kiểm chứng
+runtime), bộ nhớ nội bộ khi qua SSH; `"osc52"` sao chép qua terminal (tối đa 74 KiB),
+`"internal"` không chạm bộ nhớ tạm hệ thống. Probe đặt `GUINEANOTE_CLIPBOARD=internal`.
 
 Windows legacy console adapter nhận LF và ghép Enter/LF liền kề trong cửa sổ
 lookahead tối đa 2 ms để giữ CRLF ở fixture native. ConPTY legacy không luôn

@@ -1,4 +1,5 @@
 mod app;
+mod clipboard;
 mod commands;
 mod config;
 mod dialogs;
@@ -142,6 +143,13 @@ pub fn run_with_agent(
             write_times.frame();
             app.redraw = false;
             app.layout.start();
+            if let Some(sequence) = app.clipboard.osc52.take() {
+                // OSC 52 copy: written between frames, never inside one.
+                use std::io::Write;
+                let mut out = stdout();
+                out.write_all(sequence.as_bytes())?;
+                out.flush()?;
+            }
         }
         // At most four idle wakeups/sec, no redraw without state changes.
         if let Some(event) = input.read(Duration::from_millis(if app.background_work() {

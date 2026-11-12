@@ -61,6 +61,8 @@ class Session:
         self.preference_directory = tempfile.TemporaryDirectory(prefix="guineanote-preferences-")
         environment = dict(os.environ)
         environment["GUINEANOTE_PREFERENCES"] = str(preferences_path or (Path(self.preference_directory.name) / "preferences.toml"))
+        # Probes never replace the developer's system clipboard.
+        environment.setdefault("GUINEANOTE_CLIPBOARD", "internal")
         if env:
             environment.update(env)
         if colors:
