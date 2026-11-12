@@ -6,11 +6,84 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import threading
 import time
 import uuid
 from agent_smoke import AGENT, ROOT, PROFILE, SUFFIX, Mcp, cli
 from pty_smoke import Session
 from tui_preview import snapshot
+
+# A real terminal reads the editor's output continuously. This probe blocks
+# in MCP/CLI calls and process waits, and a full PTY buffer then blocks the
+# editor's frame write, so the Agent request it is waiting for can never be
+# served (seen as CANCELLED once frames carried more colour codes). A pump
+# thread keeps draining the PTY. Every screen state fed by either thread is
+# recorded, and wait/wait_until also accept states that appeared since the
+# main thread last looked, exactly as reading the backlog chunk by chunk did.
+_LOCK = threading.RLock()
+
+
+def _read(self, duration=0.15, until=None):
+    with _LOCK:
+        seen = self.__dict__.setdefault("_seen", [])
+        deadline = time.monotonic() + duration
+        while time.monotonic() < deadline:
+            ready, _, _ = select.select([self.fd], [], [], max(0, deadline - time.monotonic()))
+            if not ready:
+                break
+            try:
+                chunk = os.read(self.fd, 65536)
+            except OSError:
+                break
+            if not chunk:
+                break
+            self.output += chunk
+            self.stream.feed(self.decoder.decode(chunk))
+            seen.append(list(self.screen.display))
+            if len(seen) > 20000:
+                drop = len(seen) - 10000
+                del seen[:drop]
+                self._mark = max(0, self.__dict__.get("_mark", 0) - drop)
+            if until is not None and until in "\n".join(self.screen.display):
+                break
+
+
+def _pending(self):
+    seen = self.__dict__.setdefault("_seen", [])
+    return seen[self.__dict__.get("_mark", 0):] + [list(self.screen.display)]
+
+
+def _wait_until(self, predicate, timeout=10):
+    deadline = time.monotonic() + timeout
+    while True:
+        with _LOCK:
+            if any(predicate(lines) for lines in _pending(self)):
+                self._mark = len(self._seen)
+                return
+        if time.monotonic() >= deadline:
+            raise AssertionError("Timed out waiting for screen predicate")
+        self.read(0.005)
+
+
+def _wait(self, text, timeout=10):
+    try:
+        _wait_until(self, lambda lines: text in "\n".join(lines), timeout)
+    except AssertionError:
+        raise AssertionError(f"Timeout waiting for {text!r}; tail={self.output[-2000:]!r}") from None
+
+
+if os.name != "nt":
+    import select
+    Session.read = _read
+    Session.wait_until = _wait_until
+    Session.wait = _wait
+
+
+def drain(session, stop):
+    while not stop.is_set():
+        session.read(.02)
+        stop.wait(.005)
+
 
 BINARY = ROOT / "target" / PROFILE / ("guinea" + SUFFIX)
 
@@ -44,6 +117,9 @@ def main():
         source.write_bytes(b"\xef\xbb\xbf" + base.encode())
         (root / ".env").write_text("TOKEN=private-fixture", encoding="utf-8")
         ui = Session([str(BINARY), "--agent", "--agent-write", str(source)], colors=True)
+        stop_pump = threading.Event()
+        pump = threading.Thread(target=drain, args=(ui, stop_pump), daemon=True)
+        pump.start()
         try:
             ui.resize(42, 148)
             ui.wait("Opened")
@@ -234,6 +310,8 @@ def main():
                               "mcp_cancel_tab_manager_and_overload": "PASS",
                               "save_client_death_modal_and_transaction": "PASS"}, indent=2))
         finally:
+            stop_pump.set()
+            pump.join()
             (ROOT / "target/pty-agent.log").write_bytes(ui.output)
             ui.close()
 

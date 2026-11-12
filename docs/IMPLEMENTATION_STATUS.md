@@ -1,5 +1,20 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (8) — UI separation polish
+
+| Change | Detail |
+| --- | --- |
+| Menu | Full labels whenever they fit beside the help hints (Settings F10, Info F9 at 100 columns instead of bare keys); keys drawn as bold accent keycaps; right margin |
+| Tab bar | Dividers between tabs, dimmed inactive close buttons, keycap keys on the tab controls |
+| Footer / F2 / Find | Footer hints as keycaps; F2 right-aligns as many key bindings as fit; search results colour the match |
+| Border | One border cell between the unsaved count and the context chip |
+| Probe | `pty_agent.py` drains the PTY while blocked in Agent calls (see TEST_PLAN) |
+
+Verification (Linux x86_64 cloud container, Python PTY + pyte): 196 Rust
+tests, rustfmt/strict Clippy (1.98.1); all 12 functional probes pass (agent
+3/3 after the probe fix, also 3/3 on 83e6953); interaction corpus 1,540 PTY
+samples, max 6.9 ms, application max 6.2 ms, 0 above 50 ms. Windows not re-run.
+
 ## Checkpoint 12/11/2026 (7) — edit responsiveness and research 09
 
 | Change | Detail |

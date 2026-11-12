@@ -149,6 +149,19 @@ replace the record; a vanished file is skipped and reported; `session = false`
 neither restores nor rewrites the record. Rust tests cover damaged/absent
 records, duplicate entries, positions past a changed file and atomic rewrite.
 
+## UI separation polish — 2026-11-12
+
+Keys are drawn as accent keycaps in the menu, tab controls and footer (same
+text as before), tabs have dividers, the F2 list right-aligns key bindings and
+search results colour the match. Frames therefore carry more colour codes.
+`pty_agent.py` used to block in MCP/CLI calls without reading the PTY; on
+Linux the fuller frames filled the PTY buffer, the editor blocked in its frame
+write and the waited-for Agent request was cancelled (reproduced 4/4, stack
+in `write`/`flush`). The probe now drains the PTY on a pump thread and records
+every screen state, so waits still see short-lived states such as
+`AI · READ ONLY`. It passes 3/3 on both the previous binary (83e6953) and the
+new one. The Windows ConPTY path of the probe is unchanged.
+
 ## Edit responsiveness — 2026-11-12
 
 `cargo run --release -p guinea-core --example edit_profile` prints core
