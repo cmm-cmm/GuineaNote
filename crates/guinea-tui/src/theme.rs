@@ -20,9 +20,9 @@ impl Theme {
     pub fn new(basic: bool) -> Self {
         if basic {
             Self {
-                canvas: Color::Indexed(232),
-                panel: Color::Indexed(233),
-                raised: Color::Indexed(235),
+                canvas: Color::Indexed(16),
+                panel: Color::Indexed(232),
+                raised: Color::Indexed(234),
                 line: Color::Indexed(95),
                 text: Color::Indexed(230),
                 muted: Color::Indexed(144),
@@ -35,11 +35,11 @@ impl Theme {
             }
         } else {
             Self {
-                // A slightly deeper navy, with distinct panel/raised surfaces.
+                // A near-black navy, with distinct panel/raised surfaces.
                 // Green, honey amber and warm white keep details legible.
-                canvas: Color::Rgb(9, 14, 23),
-                panel: Color::Rgb(13, 20, 34),
-                raised: Color::Rgb(22, 32, 49),
+                canvas: Color::Rgb(5, 8, 13),
+                panel: Color::Rgb(8, 12, 21),
+                raised: Color::Rgb(15, 22, 35),
                 line: Color::Rgb(112, 90, 67),
                 text: Color::Rgb(248, 245, 236),
                 muted: Color::Rgb(187, 182, 165),

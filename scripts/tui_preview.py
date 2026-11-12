@@ -11,7 +11,7 @@ from pty_smoke import ROOT, Session
 from PIL import Image, ImageDraw, ImageFont
 
 PALETTE = {
-    "default": "#f8f5ec", "black": "#090e17", "red": "#efaa91", "green": "#86d38a",
+    "default": "#f8f5ec", "black": "#05080d", "red": "#efaa91", "green": "#86d38a",
     "brown": "#dbad5b", "yellow": "#dbad5b", "blue": "#bdd9b3", "magenta": "#bad68a",
     "cyan": "#86d38a", "white": "#f8f5ec", "brightblack": "#91816b",
     "brightred": "#efaa91", "brightgreen": "#86d38a", "brightyellow": "#dbad5b",
