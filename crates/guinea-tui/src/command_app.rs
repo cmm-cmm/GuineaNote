@@ -245,14 +245,24 @@ impl App {
                 self.message = "Bookmarks cleared".into();
             }
             "mark-all" => {
+                // Selected text and the caret word are literal text; only
+                // the Find query keeps regex mode.
+                let literal = guinea_core::SearchOptions {
+                    regex: false,
+                    ..self.search_options
+                };
                 let target = self
                     .document()
                     .mark_target()
-                    .or_else(|| (!self.search.is_empty()).then(|| self.search.clone()));
+                    .map(|text| (text, literal))
+                    .or_else(|| {
+                        (!self.search.is_empty()).then(|| (self.search.clone(), self.search_options))
+                    })
+                    .filter(|(text, options)| guinea_core::search::validate(text, *options).is_ok());
                 match target {
-                    Some(text) => {
+                    Some((text, options)) => {
                         self.message = self.config.language.render(Msg::Marked(&text));
-                        self.tabs[self.active].mark = Some((text, self.search_options));
+                        self.tabs[self.active].mark = Some((text, options));
                     }
                     None => {
                         self.message =

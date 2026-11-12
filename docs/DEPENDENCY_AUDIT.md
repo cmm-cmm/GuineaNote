@@ -1,5 +1,16 @@
 # Dependency audit — 2026-11-09
 
+## Regex search, 2026-11-12
+
+Added `regex` 1.13.1 to guinea-core (default features off; `std`, `unicode`,
+`perf`), with its locked graph regex-automata 0.4.18, regex-syntax,
+aho-corasick 1.1.5 and memchr 2.8.3 (MIT OR Apache-2.0 / Unlicense OR MIT).
+It is the rust-lang regex engine: linear-time, no backtracking, compiled
+program and DFA cache each capped at 4 MiB by the editor. `cargo deny check`
+(cargo-deny 0.20.2, current RustSec database fetched online on 2026-11-12,
+Linux container): advisories ok, bans ok, licenses ok, sources ok. No policy
+or exception change.
+
 ## Project finder, 2026-11-10
 
 Added ignore 0.4.34 and its locked graph (globset, walkdir, bstr,

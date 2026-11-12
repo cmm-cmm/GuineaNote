@@ -744,6 +744,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             let options = guinea_core::SearchOptions {
                 ignore_case: false,
                 whole_word: true,
+                regex: false,
             };
             for range in guinea_core::search::find_matches(text, word, options) {
                 let from = start + text[..range.start].chars().count();

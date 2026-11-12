@@ -731,6 +731,7 @@ mod tests {
             "Alt+A",
             "Alt+C",
             "Alt+W",
+            "Alt+R",
             "Shift+F3",
             "Shift+Enter",
             // Editor movement handled outside the keymap.

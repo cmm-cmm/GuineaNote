@@ -7,6 +7,8 @@ rust-version.workspace = true
 
 [dependencies]
 ropey = { version = "1.6", default-features = false, features = ["simd"] }
+# Linear-time regex (no backtracking); used only for opt-in regex search.
+regex = { version = "1.11", default-features = false, features = ["std", "unicode", "perf"] }
 thiserror.workspace = true
 unicode-segmentation.workspace = true
 unicode-width.workspace = true

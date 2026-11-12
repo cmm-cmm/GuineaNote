@@ -179,7 +179,8 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             let tight = body.height < 7;
             let query_y = if compact { 0 } else { 3 };
             if !compact {
-                // Clickable option toggles; Alt+C / Alt+W are the keyboard path.
+                // Clickable option toggles; Alt+C / Alt+W / Alt+R are the
+                // keyboard path.
                 let toggles = [
                     (
                         !search.options.ignore_case,
@@ -190,6 +191,11 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                         search.options.whole_word,
                         tr(locale, "Whole word · Alt+W", "Khớp cả từ · Alt+W"),
                         "search-word",
+                    ),
+                    (
+                        search.options.regex,
+                        tr(locale, "Regex · Alt+R", "Regex · Alt+R"),
+                        "search-regex",
                     ),
                 ];
                 // Same left margin as the other panel rows.

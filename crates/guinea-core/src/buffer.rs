@@ -19,6 +19,9 @@ pub enum EditError {
     GraphemeBoundary,
     #[error("document revision changed")]
     RevisionConflict,
+    /// A replacement would grow the document beyond [`crate::MAX_REPLACED_BYTES`].
+    #[error("replacement result exceeds 128 MiB")]
+    TooLarge,
 }
 
 /// All indices are Unicode scalar indices, never byte offsets or screen cells.

@@ -1720,6 +1720,32 @@ mod tests {
     }
 
     #[test]
+    fn mark_all_keeps_selected_text_literal_and_find_regex_as_regex() {
+        let mut a = app();
+        a.handle(Event::Paste("a.b axb  12 345\n".into()));
+        a.search_options.regex = true;
+        a.document_mut().select(0, 3).unwrap();
+        a.command("mark-all");
+        let (needle, options) = a.tabs[a.active].mark.clone().unwrap();
+        assert_eq!((needle.as_str(), options.regex), ("a.b", false));
+        a.document_mut().select(8, 8).unwrap();
+        a.search = r"\d+".into();
+        a.command("mark-all");
+        let (needle, options) = a.tabs[a.active].mark.clone().unwrap();
+        assert_eq!((needle.as_str(), options.regex), (r"\d+", true));
+        a.command("mark-bookmark");
+        drain_jobs(&mut a);
+        assert_eq!(a.document().bookmarks().collect::<Vec<_>>(), [0]);
+        a.command("mark-clear");
+        a.search = "(".into();
+        a.command("mark-all");
+        assert!(
+            a.tabs[a.active].mark.is_none(),
+            "invalid regex is not marked"
+        );
+    }
+
+    #[test]
     fn previous_session_reopens_tabs_carets_and_active_tab() {
         let dir = tempfile::tempdir().unwrap();
         let a_path = dir.path().join("a.txt");

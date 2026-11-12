@@ -63,7 +63,8 @@ pub enum Command {
 pub struct Search {
     pub query: String,
     pub replacement: String,
-    /// Alt+C toggles case-insensitive and Alt+W whole-word matching.
+    /// Alt+C toggles case-insensitive, Alt+W whole-word and Alt+R regex
+    /// matching.
     pub options: SearchOptions,
     pub focus: usize,
     pub entries: Vec<Found>,
@@ -134,6 +135,14 @@ impl Search {
         } else {
             self.options.ignore_case = !self.options.ignore_case;
         }
+        self.changed();
+    }
+    /// Toggle regular-expression mode (Notepad++ "Regular expression").
+    pub fn toggle_regex(&mut self) {
+        if self.replacing() {
+            return;
+        }
+        self.options.regex = !self.options.regex;
         self.changed();
     }
     pub fn busy(&self) -> bool {
@@ -225,6 +234,7 @@ impl Search {
             KeyCode::Char('a' | 'A') if alt => return Command::ReplaceAll,
             KeyCode::Char('c' | 'C') if alt && !ctrl => self.toggle(false),
             KeyCode::Char('w' | 'W') if alt && !ctrl => self.toggle(true),
+            KeyCode::Char('r' | 'R') if alt && !ctrl => self.toggle_regex(),
             KeyCode::Enter if self.focus == 2 => return Command::Go,
             KeyCode::Enter | KeyCode::Char(' ') if self.focus >= 3 => {
                 return match self.focus {
@@ -391,10 +401,17 @@ impl Search {
             return;
         }
         let count = if all { self.total } else { 1 };
+        // A literal match is as long as the query; a regex match is not, so
+        // only literal mode subtracts it (the core enforces the exact cap).
+        let removed = if self.options.regex {
+            0
+        } else {
+            self.query.len().saturating_mul(count)
+        };
         let estimate = document
             .buffer()
             .len_bytes()
-            .checked_sub(self.query.len().saturating_mul(count))
+            .checked_sub(removed)
             .and_then(|n| n.checked_add(self.replacement.len().saturating_mul(count)));
         if estimate.is_none_or(|n| n > 128 * 1024 * 1024) {
             self.error = Some(
@@ -438,7 +455,7 @@ impl Search {
                     .map(|n| Reply::Edit(Box::new(snapshot), n))
             } else {
                 snapshot
-                    .replace_range(range, &replacement)
+                    .replace_match(range, &query, &replacement, options)
                     .map(|()| Reply::Edit(Box::new(snapshot), 1))
             };
             if !worker_cancel.load(Ordering::Acquire) {
@@ -535,6 +552,14 @@ impl Search {
                 self.entries.clear();
                 self.total = 0;
                 self.dirty = false;
+                return (true, None);
+            }
+            // A pattern that does not compile is shown, never scanned.
+            if let Err(error) = guinea_core::search::validate(&self.query, self.options) {
+                self.entries.clear();
+                self.total = 0;
+                self.dirty = false;
+                self.error = Some(format!("Regex: {error}"));
                 return (true, None);
             }
             let Some(permit) = crate::work::Permit::acquire() else {
@@ -782,6 +807,55 @@ mod tests {
             .unwrap();
         assert_eq!(document.text(), "X X Việtnam X");
         assert!(document.undo().unwrap());
+        assert_eq!(document.text(), original);
+    }
+    #[test]
+    fn regex_mode_reports_bad_patterns_and_replaces_with_groups() {
+        // The pattern is longer than some documents it matches in: the size
+        // estimate must not treat its length as the match length.
+        let original = "x=1\r\ny=22\r\nz=x\r\n";
+        let mut document = Document::from_text(original);
+        let mut search = Search::new(
+            &document,
+            r"(\w)=(\d+)(?:)(?:)(?:)(?:)(?:)(?:)(?:)".into(),
+            "$2:$1".into(),
+        );
+        settle(&mut search, &document);
+        assert_eq!(search.total, 0, "literal mode: no such text");
+        let alt = |c| KeyEvent::new(KeyCode::Char(c), KeyModifiers::ALT);
+        search.key(alt('r'));
+        assert!(search.options.regex);
+        settle(&mut search, &document);
+        assert_eq!(search.total, 2);
+        assert_eq!(search.entries[1].line, 1);
+        // Replace one expands the groups of the selected match only.
+        search.selected = 1;
+        start_replacement(&mut search, &document, false);
+        let changed = settle(&mut search, &document).unwrap();
+        document
+            .accept_prepared(&changed.document, changed.revision)
+            .unwrap();
+        assert_eq!(document.text(), "x=1\r\n22:y\r\nz=x\r\n");
+        search.applied(&document, changed.count);
+        settle(&mut search, &document);
+        start_replacement(&mut search, &document, true);
+        let changed = settle(&mut search, &document).unwrap();
+        document
+            .accept_prepared(&changed.document, changed.revision)
+            .unwrap();
+        assert_eq!(document.text(), "1:x\r\n22:y\r\nz=x\r\n", "CRLF kept");
+        // An invalid pattern is reported instead of scanned.
+        search.query = "(open".into();
+        search.changed();
+        settle(&mut search, &document);
+        assert_eq!(search.total, 0);
+        assert!(
+            search
+                .error
+                .as_deref()
+                .is_some_and(|e| e.starts_with("Regex: "))
+        );
+        assert!(document.undo().unwrap() && document.undo().unwrap());
         assert_eq!(document.text(), original);
     }
     #[test]

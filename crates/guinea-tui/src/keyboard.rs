@@ -33,7 +33,8 @@ Tab / Shift+Tab fields, results and buttons
 Enter activates a focused button; results Enter returns
 Enter / F3 next · Shift+Enter / Shift+F3 previous
 Ctrl+R replace one · Alt+A replace all
-Alt+C match case on/off · Alt+W whole word on/off
+Alt+C match case on/off · Alt+W whole word on/off · Alt+R regex on/off
+Regex: ^/$ per line, $1 or ${name} in the replacement, no look-around
 Ctrl+Shift+R also replaces all where supported
 Esc close · Ctrl+Z undo in editor · Ctrl+S save
 
@@ -108,7 +109,8 @@ Tab / Shift+Tab qua ô nhập, kết quả và các nút
 Enter kích hoạt nút; Enter ở kết quả về soạn thảo
 Enter / F3 sau · Shift+Enter / Shift+F3 trước
 Ctrl+R thay một · Alt+A thay tất cả
-Alt+C bật/tắt phân biệt hoa thường · Alt+W bật/tắt khớp cả từ
+Alt+C bật/tắt phân biệt hoa thường · Alt+W bật/tắt khớp cả từ · Alt+R bật/tắt regex
+Regex: ^/$ theo từng dòng, $1 hoặc ${tên} trong ô thay, không hỗ trợ look-around
 Ctrl+Shift+R cũng thay tất cả nếu terminal hỗ trợ
 Esc đóng · Ctrl+Z hoàn tác ở editor · Ctrl+S lưu
 

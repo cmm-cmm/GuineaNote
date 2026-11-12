@@ -76,6 +76,11 @@ impl App {
                 self.search_options = search.options;
                 Command::None
             }
+            "search-regex" => {
+                search.toggle_regex();
+                self.search_options = search.options;
+                Command::None
+            }
             _ => Command::None,
         };
         self.search_command(search, command);

@@ -11,6 +11,9 @@ use unicode_segmentation::UnicodeSegmentation;
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
+/// Largest document a single replacement may produce.
+pub const MAX_REPLACED_BYTES: usize = 128 * 1024 * 1024;
+
 #[derive(Debug, Clone)]
 pub struct TextEdit {
     pub start: usize,
@@ -957,6 +960,34 @@ impl Document {
         }
     }
 
+    /// Replace the one match at scalar `range` (as found by a search with the
+    /// same query and options), expanding regex capture references.
+    pub fn replace_match(
+        &mut self,
+        range: Range<usize>,
+        needle: &str,
+        replacement: &str,
+        options: crate::SearchOptions,
+    ) -> Result<(), EditError> {
+        let text = if options.regex {
+            let start = self.buffer.char_to_byte(CharIndex(range.start))?.0;
+            let end = self.buffer.char_to_byte(CharIndex(range.end))?.0;
+            crate::search::expand_replacement(
+                &self.text(),
+                start..end,
+                needle,
+                options,
+                replacement,
+            )
+        } else {
+            replacement.to_string()
+        };
+        if text.len() > MAX_REPLACED_BYTES {
+            return Err(EditError::TooLarge);
+        }
+        self.replace_range(range, &text)
+    }
+
     pub fn replace_all(&mut self, needle: &str, replacement: &str) -> Result<usize, EditError> {
         self.replace_all_with(needle, replacement, crate::SearchOptions::default())
     }
@@ -980,9 +1011,19 @@ impl Document {
         let mut count = 0;
         for range in crate::search::find_matches(&text, needle, options) {
             output.push_str(&text[previous_byte..range.start]);
-            output.push_str(replacement);
+            output.push_str(&crate::search::expand_replacement(
+                &text,
+                range.clone(),
+                needle,
+                options,
+                replacement,
+            ));
             previous_byte = range.end;
             count += 1;
+            // `$0$0…` in regex mode can grow output far beyond the query.
+            if output.len() > MAX_REPLACED_BYTES {
+                return Err(EditError::TooLarge);
+            }
         }
         if count > 0 {
             output.push_str(&text[previous_byte..]);
@@ -1310,5 +1351,25 @@ mod tests {
             while d.redo().unwrap() {}
             prop_assert_eq!(d.text(), final_text);
         }
+    }
+
+    #[test]
+    fn regex_replace_all_and_replace_match_expand_groups_in_one_undo() {
+        let options = crate::SearchOptions {
+            regex: true,
+            ..Default::default()
+        };
+        let mut d = Document::from_text("x=1\r\ny=22\r\n");
+        assert_eq!(
+            d.replace_all_with(r"(\w)=(\d+)", "$2=$1", options).unwrap(),
+            2
+        );
+        assert_eq!(d.text(), "1=x\r\n22=y\r\n");
+        assert!(d.undo().unwrap());
+        assert_eq!(d.text(), "x=1\r\ny=22\r\n");
+        // Scalar range 5..9 is "y=22" after the CRLF.
+        d.replace_match(5..9, r"(\w)=(\d+)", "[$1]", options)
+            .unwrap();
+        assert_eq!(d.text(), "x=1\r\n[y]\r\n");
     }
 }

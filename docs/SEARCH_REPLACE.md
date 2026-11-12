@@ -28,9 +28,10 @@ thị preview thay thế. File chỉ đọc, review tab và file đang do AI tha
 
 ## Implementation and limits
 
-Search uses literal matching at whole Unicode grapheme boundaries, not regular
-expressions. It is case-sensitive by default; **Alt+C** (or clicking the option)
-toggles case-insensitive matching and **Alt+W** toggles whole-word matching.
+Search uses literal matching at whole Unicode grapheme boundaries by default.
+It is case-sensitive by default; **Alt+C** (or clicking the option) toggles
+case-insensitive matching, **Alt+W** toggles whole-word matching and **Alt+R**
+toggles regular expressions (Notepad++ "Regular expression" mode).
 Options stay for the session and also apply to F3 and Replace all.
 Case-insensitive matching uses simple one-to-one lowercase folding, so a match
 always has the query's scalar length: `İ` and `ß` match only themselves.
@@ -38,6 +39,23 @@ Whole word requires a non-alphanumeric, non-underscore scalar (or the text
 edge) on both sides of the match. Inputs are single-line and capped at
 4,096 UTF-8 bytes each; pasted CR/LF/NUL characters are removed. Replacement
 output is capped at 128 MiB. The measured interaction workload is up to 10 MiB.
+
+Regex mode uses the Rust `regex` crate: linear-time matching without
+backtracking, so a pattern cannot hang the editor, but also no look-around and
+no backreferences in the pattern. `^` and `$` match at every line (before CRLF
+too); `.` does not cross newlines unless `(?s)` is used. Match case / whole word
+still apply. Empty matches are skipped, and a match that would split a grapheme
+cluster (for example `.` against the `e` of an NFD `é`) or touch a word scalar
+with whole word on is dropped, not shortened. The replacement expands `$1`,
+`${name}` and `$0`; `$$` is a literal `$`. A pattern that does not compile is
+shown as `Regex: …` in the panel and is never scanned; compiled programs are
+capped at 4 MiB. Replace one and Replace all expand groups per match, and the
+128 MiB result cap is enforced while the result is built. `mark-all` uses
+regex mode only for the Find query; selected text and the caret word are
+matched literally.
+
+Chế độ regex (**Alt+R**): `^`/`$` theo từng dòng, ô thay dùng `$1` hoặc `${tên}`,
+không hỗ trợ look-around/backreference; mẫu sai hiện `Regex: …` và không quét.
 
 Scanning and replacement use immutable document snapshots on at most two
 background search workers, with a 35 ms input debounce. Results retain 200

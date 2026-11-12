@@ -1079,6 +1079,7 @@ mod bookmark_tests {
         let options = crate::SearchOptions {
             ignore_case: true,
             whole_word: true,
+            regex: false,
         };
         assert_eq!(d.bookmark_matches("cat", options), (3, false));
         assert_eq!(d.bookmarks().collect::<Vec<_>>(), [0, 1, 2, 3]);

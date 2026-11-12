@@ -149,6 +149,18 @@ replace the record; a vanished file is skipped and reported; `session = false`
 neither restores nor rewrites the record. Rust tests cover damaged/absent
 records, duplicate entries, positions past a changed file and atomic rewrite.
 
+## Regex search — 2026-11-12
+
+`python -X utf8 scripts/pty_regex.py` (after a release build): a capture-group
+pattern finds nothing as literal text, Alt+R shows `[x] Regex` and two matches,
+Replace all with `$2:$1` rewrites both lines and Ctrl+S keeps BOM/CRLF/NFC
+bytes exact, and an unclosed group shows `Regex: …` instead of scanning. Rust
+tests cover per-line `^`/`$` with CRLF, options, empty-match stepping,
+grapheme-split rejection, invalid and oversized patterns, `$1`/`${name}`/`$$`
+expansion, replace one/all as one Undo, a pattern longer than the document
+(the size estimate no longer treats it as the match length) and Mark keeping
+selected text literal.
+
 ## Tab bar redesign — 2026-11-12
 
 The tab area is one row (tabs left, count and controls right) under the menu

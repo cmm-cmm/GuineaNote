@@ -46,6 +46,7 @@ step agent $P scripts/pty_agent.py
 step recovery $P scripts/pty_recovery.py
 step session $P scripts/pty_session.py
 step mark $P scripts/pty_mark.py
+step regex $P scripts/pty_regex.py
 step terminal-matrix $P scripts/terminal_matrix.py
 Xvfb :99 -nolisten tcp > "$OUT/xvfb.txt" 2>&1 &
 XVFB=$!
