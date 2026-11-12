@@ -591,11 +591,19 @@ pub fn short_key(id: &str) -> String {
 /// A hint line such as " ^S Save   F6 Prev" for `(action id, English label)`
 /// pairs; labels are translated, keys come from the keymap.
 pub fn hints(items: &[(&str, &str)], locale: Locale) -> String {
-    items
+    hint_parts(items, locale)
         .iter()
-        .map(|(id, label)| format!(" {} {}", short_key(id), locale.tr(label)))
+        .map(|(key, label)| format!(" {key} {label}"))
         .collect::<Vec<_>>()
         .join("  ")
+}
+
+/// (primary key, translated label) pairs of `hints`, for styled rendering.
+pub fn hint_parts(items: &[(&str, &str)], locale: Locale) -> Vec<(String, String)> {
+    items
+        .iter()
+        .map(|(id, label)| (short_key(id), locale.tr(label).into_owned()))
+        .collect()
 }
 
 pub fn suggestions(query: &str, locale: Locale) -> Vec<&'static Command> {

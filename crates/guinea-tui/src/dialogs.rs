@@ -389,30 +389,52 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 .enumerate()
             {
                 let chosen = search.top() + row_index == search.selected;
-                let line = format!(
-                    "{} {:>5}  {}",
-                    if chosen { "›" } else { " " },
-                    found.line + 1,
-                    found.preview
-                );
+                let focused = chosen && search.focus == 2;
+                let base = fg(if focused {
+                    theme.canvas
+                } else if chosen {
+                    theme.text
+                } else {
+                    theme.muted
+                })
+                .bg(if focused {
+                    theme.accent
+                } else if chosen {
+                    theme.raised
+                } else {
+                    theme.panel
+                });
+                // Line number, context, and the match itself in bold accent
+                // (the brackets stay as a plain-text cue for NO_COLOR).
+                let preview = &found.preview;
+                let at = found.highlight.clone();
+                let ok = at.end < preview.len()
+                    && preview.is_char_boundary(at.start)
+                    && preview.is_char_boundary(at.end);
+                let mut spans = vec![
+                    Span::raw(format!("{} ", if chosen { "›" } else { " " })),
+                    Span::styled(
+                        format!("{:>5}  ", found.line + 1),
+                        if focused { base } else { base.fg(theme.faint) },
+                    ),
+                ];
+                if ok {
+                    let mark = if focused {
+                        base.add_modifier(Modifier::BOLD | Modifier::UNDERLINED)
+                    } else {
+                        base.fg(theme.warm).add_modifier(Modifier::BOLD)
+                    };
+                    spans.push(Span::raw(safe(&preview[..at.start])));
+                    spans.push(Span::styled(safe(&preview[at.clone()]), mark));
+                    spans.push(Span::raw(safe(&preview[at.end..])));
+                } else {
+                    spans.push(Span::raw(safe(preview)));
+                }
                 text(
                     frame,
                     Rect::new(list.x, list.y + row_index as u16, list.width, 1),
-                    Line::from(clipped(&line, list.width as usize)),
-                    fg(if chosen && search.focus == 2 {
-                        theme.canvas
-                    } else if chosen {
-                        theme.text
-                    } else {
-                        theme.muted
-                    })
-                    .bg(if chosen && search.focus == 2 {
-                        theme.accent
-                    } else if chosen {
-                        theme.raised
-                    } else {
-                        theme.panel
-                    }),
+                    Line::from(spans),
+                    base,
                 );
             }
             let mut x = body.x + 2;
@@ -706,27 +728,65 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                         .iter()
                         .find(|(id, _)| *id == command.id)
                         .map(|(_, reason)| *reason);
-                    let label = format!(
-                        "{:<16} {}{}",
+                    // Name, description, then its keys right-aligned in their
+                    // own colour so they do not run into the description.
+                    let selected = index == app.palette_index;
+                    let base = fg(if selected { theme.canvas } else { theme.text })
+                        .bg(if selected { theme.accent } else { theme.panel });
+                    let text_only = if locale == Locale::Vi {
+                        command.vi
+                    } else {
+                        command.en
+                    };
+                    let described = format!(
+                        "{:<16} {text_only}{}",
                         command.id,
-                        crate::commands::description(command, locale),
                         reason.map_or(String::new(), |r| format!(" — {}", locale.tr(r)))
                     );
-                    text(
-                        frame,
-                        rect,
-                        Line::from(clipped(&label, rect.width as usize)),
-                        fg(if index == app.palette_index {
-                            theme.canvas
+                    let width = rect.width as usize;
+                    // As many bindings as fit beside the description; the
+                    // primary key always comes first.
+                    let room = width.saturating_sub(Line::from(described.as_str()).width() + 3);
+                    let mut keys = String::new();
+                    for binding in command.keys {
+                        let next = if keys.is_empty() {
+                            binding.label.to_string()
                         } else {
-                            theme.text
-                        })
-                        .bg(if index == app.palette_index {
-                            theme.accent
-                        } else {
-                            theme.panel
-                        }),
-                    );
+                            format!("{keys} / {}", binding.label)
+                        };
+                        if Line::from(next.as_str()).width() > room {
+                            break;
+                        }
+                        keys = next;
+                    }
+                    let key_width = Line::from(keys.as_str()).width();
+                    let line = if key_width > 0
+                        && Line::from(described.as_str()).width() + key_width + 3 <= width
+                    {
+                        let gap = width - Line::from(described.as_str()).width() - key_width;
+                        Line::from(vec![
+                            Span::raw(described),
+                            Span::raw(" ".repeat(gap)),
+                            Span::styled(
+                                keys,
+                                if selected {
+                                    base.add_modifier(Modifier::BOLD)
+                                } else {
+                                    base.fg(theme.secondary).add_modifier(Modifier::BOLD)
+                                },
+                            ),
+                        ])
+                    } else {
+                        // Narrow: keep the previous single line with keys.
+                        let label = format!(
+                            "{:<16} {}{}",
+                            command.id,
+                            crate::commands::description(command, locale),
+                            reason.map_or(String::new(), |r| format!(" — {}", locale.tr(r)))
+                        );
+                        Line::from(clipped(&label, width))
+                    };
+                    text(frame, rect, line, base);
                     hits.commands.push((rect, command.id));
                 }
             } else if body.height >= 10 {

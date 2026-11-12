@@ -64,6 +64,26 @@ pub(crate) fn input_tail(text: &str, width: usize) -> String {
     format!("…{}", &safe[start..])
 }
 
+/// Keyboard hints as keycaps: the key bold in `key`, its label in `label`,
+/// with the exact text of `commands::hints` (tests and probes read it).
+fn hint_line(
+    items: &[(&str, &str)],
+    locale: Locale,
+    key: ratatui::style::Color,
+    label: ratatui::style::Color,
+) -> Line<'static> {
+    let mut spans = Vec::new();
+    for (index, (k, l)) in crate::commands::hint_parts(items, locale)
+        .into_iter()
+        .enumerate()
+    {
+        spans.push(Span::raw(if index == 0 { " " } else { "   " }));
+        spans.push(Span::styled(k, bold(key)));
+        spans.push(Span::styled(format!(" {l}"), text_style(label)));
+    }
+    Line::from(spans)
+}
+
 pub(crate) fn panel(title: &str, theme: Theme, focused: bool) -> Block<'static> {
     Block::default()
         .borders(Borders::ALL)
@@ -102,49 +122,71 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             );
         }
     }
-    let mut x = area.x + 1;
-    // (action, wide label, compact label); keys come from the keymap.
-    for (command, wide, compact) in [
-        ("open", "Open file", "Open"),
-        ("find", "Find/Replace", "Find/Replace"),
-        ("preview", "Review", "View"),
-        ("settings", "Settings", ""),
-        ("file-info", "Info", ""),
-    ] {
-        let text = if area.width < 110 { compact } else { wide };
+    // Labelled buttons whenever they fit next to the help hints; keys come
+    // from the keymap and are drawn as the accent part of each button.
+    const ACTIONS: [(&str, &str, &str, &str); 5] = [
+        ("open", "Open file", "Open", "Open"),
+        ("find", "Find/Replace", "Find/Replace", "Find/Replace"),
+        ("preview", "Review", "View", "View"),
+        ("settings", "Settings", "Settings", ""),
+        ("file-info", "Info", "Info", ""),
+    ];
+    let help = hint_line(
+        &[("help", "Help"), ("commands", "Commands")],
+        locale,
+        theme.secondary,
+        theme.muted,
+    );
+    // One cell of margin on the right, matching the left edge.
+    let help_width = help.width() as u16 + 2;
+    let button = |label: &str, command: &str| {
         let key = crate::commands::short_key(command);
-        let label: std::borrow::Cow<'_, str> = if text.is_empty() {
-            format!(" {key} ").into()
+        if label.is_empty() {
+            (String::new(), key)
         } else {
-            format!(" {} {key} ", locale.tr(text)).into()
-        };
-        let width = Line::from(label.as_ref()).width() as u16;
+            (format!("{} ", locale.tr(label)), key)
+        }
+    };
+    let total = |variant: usize| {
+        ACTIONS
+            .iter()
+            .map(|action| {
+                let label = [action.1, action.2, action.3][variant];
+                let (text, key) = button(label, action.0);
+                Line::from(format!(" {text}{key} ").as_str()).width() as u16 + 1
+            })
+            .sum::<u16>()
+            + 1
+    };
+    let variant = (0..3)
+        .find(|&v| total(v) + help_width <= area.width)
+        .unwrap_or(2);
+    let mut x = area.x + 1;
+    for action in ACTIONS {
+        let command = action.0;
+        let (text, key) = button([action.1, action.2, action.3][variant], command);
+        let line = Line::from(vec![
+            Span::raw(" "),
+            Span::styled(text, text_style(theme.text)),
+            Span::styled(key, bold(theme.accent)),
+            Span::raw(" "),
+        ]);
+        let width = line.width() as u16;
         if x + width > area.right() {
             break;
         }
         let rect = Rect::new(x, actions_y, width, 1);
         frame.render_widget(
-            Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
-                if app.tabs[app.active].ai_action.is_some() && command == "save" {
-                    theme.faint
-                } else {
-                    theme.muted
-                },
-            )),
+            Paragraph::new(line).style(Style::default().bg(theme.raised)),
             rect,
         );
         app.hits.actions.push((rect, command));
         x += width + 1;
     }
-    if area.right().saturating_sub(x) >= 25 {
+    if area.right().saturating_sub(x) >= help_width {
         frame.render_widget(
-            Paragraph::new(format!(
-                "{} ",
-                crate::commands::hints(&[("help", "Help"), ("commands", "Commands")], locale)
-            ))
-            .style(text_style(theme.secondary))
-            .alignment(Alignment::Right),
-            Rect::new(area.right() - 25, actions_y, 25, 1),
+            Paragraph::new(help).alignment(Alignment::Right),
+            Rect::new(area.right() - help_width, actions_y, help_width - 1, 1),
         );
     }
 }
@@ -236,10 +278,10 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             .map_or(("", label.trim_start()), |name| ("AI · ", name));
         format!(" {} {ai}{name}", index + 1)
     };
-    // Each tab is its label plus a 3-cell close button; the close button's
-    // padding separates neighbours. One cell on each side is reserved for
-    // the ‹ / › markers that show tabs scrolled out of the strip.
-    let span = |index: usize| Line::from(label(index)).width() + 3;
+    // Each tab is its label, a 3-cell close button and a 1-cell divider. One
+    // cell on each side is reserved for the ‹ / › markers that show tabs
+    // scrolled out of the strip.
+    let span = |index: usize| Line::from(label(index)).width() + 4;
     // Like Notepad++, tabs come first: use the longest control labels that
     // still show every tab; when none does, keep half the row (up to 56 cells).
     let all_tabs = (0..app.tabs.len()).map(span).sum::<usize>() + 3;
@@ -276,17 +318,32 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         }
         x += 1;
         let rect = Rect::new(x, area.y, width, 1);
-        frame.render_widget(
-            Paragraph::new(label).style(Style::default().bg(theme.raised).fg(if action == "new" {
-                theme.accent
-            } else if app.tabs[app.active].ai_action.is_some() && matches!(action, "save" | "close")
-            {
-                theme.faint
-            } else {
-                theme.text
-            })),
-            rect,
-        );
+        let locked = app.tabs[app.active].ai_action.is_some() && matches!(action, "save" | "close");
+        let base =
+            Style::default()
+                .bg(theme.raised)
+                .fg(if locked { theme.faint } else { theme.text });
+        // The key inside the label is the accent part, as in the menu.
+        let shortcut = key(action);
+        let line = match label.rfind(shortcut.as_str()).filter(|_| !locked) {
+            Some(at) if action != "tabs" || label.trim() != shortcut => Line::from(vec![
+                Span::styled(label[..at].to_string(), base),
+                Span::styled(
+                    shortcut.clone(),
+                    base.fg(theme.accent).add_modifier(Modifier::BOLD),
+                ),
+                Span::styled(label[at + shortcut.len()..].to_string(), base),
+            ]),
+            _ => Line::from(Span::styled(
+                label.clone(),
+                if action == "new" && !locked {
+                    base.fg(theme.accent)
+                } else {
+                    base
+                },
+            )),
+        };
+        frame.render_widget(Paragraph::new(line).style(base), rect);
         app.hits.actions.push((rect, action));
         x += width;
     }
@@ -355,9 +412,11 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         let close = Rect::new(rect.right() - 3, rect.y, 3, 1);
         frame.render_widget(
             Paragraph::new(if locked { " · " } else { " x " }).style(
-                Style::default()
-                    .bg(background)
-                    .fg(if locked { theme.faint } else { theme.warm }),
+                Style::default().bg(background).fg(if selected && !locked {
+                    theme.warm
+                } else {
+                    theme.faint
+                }),
             ),
             close,
         );
@@ -366,6 +425,13 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         }
         x += width;
         let last = index + 1 == app.tabs.len();
+        if !last && x < right {
+            frame.render_widget(
+                Paragraph::new("│").style(Style::default().bg(theme.panel).fg(theme.line)),
+                Rect::new(x, area.y, 1, 1),
+            );
+            x += 1;
+        }
         if !last && (x >= right || x + 6 > right || x + span(index + 1) as u16 > right) {
             frame.render_widget(
                 Paragraph::new("›").style(Style::default().bg(theme.panel).fg(theme.warm)),
@@ -437,8 +503,10 @@ fn border_info(frame: &mut Frame<'_>, app: &App, area: Rect, title: &str, theme:
     } else {
         (false, false)
     };
-    let right_width =
-        if show_context { context_width } else { 0 } + if show_unsaved { unsaved_width } else { 0 };
+    // One border cell stays visible between the unsaved count and the chip.
+    let right_width = if show_context { context_width } else { 0 }
+        + if show_unsaved { unsaved_width } else { 0 }
+        + usize::from(show_context && show_unsaved);
     let path_width = available.saturating_sub(right_width + 2);
     if path_width >= 4 {
         let shown = format!(" {} ", input_tail(&path, path_width - 2));
@@ -454,7 +522,7 @@ fn border_info(frame: &mut Frame<'_>, app: &App, area: Rect, title: &str, theme:
             Paragraph::new(unsaved).style(Style::default().bg(theme.panel).fg(theme.warm)),
             Rect::new(x, area.y, unsaved_width as u16, 1),
         );
-        x += unsaved_width as u16;
+        x += unsaved_width as u16 + u16::from(show_context);
     }
     if show_context {
         frame.render_widget(
@@ -1123,8 +1191,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         Rect::new(areas[1].right() - right_width, areas[1].y, right_width, 1),
     );
     // Footer hints are generated from the keymap; see commands::hints.
+    let (key, label) = (theme.accent, theme.muted);
     let hints = if app.focus_mode {
-        crate::commands::hints(
+        hint_line(
             &[
                 ("focus-mode", "Exit focus"),
                 ("save", "Save"),
@@ -1134,12 +1203,16 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
                 ("commands", "Commands"),
             ],
             locale,
+            key,
+            label,
         )
     } else if app.tabs[app.active].ai_action.is_some() {
-        format!(
-            " ↑↓ {}  {}",
-            locale.tr("Navigate"),
-            crate::commands::hints(
+        let mut line = Line::from(vec![
+            Span::styled(" ↑↓", bold(key)),
+            Span::styled(format!(" {} ", locale.tr("Navigate")), text_style(label)),
+        ]);
+        line.spans.extend(
+            hint_line(
                 &[
                     ("copy", "Copy"),
                     ("prev", "Prev"),
@@ -1148,10 +1221,14 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
                     ("settings", "Settings"),
                 ],
                 locale,
+                key,
+                label,
             )
-        )
+            .spans,
+        );
+        line
     } else {
-        crate::commands::hints(
+        hint_line(
             &[
                 ("save", "Save"),
                 ("find", "Find/Replace"),
@@ -1163,12 +1240,11 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
                 ("quit", "Quit"),
             ],
             locale,
+            key,
+            label,
         )
     };
-    frame.render_widget(
-        Paragraph::new(hints).style(text_style(theme.muted)),
-        areas[2],
-    );
+    frame.render_widget(Paragraph::new(hints), areas[2]);
 }
 
 pub fn draw(frame: &mut Frame<'_>, app: &mut App) {

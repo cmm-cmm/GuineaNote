@@ -29,6 +29,8 @@ pub struct Found {
     pub range: Range<usize>,
     pub line: usize,
     pub preview: String,
+    /// Byte range of the matched text inside `preview` (between the brackets).
+    pub highlight: Range<usize>,
 }
 struct Scan {
     entries: Vec<Found>,
@@ -647,16 +649,22 @@ fn scan(
                 .chars()
                 .take(32)
                 .collect::<String>();
+            let before = before.replace(['\r', '\n', '\t'], " ");
+            let shown = matched
+                .chars()
+                .take(32)
+                .collect::<String>()
+                .replace(['\r', '\n', '\t'], " ");
+            let highlight = before.len() + 1..before.len() + 1 + shown.len();
             let preview = format!(
-                "{}[{}]{}",
-                before.replace(['\r', '\n', '\t'], " "),
-                matched.chars().take(32).collect::<String>(),
+                "{before}[{shown}]{}",
                 after.replace(['\r', '\n', '\t'], " ")
             );
             entries.push(Found {
                 range: scalar..scalar + length,
                 line,
                 preview,
+                highlight,
             });
         }
         total += 1;
