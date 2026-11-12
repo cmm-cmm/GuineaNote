@@ -652,6 +652,18 @@ impl Document {
                         return None;
                     }
                 }
+                // A first query near the start of an unindexed multi-MiB line
+                // (go to line, typing at the line start, a left-aligned
+                // viewport) uses the bounded direct path instead of copying
+                // the whole line on the input thread; far queries are deferred
+                // to a LayoutJob by `layout_pending`.
+                if through_char.max(through_cell) <= DEFER_SCALARS {
+                    let bytes = self.buffer().char_to_byte(CharIndex(range.end)).ok()?.0
+                        - self.buffer().char_to_byte(CharIndex(range.start)).ok()?.0;
+                    if bytes >= LONG_LINE_BYTES {
+                        return None;
+                    }
+                }
                 if let Some(old) = cache.take() {
                     others.push_back(old);
                 }
@@ -1510,5 +1522,35 @@ mod tests {
         let start = document.caret_window(20, 4).unwrap();
         assert_eq!((start.window.char_start, start.caret_cell), (0, 0));
         assert!(!start.window.text.is_empty());
+    }
+
+    #[test]
+    fn start_queries_on_unindexed_long_lines_do_not_copy_the_line() {
+        let text = long_unicode_line(2 * 1024 * 1024);
+        let mut direct = Document::from_text(&text);
+        let mut indexed = Document::from_text(&text);
+        indexed.prepare_view(4);
+        for document in [&mut direct, &mut indexed] {
+            for _ in 0..12 {
+                document.move_cursor(crate::Movement::Right, false);
+            }
+        }
+        assert_eq!(direct.cursor_cell(4), indexed.cursor_cell(4));
+        assert_eq!(direct.position(), indexed.position());
+        let a = direct.line_window(0, 0, 40, 4).unwrap();
+        let b = indexed.line_window(0, 0, 40, 4).unwrap();
+        assert_eq!(
+            (a.text, a.char_start, a.cell_start),
+            (b.text, b.char_start, b.cell_start)
+        );
+        assert_eq!(
+            direct.view_cache_bytes(),
+            0,
+            "no multi-MiB copy for a start query"
+        );
+        direct.type_text("x").unwrap();
+        assert_eq!(direct.view_cache_bytes(), 0);
+        direct.move_cursor(crate::Movement::End, false);
+        assert!(direct.layout_pending(0, 4, direct.cursor(), 0));
     }
 }

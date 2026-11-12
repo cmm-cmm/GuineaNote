@@ -2,7 +2,7 @@
 
 ## Checkpoint 12/11/2026 — review follow-up, keymap v1 and editing (dev, local)
 
-Commits 7fa645a…1b533dc on `dev` (not pushed; GitHub Actions stay disabled):
+Commits 7fa645a…1b533dc on `dev` (pushed with 455e484; GitHub Actions stay disabled):
 
 | Commit | Change |
 | --- | --- |

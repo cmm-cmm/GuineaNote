@@ -102,6 +102,7 @@ impl Locale {
             "Keyboard guide" => "Hướng dẫn phím",
             "Type a file path" => "Nhập đường dẫn file",
             "Nothing to change" => "Không có gì để thay đổi",
+            "Moved to line" => "Đã đến dòng",
             "This file type has no line comment" => "Loại file này không có comment dòng",
             "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+N  New document" => {
                 "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+N  Tài liệu mới"

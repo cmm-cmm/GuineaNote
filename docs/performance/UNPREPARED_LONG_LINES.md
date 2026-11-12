@@ -55,8 +55,17 @@ corpus 2,050 input-to-flush samples, application max 5.2 ms, PTY max 28.1 /
 
 ## Remaining
 
-- `goto` to line 101 still takes 34–41 ms (below 50 ms, above the 10 ms p50
-  target): creating the 5 MiB line cache copy on the first query is synchronous.
+- `goto` to line 101 took 34–41 ms because the worker segmented the whole 5 MiB
+  line to find the column. Since 12/11 (later commit) it reads a bounded,
+  doubling prefix on the input thread and start-of-line queries on unindexed
+  long lines no longer copy the line: 20.5–25.1 ms PTY on 12/2/1 CPUs, all
+  navigation samples ≤25.1 ms.
+- Investigated: two startup `resize` frames on a one-CPU affinity took 127 and
+  148 ms (pre-existing; the baseline had 179 ms). `frame_build` was 0.3 ms; the
+  time is the terminal write/flush while the open worker indexes the 10 MiB line
+  with up to 8 threads that Windows' `available_parallelism` (12) cannot see are
+  pinned to one CPU. Not changed: a single-threaded prepare would delay opening
+  (edits are paused until open completes) on normal machines.
 - Up/Down from a pending long line still computes the preferred column
   synchronously.
 - Completion on one CPU is 74–195 ms; the editor stays responsive meanwhile.

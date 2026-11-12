@@ -271,24 +271,79 @@ impl App {
                 }
                 let line = coordinates[0] - 1;
                 let column = coordinates.get(1).copied().unwrap_or(1) - 1;
-                self.start_compute("Go to line", move |document| {
-                    let start = document.buffer().line_to_char(line)?;
-                    let bounds = document.line_bounds(line)?;
-                    let text = document.buffer().slice(bounds.clone())?;
-                    let byte = text
-                        .grapheme_indices(true)
-                        .map(|(byte, _)| byte)
-                        .chain(std::iter::once(text.len()))
-                        .nth(column)
-                        .ok_or(guinea_core::EditError::OutOfBounds)?;
-                    let at = start + text[..byte].chars().count();
-                    document.select(at, at)?;
-                    Ok("Moved to line".into())
-                });
+                match grapheme_column_to_char(self.document(), line, column) {
+                    Some(at) if self.document_mut().select(at, at).is_ok() => {
+                        self.tabs[self.active].follow_cursor = true;
+                        self.message = "Moved to line".into();
+                    }
+                    _ => self.message = "Invalid line or column".into(),
+                }
             }
             _ => {
                 self.message = "Empty input; cancelled".into();
             }
         }
+    }
+}
+
+/// Scalar index of 0-based grapheme `column` on `line`, reading only a bounded
+/// prefix of the line (doubled until the column is reached), so going to a
+/// multi-MiB line never copies or segments the whole line. Grapheme starts
+/// before the prefix's last cluster do not depend on text beyond the prefix;
+/// the prefix end itself only counts at the true line end.
+fn grapheme_column_to_char(document: &Document, line: usize, column: usize) -> Option<usize> {
+    use guinea_core::TextBuffer;
+    let bounds = document.line_bounds(line).ok()?;
+    let mut length = column.saturating_mul(4).saturating_add(64);
+    loop {
+        let end = bounds.start.saturating_add(length).min(bounds.end);
+        let text = document.buffer().slice(bounds.start..end).ok()?;
+        let complete = end == bounds.end;
+        let mut starts = text
+            .grapheme_indices(true)
+            .map(|(byte, _)| byte)
+            .collect::<Vec<_>>();
+        if complete {
+            starts.push(text.len());
+        } else {
+            // The last cluster may continue past the prefix.
+            starts.pop();
+        }
+        if let Some(&byte) = starts.get(column) {
+            return Some(bounds.start + text[..byte].chars().count());
+        }
+        if complete {
+            return None;
+        }
+        length = length.saturating_mul(2);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::grapheme_column_to_char;
+    use guinea_core::Document;
+    use unicode_segmentation::UnicodeSegmentation;
+
+    #[test]
+    fn bounded_goto_matches_full_segmentation_across_prefix_growth() {
+        let line = "e\u{301}👩\u{200d}💻x".repeat(500);
+        let text = format!("first\r\n{line}\r\nlast");
+        let document = Document::from_text(&text);
+        let starts: Vec<usize> = line
+            .grapheme_indices(true)
+            .map(|(byte, _)| line[..byte].chars().count())
+            .chain(std::iter::once(line.chars().count()))
+            .collect();
+        let origin = "first\r\n".chars().count();
+        for column in [0, 1, 2, 63, 64, 65, 200, 1499, 1500] {
+            assert_eq!(
+                grapheme_column_to_char(&document, 1, column),
+                starts.get(column).map(|chars| origin + chars),
+                "column {column}"
+            );
+        }
+        assert_eq!(grapheme_column_to_char(&document, 1, 1501), None);
+        assert_eq!(grapheme_column_to_char(&document, 9, 0), None);
     }
 }
