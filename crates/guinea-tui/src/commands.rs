@@ -180,7 +180,10 @@ pub const COMMANDS: &[Command] = &[
         "Go to line[:column]",
         "Đến dòng[:cột]",
         Global,
-        [key(Char('l'), CTRL, "Ctrl+L")]
+        [
+            key(Char('l'), CTRL, "Ctrl+L"),
+            key(Char('g'), CTRL, "Ctrl+G")
+        ]
     ),
     // View.
     command!(
@@ -251,6 +254,70 @@ pub const COMMANDS: &[Command] = &[
         "Source and review side by side",
         "Nguồn và xem trước song song",
         Global,
+        []
+    ),
+    // Line and text operations (Notepad++ Edit menu); F2 only.
+    command!(
+        "sort-lines",
+        "Sort lines ascending (selection or document)",
+        "Sắp xếp dòng tăng dần (vùng chọn hoặc cả file)",
+        Editor,
+        []
+    ),
+    command!(
+        "sort-lines-desc",
+        "Sort lines descending (selection or document)",
+        "Sắp xếp dòng giảm dần (vùng chọn hoặc cả file)",
+        Editor,
+        []
+    ),
+    command!(
+        "remove-duplicate-lines",
+        "Remove duplicate lines",
+        "Xóa dòng trùng",
+        Editor,
+        []
+    ),
+    command!(
+        "remove-empty-lines",
+        "Remove empty lines",
+        "Xóa dòng trống",
+        Editor,
+        []
+    ),
+    command!(
+        "trim-trailing",
+        "Trim trailing spaces and tabs",
+        "Cắt khoảng trắng cuối dòng",
+        Editor,
+        []
+    ),
+    command!(
+        "upper-case",
+        "UPPER CASE (selection or line)",
+        "CHỮ HOA (vùng chọn hoặc dòng)",
+        Editor,
+        []
+    ),
+    command!(
+        "lower-case",
+        "lower case (selection or line)",
+        "chữ thường (vùng chọn hoặc dòng)",
+        Editor,
+        []
+    ),
+    command!(
+        "title-case",
+        "Title Case (selection or line)",
+        "Viết Hoa Đầu Từ (vùng chọn hoặc dòng)",
+        Editor,
+        []
+    ),
+    command!(
+        "toggle-comment",
+        "Toggle line comment",
+        "Bật/tắt comment dòng",
+        Editor,
         []
     ),
     // Editing.
@@ -559,12 +626,15 @@ mod tests {
             KeyEvent::new(Char('k'), CTRL),
             KeyEvent::new(Char('b'), CTRL),
             KeyEvent::new(Char('e'), CTRL),
-            KeyEvent::new(Char('g'), CTRL),
             KeyEvent::new(F(4), NONE),
             KeyEvent::new(F(5), NONE),
         ] {
             assert_eq!(lookup(removed, true, false), None, "folder keys are gone");
         }
+        assert_eq!(
+            lookup(KeyEvent::new(Char('g'), CTRL), true, false),
+            Some("goto")
+        );
         assert_eq!(find("info").unwrap().id, "file-info");
         assert!(description(find("save").unwrap(), Locale::Vi).ends_with("· Ctrl+S"));
     }

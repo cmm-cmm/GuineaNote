@@ -5,6 +5,18 @@ use super::*;
 impl App {
     /// Why an action cannot run now, shared by the dispatcher and F2.
     pub fn unavailable(&self, command: &str) -> Option<&'static str> {
+        // Line/case/comment operations change text like the other edits.
+        const LINE_OPS: &[&str] = &[
+            "sort-lines",
+            "sort-lines-desc",
+            "remove-duplicate-lines",
+            "remove-empty-lines",
+            "trim-trailing",
+            "upper-case",
+            "lower-case",
+            "title-case",
+            "toggle-comment",
+        ];
         const CHANGES: &[&str] = &[
             "save",
             "save-as",
@@ -70,17 +82,20 @@ impl App {
         ];
         let tab = &self.tabs[self.active];
         if (command == "quit" && !self.agent_leases.is_empty())
-            || (tab.ai_action.is_some() && CHANGES.contains(&command))
+            || (tab.ai_action.is_some()
+                && (CHANGES.contains(&command) || LINE_OPS.contains(&command)))
         {
             return Some("AI is working in this tab; read-only until it finishes");
         }
-        if tab.review_source.is_some() && REVIEW_BLOCKED.contains(&command) {
+        if tab.review_source.is_some()
+            && (REVIEW_BLOCKED.contains(&command) || LINE_OPS.contains(&command))
+        {
             return Some("Review tab is read-only; return to source to edit or save");
         }
         if self.busy() && BUSY_BLOCKED.contains(&command) {
             return Some("Background operation in progress; retry when complete");
         }
-        if tab.document.readonly && EDITS.contains(&command) {
+        if tab.document.readonly && (EDITS.contains(&command) || LINE_OPS.contains(&command)) {
             return Some("Document is read-only");
         }
         None
@@ -165,6 +180,35 @@ impl App {
                 self.document_mut().move_cursor(movement, command.starts_with("select"));
                 self.tabs[self.active].follow_cursor = true;
             }
+            "sort-lines" | "sort-lines-desc" | "remove-duplicate-lines" | "remove-empty-lines"
+            | "trim-trailing" => {
+                use guinea_core::LineOperation as Op;
+                let operation = match command {
+                    "sort-lines" => Op::SortAscending,
+                    "sort-lines-desc" => Op::SortDescending,
+                    "remove-duplicate-lines" => Op::RemoveDuplicates,
+                    "remove-empty-lines" => Op::RemoveEmpty,
+                    _ => Op::TrimTrailing,
+                };
+                let mut changed = None;
+                self.edit(|d| d.apply_line_operation(operation).map(|c| changed = Some(c)));
+                if changed == Some(false) {
+                    self.message = "Nothing to change".into();
+                }
+            }
+            "upper-case" | "lower-case" | "title-case" => {
+                use guinea_core::CaseConversion as Case;
+                let conversion = match command {
+                    "upper-case" => Case::Upper,
+                    "lower-case" => Case::Lower,
+                    _ => Case::Title,
+                };
+                self.edit(|d| d.convert_case(conversion).map(|_| ()));
+            }
+            "toggle-comment" => match document_language(self.document()).line_comment() {
+                Some(prefix) => self.edit(|d| d.toggle_line_comment(prefix).map(|_| ())),
+                None => self.message = "This file type has no line comment".into(),
+            },
             "delete-word-left" => self.edit(Document::delete_word_left),
             "delete-word-right" => self.edit(Document::delete_word_right),
             _ => self.message = self.config.language.render(Msg::UnknownCommand(command)),

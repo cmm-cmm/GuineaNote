@@ -52,7 +52,13 @@ chuyển, Ctrl+S lưu, Ctrl+W đóng, Ctrl+N tạo; Esc/Ctrl+P/F12 đóng danh s
 | Nhân đôi dòng hoặc vùng chọn | Ctrl+D | |
 | Đưa dòng lên / xuống | Alt+↑ / Alt+↓ | |
 | Đầu / cuối tài liệu | Ctrl+Home / Ctrl+End | |
-| Đến dòng[:cột grapheme], 1-based | Ctrl+L | |
+| Đến dòng[:cột grapheme], 1-based | Ctrl+L | Ctrl+G (như Notepad++) |
+
+Công cụ dòng/chữ kiểu Notepad++ chạy từ **F2** (không gán phím để tránh xung
+đột): `sort-lines`, `sort-lines-desc`, `remove-duplicate-lines`,
+`remove-empty-lines`, `trim-trailing`, `upper-case`, `lower-case`, `title-case`,
+`toggle-comment`. Thao tác dòng áp dụng cho các dòng đã chọn, hoặc cả file khi
+không chọn nhiều dòng; đổi hoa thường áp dụng cho vùng chọn hoặc dòng hiện tại.
 
 Enter giữ thụt lề của dòng hiện tại (không áp dụng khi đang dán). Gõ liên tục là
 một bước hoàn tác cho tới khi dừng khoảng 1 giây, di chuyển con trỏ, lưu hoặc dùng

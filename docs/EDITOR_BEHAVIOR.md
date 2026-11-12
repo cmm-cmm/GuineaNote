@@ -65,6 +65,13 @@ merged into one Undo step by typing coalescing.
   document's newline policy (CRLF only for exclusively CRLF files).
 - Commands that change text are refused with a reason (also shown in F2) for
   read-only documents, AI-owned tabs and linked review tabs.
+- **Line and text tools (F2):** sort ascending/descending, remove duplicate
+  lines, remove empty (blank) lines and trim trailing spaces/tabs apply to the
+  selected lines or the whole document; existing newline sequences are reused
+  in order. UPPER/lower/Title case use Unicode case mapping on the selection
+  or caret line. `toggle-comment` adds or removes the language's line comment
+  (`//`, `#`, `--`, `;`) after each non-empty line's indentation. Each is one
+  Undo step; "Nothing to change" is reported when the text is already so.
 
 Ctrl+F/H opens a dedicated search/replace panel; F3 finds the next previous-query
 match. Results include a total count, line-numbered context and 200-match pages.

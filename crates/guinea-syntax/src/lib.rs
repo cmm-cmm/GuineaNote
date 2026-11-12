@@ -203,6 +203,37 @@ impl Language {
             _ => Self::Generic,
         }
     }
+    /// Line comment token used by "toggle comment", if the language has one.
+    pub fn line_comment(self) -> Option<&'static str> {
+        match self {
+            Self::Rust
+            | Self::C
+            | Self::Cpp
+            | Self::CSharp
+            | Self::Java
+            | Self::Kotlin
+            | Self::Swift
+            | Self::JavaScript
+            | Self::TypeScript
+            | Self::Go
+            | Self::Php
+            | Self::Json5 => Some("//"),
+            Self::Python
+            | Self::Ruby
+            | Self::Shell
+            | Self::PowerShell
+            | Self::Yaml
+            | Self::Toml
+            | Self::Env
+            | Self::Dockerfile
+            | Self::Makefile
+            | Self::Graphql => Some("#"),
+            Self::Sql | Self::Lua => Some("--"),
+            Self::Ini | Self::Properties | Self::Config => Some(";"),
+            _ => None,
+        }
+    }
+
     pub fn label(self) -> &'static str {
         match self {
             Self::Plain => "Text",

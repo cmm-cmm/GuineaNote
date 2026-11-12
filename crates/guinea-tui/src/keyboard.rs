@@ -56,6 +56,8 @@ Ctrl+D duplicate line or selection
 Alt+Up / Alt+Down move line(s) up / down
 Ctrl+C / Ctrl+X without a selection: whole line
 Typing is one Undo step until a pause or caret move
+F2 line tools: sort-lines, remove-duplicate-lines, remove-empty-lines,
+  trim-trailing, upper-case, lower-case, title-case, toggle-comment
 
 VIEW
 File picker: arrows choose · Tab complete · Alt+Up parent
@@ -126,6 +128,8 @@ Ctrl+D nhân đôi dòng hoặc vùng chọn
 Alt+Up / Alt+Down đưa dòng lên / xuống
 Ctrl+C / Ctrl+X khi không chọn: cả dòng
 Gõ liên tục là một bước hoàn tác tới khi dừng hoặc di chuyển
+Công cụ dòng trong F2: sort-lines, remove-duplicate-lines, remove-empty-lines,
+  trim-trailing, upper-case, lower-case, title-case, toggle-comment
 
 HIỂN THỊ
 Chọn file: mũi tên chọn · Tab điền · Alt+Up thư mục cha

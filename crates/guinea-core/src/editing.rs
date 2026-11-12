@@ -482,3 +482,252 @@ mod tests {
         assert_eq!(d.text(), "one\r\ntwo\nthree");
     }
 }
+
+/// Line and text transformations (Notepad++ Edit menu). Each is one Undo step.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum LineOperation {
+    SortAscending,
+    SortDescending,
+    RemoveDuplicates,
+    RemoveEmpty,
+    TrimTrailing,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CaseConversion {
+    Upper,
+    Lower,
+    Title,
+}
+
+impl Document {
+    /// Scalar range of the lines a line operation applies to: the selected
+    /// lines, or the whole document without a multi-line selection. The range
+    /// excludes the last line's newline so the document end is preserved.
+    fn operation_lines(&self) -> Result<Range<usize>, EditError> {
+        let lines = if self.selection_spans_lines() {
+            self.selected_lines()
+        } else {
+            0..self.buffer().len_lines()
+        };
+        let start = self.buffer().line_to_char(lines.start)?;
+        let end = self.line_bounds(lines.end - 1)?.end;
+        Ok(start..end)
+    }
+
+    /// Apply a line operation; existing newline sequences are reused in order
+    /// (a block of CRLF lines stays CRLF). Returns false when nothing changed.
+    pub fn apply_line_operation(&mut self, operation: LineOperation) -> Result<bool, EditError> {
+        let range = self.operation_lines()?;
+        let text = self.buffer().slice(range.clone())?;
+        let mut lines = Vec::new();
+        let mut separators = Vec::new();
+        let mut rest = text.as_str();
+        while let Some(at) = rest.find('\n') {
+            let (line, separator) = if rest[..at].ends_with('\r') {
+                (&rest[..at - 1], "\r\n")
+            } else {
+                (&rest[..at], "\n")
+            };
+            lines.push(line.to_string());
+            separators.push(separator);
+            rest = &rest[at + 1..];
+        }
+        lines.push(rest.to_string());
+        match operation {
+            LineOperation::SortAscending => lines.sort(),
+            LineOperation::SortDescending => lines.sort_by(|a, b| b.cmp(a)),
+            LineOperation::RemoveDuplicates => {
+                let mut seen = std::collections::HashSet::new();
+                lines.retain(|line| seen.insert(line.clone()));
+            }
+            LineOperation::RemoveEmpty => lines.retain(|line| !line.trim().is_empty()),
+            LineOperation::TrimTrailing => {
+                for line in &mut lines {
+                    line.truncate(line.trim_end_matches([' ', '\t']).len());
+                }
+            }
+        }
+        let mut output = String::with_capacity(text.len());
+        for (index, line) in lines.iter().enumerate() {
+            if index > 0 {
+                output.push_str(separators.get(index - 1).copied().unwrap_or("\n"));
+            }
+            output.push_str(line);
+        }
+        if output == text {
+            return Ok(false);
+        }
+        self.replace_range(range.clone(), &output)?;
+        let end = range.start + output.chars().count();
+        self.select(range.start, end)?;
+        Ok(true)
+    }
+
+    /// Convert the selection (or the caret line) to upper, lower or title case
+    /// with Unicode case mapping; the result stays selected.
+    pub fn convert_case(&mut self, conversion: CaseConversion) -> Result<bool, EditError> {
+        let range = if self.selection().is_empty() {
+            self.line_bounds(self.line_of(self.cursor()))?
+        } else {
+            self.selection().range()
+        };
+        let text = self.buffer().slice(range.clone())?;
+        let output = match conversion {
+            CaseConversion::Upper => text.to_uppercase(),
+            CaseConversion::Lower => text.to_lowercase(),
+            CaseConversion::Title => text
+                .split_word_bounds()
+                .map(|word| {
+                    let mut chars = word.chars();
+                    match chars.next() {
+                        Some(first) if first.is_alphabetic() => first
+                            .to_uppercase()
+                            .chain(chars.flat_map(char::to_lowercase))
+                            .collect(),
+                        _ => word.to_string(),
+                    }
+                })
+                .collect(),
+        };
+        if output == text {
+            return Ok(false);
+        }
+        self.replace_range(range.clone(), &output)?;
+        self.select(range.start, range.start + output.chars().count())?;
+        Ok(true)
+    }
+
+    /// Toggle a line comment on the selected lines (or the caret line): when
+    /// every non-empty line already starts with `prefix` after its indentation
+    /// the prefix (and one following space) is removed, otherwise `prefix ` is
+    /// added after the indentation of each non-empty line.
+    pub fn toggle_line_comment(&mut self, prefix: &str) -> Result<bool, EditError> {
+        let lines = self.selected_lines();
+        let mut targets = Vec::new();
+        for line in lines.clone() {
+            let bounds = self.line_bounds(line)?;
+            let text = self.buffer().slice(bounds.clone())?;
+            if text.trim().is_empty() {
+                continue;
+            }
+            let indent = text.chars().take_while(|c| *c == ' ' || *c == '\t').count();
+            let body: String = text.chars().skip(indent).collect();
+            targets.push((bounds.start + indent, body));
+        }
+        if targets.is_empty() {
+            return Ok(false);
+        }
+        let commented = targets.iter().all(|(_, body)| body.starts_with(prefix));
+        let edits: Vec<crate::TextEdit> = targets
+            .iter()
+            .map(|(at, body)| {
+                if commented {
+                    let mut remove = prefix.chars().count();
+                    if body[prefix.len()..].starts_with(' ') {
+                        remove += 1;
+                    }
+                    crate::TextEdit {
+                        start: *at,
+                        end: at + remove,
+                        text: String::new(),
+                    }
+                } else {
+                    crate::TextEdit {
+                        start: *at,
+                        end: *at,
+                        text: format!("{prefix} "),
+                    }
+                }
+            })
+            .collect();
+        let start = self.buffer().line_to_char(lines.start)?;
+        let had_selection = !self.selection().is_empty();
+        let caret_line = self.line_of(self.cursor());
+        let caret_column = self.cursor() - self.buffer().line_to_char(caret_line)?;
+        self.apply_edits(&edits)?;
+        if had_selection {
+            let end = self.line_bounds(lines.end - 1)?.end;
+            self.select(start, end)?;
+        } else {
+            let line_start = self.buffer().line_to_char(caret_line)?;
+            let end = self.line_bounds(caret_line)?.end;
+            let caret = self.boundary_at_or_before((line_start + caret_column).min(end));
+            self.select(caret, caret)?;
+        }
+        Ok(true)
+    }
+}
+
+#[cfg(test)]
+mod line_operation_tests {
+    use super::*;
+
+    #[test]
+    fn line_operations_keep_newlines_and_are_one_undo_step() {
+        let mut d = Document::from_text("b\r\na\r\nb\r\n  \r\nc  \t\r\nend");
+        assert!(
+            d.apply_line_operation(LineOperation::RemoveDuplicates)
+                .unwrap()
+        );
+        assert_eq!(d.text(), "b\r\na\r\n  \r\nc  \t\r\nend");
+        assert!(d.apply_line_operation(LineOperation::RemoveEmpty).unwrap());
+        assert_eq!(d.text(), "b\r\na\r\nc  \t\r\nend");
+        assert!(d.apply_line_operation(LineOperation::TrimTrailing).unwrap());
+        assert_eq!(d.text(), "b\r\na\r\nc\r\nend");
+        assert!(
+            d.apply_line_operation(LineOperation::SortAscending)
+                .unwrap()
+        );
+        assert_eq!(d.text(), "a\r\nb\r\nc\r\nend");
+        assert!(
+            !d.apply_line_operation(LineOperation::SortAscending)
+                .unwrap()
+        );
+        assert!(
+            d.apply_line_operation(LineOperation::SortDescending)
+                .unwrap()
+        );
+        assert_eq!(d.text(), "end\r\nc\r\nb\r\na");
+        for _ in 0..5 {
+            d.undo().unwrap();
+        }
+        assert_eq!(d.text(), "b\r\na\r\nb\r\n  \r\nc  \t\r\nend");
+        // A multi-line selection limits the operation to its lines.
+        let mut d = Document::from_text("z\ny\nx\nw\n");
+        d.select(2, 6).unwrap();
+        d.apply_line_operation(LineOperation::SortAscending)
+            .unwrap();
+        assert_eq!(d.text(), "z\nx\ny\nw\n");
+    }
+
+    #[test]
+    fn case_conversion_is_unicode_aware_and_keeps_selection() {
+        let mut d = Document::from_text("xin chào VIỆT nam");
+        d.select(4, 17).unwrap();
+        d.convert_case(CaseConversion::Upper).unwrap();
+        assert_eq!(d.text(), "xin CHÀO VIỆT NAM");
+        d.convert_case(CaseConversion::Title).unwrap();
+        assert_eq!(d.text(), "xin Chào Việt Nam");
+        assert_eq!(d.selected_text(), "Chào Việt Nam");
+        d.select(0, 0).unwrap();
+        d.convert_case(CaseConversion::Lower).unwrap();
+        assert_eq!(d.text(), "xin chào việt nam");
+    }
+
+    #[test]
+    fn toggle_line_comment_round_trips_and_skips_blank_lines() {
+        let mut d = Document::from_text("fn a() {\n    b();\n\n    c();\n}");
+        d.select(0, d.buffer().len_chars()).unwrap();
+        d.toggle_line_comment("//").unwrap();
+        assert_eq!(d.text(), "// fn a() {\n    // b();\n\n    // c();\n// }");
+        assert_eq!(d.history_status().undo, 1);
+        d.toggle_line_comment("//").unwrap();
+        assert_eq!(d.text(), "fn a() {\n    b();\n\n    c();\n}");
+        let mut d = Document::from_text("x = 1\ny = 2");
+        d.select(2, 2).unwrap();
+        d.toggle_line_comment("#").unwrap();
+        assert_eq!(d.text(), "# x = 1\ny = 2");
+        assert_eq!(d.cursor(), 2);
+    }
+}

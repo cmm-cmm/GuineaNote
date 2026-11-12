@@ -64,7 +64,7 @@ is required to edit. Folder browsing, added after the original MVP scope
 | Tab / Shift+Tab, Ctrl+D, Alt+Up / Alt+Down | Indent/outdent lines, duplicate line or selection, move lines |
 | Ctrl+F / Ctrl+H | One Find/Replace panel with both fields visible |
 | F3 | Next match; Shift+F3 goes back inside the search panel |
-| Ctrl+L | Go to line[:grapheme column], 1-based |
+| Ctrl+L / Ctrl+G | Go to line[:grapheme column], 1-based |
 | Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
 | Ctrl+Home / Ctrl+End | Document start / end |
 | F6 / F7 | Previous / next tab; Alt+Left / Alt+Right and Ctrl+Tab remain alternatives |

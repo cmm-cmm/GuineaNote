@@ -1180,7 +1180,7 @@ mod tests {
     #[test]
     fn palette_completion_focus_mode_and_removed_folder_keys_preserve_text() {
         let mut a = app();
-        for code in ['e', 'g', 'k', 'b'] {
+        for code in ['e', 'k', 'b'] {
             a.handle(Event::Key(KeyEvent::new(
                 KeyCode::Char(code),
                 KeyModifiers::CONTROL,
@@ -1190,6 +1190,19 @@ mod tests {
                 "Ctrl+{code} no longer opens folder features"
             );
         }
+        // Ctrl+G is now a Notepad++-style alias of Ctrl+L (go to line).
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::Char('g'),
+            KeyModifiers::CONTROL,
+        )));
+        assert!(matches!(
+            a.modal,
+            Some(Modal::Input {
+                kind: InputKind::GoToLine,
+                ..
+            })
+        ));
+        a.handle(key(KeyCode::Esc));
         a.handle(Event::Key(KeyEvent::new(
             KeyCode::Char('p'),
             KeyModifiers::CONTROL,
@@ -1525,6 +1538,34 @@ mod tests {
         assert_eq!(a.unavailable("duplicate"), Some("Document is read-only"));
         a.handle(keym(KeyCode::Char('d'), KeyModifiers::CONTROL));
         assert_eq!(a.message, "Document is read-only");
+    }
+
+    #[test]
+    fn line_case_and_comment_actions_run_from_f2_with_reasons() {
+        let mut a = app();
+        a.handle(Event::Paste("b\na\nb\n".into()));
+        a.command("remove-duplicate-lines");
+        assert_eq!(a.document().text(), "b\na\n");
+        a.command("sort-lines");
+        assert_eq!(a.document().text(), "a\nb\n");
+        a.command("sort-lines");
+        assert_eq!(a.message, "Nothing to change");
+        a.command("upper-case");
+        assert_eq!(a.document().text(), "A\nB\n");
+        a.command("toggle-comment");
+        assert_eq!(a.message, "This file type has no line comment");
+        a.command("undo");
+        assert_eq!(a.document().text(), "a\nb\n");
+        a.tabs[a.active].document.readonly = true;
+        assert_eq!(a.unavailable("sort-lines"), Some("Document is read-only"));
+        // A Rust file uses its own comment token.
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("main.rs");
+        std::fs::write(&path, "fn main() {}\n").unwrap();
+        let mut a = App::new(vec![path], false, Config::default());
+        drain_jobs(&mut a);
+        a.command("toggle-comment");
+        assert_eq!(a.document().text(), "// fn main() {}\n");
     }
 
     fn app() -> App {
