@@ -695,6 +695,14 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             None
         };
         let mut marks = Vec::new();
+        // Mark All matches inside the visible text of this line only.
+        if let Some((needle, options)) = &tab.mark {
+            for range in guinea_core::search::find_matches(text, needle, *options) {
+                let from = start + text[..range.start].chars().count();
+                let to = from + text[range].chars().count();
+                marks.push((from..to, crate::render::Mark::Found));
+            }
+        }
         if let Some(word) = &selected_word {
             let options = guinea_core::SearchOptions {
                 ignore_case: false,

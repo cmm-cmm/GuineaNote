@@ -71,6 +71,15 @@ merged into one Undo step by typing coalescing.
   edit, Undo and Redo; deleting a bookmarked line removes its bookmark. F2
   `bookmark-copy` copies the bookmarked lines, `bookmark-remove-lines` deletes
   them as one Undo step and `bookmark-clear` clears them. Bookmarks are not saved.
+- **Mark (Notepad++ Search › Mark All, F2):** `mark-all` marks every occurrence
+  of the selection (one line, up to 1024 scalars), else the word at or just
+  before the caret (UAX #29 word, so NFD letters count), else the Find query,
+  using the current Match case / Whole word options. The mark is a per-tab
+  query painted as a reversed warm background in the visible text of each line
+  (so it follows edits; matches crossing the visible window edge are not
+  painted) until `mark-clear`. `mark-bookmark` scans the whole document on a
+  worker and adds a bookmark to every line holding part of a match (at most
+  100,000 lines; the status says when the limit stopped it); text is unchanged.
 - **Smart highlighting:** selecting a single word (letters, digits, `_`, up to 64
   scalars) underlines its other whole-word, case-sensitive occurrences in the
   visible text. **Bracket matching:** the `()[]{}` at or before the caret and its

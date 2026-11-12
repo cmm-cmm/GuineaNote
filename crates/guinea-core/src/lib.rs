@@ -2,7 +2,7 @@ mod buffer;
 pub mod coordinates;
 mod document;
 mod editing;
-pub use editing::{CaseConversion, LineOperation};
+pub use editing::{CaseConversion, LineOperation, MARK_LINE_LIMIT};
 mod graphemes;
 pub mod search;
 mod view;

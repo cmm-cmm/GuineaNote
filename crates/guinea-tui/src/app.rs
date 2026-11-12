@@ -92,6 +92,9 @@ pub struct Tab {
     pub follow_cursor: bool,
     pub review: Review,
     pub syntax: crate::syntax_state::SyntaxStates,
+    /// Mark All query and options (Notepad++ Search › Mark), painted in the
+    /// visible lines until cleared; it follows edits because it is a query.
+    pub mark: Option<(String, guinea_core::SearchOptions)>,
 }
 
 impl Tab {
@@ -109,6 +112,7 @@ impl Tab {
             follow_cursor: true,
             review: Review::default(),
             syntax: crate::syntax_state::SyntaxStates::default(),
+            mark: None,
         }
     }
     pub fn title(&self, locale: Locale) -> String {
@@ -190,9 +194,18 @@ pub enum Modal {
 
 #[derive(Debug, Clone)]
 enum Job {
-    Open { path: PathBuf, replace: Option<u64> },
-    Save { id: u64 },
-    Compute { id: u64 },
+    Open {
+        path: PathBuf,
+        replace: Option<u64>,
+    },
+    Save {
+        id: u64,
+    },
+    /// `bookmarks`: merge the worker's bookmarks back (Mark → bookmark).
+    Compute {
+        id: u64,
+        bookmarks: bool,
+    },
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -439,8 +452,23 @@ impl App {
         label: &str,
         task: impl FnOnce(&mut Document) -> Result<String, guinea_core::EditError> + Send + 'static,
     ) {
+        self.start_compute_with(label, false, task);
+    }
+
+    /// Like `start_compute`; with `bookmarks`, the bookmarks the task sets on
+    /// the (initially bookmark-free) snapshot are added to the tab when the
+    /// text is still at the same revision.
+    fn start_compute_with(
+        &mut self,
+        label: &str,
+        bookmarks: bool,
+        task: impl FnOnce(&mut Document) -> Result<String, guinea_core::EditError> + Send + 'static,
+    ) {
         let mut document = self.document().worker_snapshot();
-        let job = Job::Compute { id: document.id };
+        let job = Job::Compute {
+            id: document.id,
+            bookmarks,
+        };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
         self.message = self.config.language.render(Msg::Working(label));
@@ -661,7 +689,7 @@ impl App {
                         }
                         self.message = completed.warning.unwrap_or_else(|| "Saved".into());
                     }
-                    Job::Compute { id } => {
+                    Job::Compute { id, bookmarks } => {
                         if let Some(tab) = self
                             .tabs
                             .iter_mut()
@@ -670,6 +698,10 @@ impl App {
                             if document.revision() == tab.document.revision() {
                                 let selection = document.selection();
                                 let _ = tab.document.select(selection.anchor, selection.head);
+                                if bookmarks {
+                                    tab.document
+                                        .add_bookmarks(document.bookmarks().collect::<Vec<_>>());
+                                }
                             } else {
                                 let revision = tab.document.revision();
                                 let _ = tab.document.accept_prepared(&document, revision);
@@ -1639,6 +1671,52 @@ mod tests {
             assert!(std::time::Instant::now() < deadline, "worker timed out");
             thread::sleep(std::time::Duration::from_millis(2));
         }
+    }
+
+    #[test]
+    fn mark_all_marks_caret_word_bookmarks_lines_and_clears() {
+        let mut a = app();
+        a.handle(Event::Paste(
+            "let total = 1;\nnone\nTotal += total;\n".into(),
+        ));
+        a.document_mut().select(5, 5).unwrap();
+        a.command("mark-all");
+        assert_eq!(
+            a.tabs[a.active].mark,
+            Some(("total".into(), guinea_core::SearchOptions::default()))
+        );
+        assert!(a.message.contains("“total”"), "{}", a.message);
+        let revision = a.document().revision();
+        a.command("mark-bookmark");
+        drain_jobs(&mut a);
+        assert_eq!(a.document().bookmarks().collect::<Vec<_>>(), [0, 2]);
+        assert_eq!(a.message, "Bookmarked 2 line(s) with marks");
+        assert_eq!(a.document().revision(), revision, "text untouched");
+        assert!(a.document().is_dirty(), "only the pasted text is unsaved");
+        a.command("mark-clear");
+        assert!(a.tabs[a.active].mark.is_none());
+        assert_eq!(a.message, "Marks cleared");
+        a.command("mark-bookmark");
+        assert_eq!(a.message, "No marks: use mark-all first");
+    }
+
+    #[test]
+    fn mark_all_falls_back_to_the_find_query_with_its_options() {
+        let mut a = app();
+        a.handle(Event::Paste("a  b\n".into()));
+        a.document_mut().select(2, 2).unwrap();
+        a.command("mark-all");
+        assert!(a.tabs[a.active].mark.is_none(), "caret between spaces");
+        assert!(a.message.starts_with("Nothing to mark"));
+        a.search = "B".into();
+        a.search_options.ignore_case = true;
+        a.command("mark-all");
+        let (needle, options) = a.tabs[a.active].mark.clone().unwrap();
+        assert_eq!(needle, "B");
+        assert!(options.ignore_case);
+        a.command("mark-bookmark");
+        drain_jobs(&mut a);
+        assert_eq!(a.document().bookmarks().collect::<Vec<_>>(), [0]);
     }
 
     #[test]

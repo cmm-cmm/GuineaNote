@@ -300,6 +300,24 @@ pub const COMMANDS: &[Command] = &[
         Editor,
         []
     ),
+    // Mark (Notepad++ Search › Mark All / Mark tab); F2 only because Ctrl+M
+    // is Enter in terminals. The target is the selection, else the caret
+    // word, else the Find query, with the Find options (Alt+C / Alt+W).
+    command!(
+        "mark-all",
+        "Mark all occurrences of the selection, caret word or Find query",
+        "Đánh dấu mọi chỗ trùng với vùng chọn, từ tại con trỏ hoặc nội dung tìm",
+        Editor,
+        []
+    ),
+    command!(
+        "mark-bookmark",
+        "Bookmark every line with a mark",
+        "Đặt bookmark cho mọi dòng có đánh dấu",
+        Editor,
+        []
+    ),
+    command!("mark-clear", "Clear marks", "Xóa đánh dấu", Editor, []),
     // Line and text operations (Notepad++ Edit menu); F2 only.
     command!(
         "sort-lines",

@@ -107,6 +107,8 @@ pub(crate) enum Mark {
     Occurrence,
     /// The bracket at the caret or its match.
     Bracket,
+    /// A Mark All match (Notepad++ "Find Mark Style").
+    Found,
 }
 
 pub(crate) fn styled_line(
@@ -184,6 +186,14 @@ pub(crate) fn styled_line(
                         .fg(paint.theme.canvas)
                         .bg(paint.theme.accent)
                         .add_modifier(Modifier::BOLD);
+                }
+                // Reversed warm-on-canvas: a warm background in colour, and
+                // reverse video once NO_COLOR resets every colour.
+                Some(Mark::Found) => {
+                    style = style
+                        .fg(paint.theme.warm)
+                        .bg(paint.theme.canvas)
+                        .add_modifier(Modifier::REVERSED);
                 }
                 None => {}
             }
@@ -1018,6 +1028,44 @@ mod tests {
                 "dialog button {id} has no mouse handler"
             );
         }
+    }
+
+    #[test]
+    fn mark_all_matches_are_painted_in_visible_lines() {
+        use crossterm::event::Event;
+        use ratatui::style::Modifier;
+        let config = Config {
+            ansi_colors: false,
+            no_color: false,
+            ..Config::default()
+        };
+        let mut app = App::new(vec![], false, config);
+        app.handle(Event::Paste("x Việt y\nviệt Việt\n".into()));
+        let active = app.active;
+        let _ = app.tabs[active].document.select(2, 6);
+        app.command("mark-all");
+        // Move the caret away so the selection paint does not hide the mark.
+        let _ = app.tabs[active].document.select(0, 0);
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let editor = app.hits.editor_text;
+        let reversed = |x: u16, y: u16| {
+            terminal.backend().buffer()[(editor.x + x, editor.y + y)]
+                .modifier
+                .contains(Modifier::REVERSED)
+        };
+        assert!(reversed(2, 0) && reversed(5, 0), "first “Việt”");
+        assert!(!reversed(0, 0) && !reversed(6, 0));
+        assert!(!reversed(0, 1), "case-sensitive: “việt” is not marked");
+        assert!(reversed(5, 1) && reversed(8, 1));
+        app.command("mark-clear");
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let reversed = |x: u16, y: u16| {
+            terminal.backend().buffer()[(editor.x + x, editor.y + y)]
+                .modifier
+                .contains(Modifier::REVERSED)
+        };
+        assert!(!reversed(2, 0));
     }
 
     #[test]

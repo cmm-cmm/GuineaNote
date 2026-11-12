@@ -64,6 +64,12 @@ Công cụ dòng/chữ kiểu Notepad++ chạy từ **F2** (không gán phím đ
 danh sách thao tác nên bookmark sau là Alt+F2. Thao tác dòng áp dụng cho các dòng đã chọn, hoặc cả file khi
 không chọn nhiều dòng; đổi hoa thường áp dụng cho vùng chọn hoặc dòng hiện tại.
 
+Mark kiểu Notepad++ (Search › Mark All) cũng chạy từ **F2** (Ctrl+M trùng Enter
+trong terminal): `mark-all` tô mọi chỗ trùng với vùng chọn (một dòng), từ tại con
+trỏ, hoặc nội dung ô tìm của Ctrl+F, theo tùy chọn Alt+C/Alt+W đang bật;
+`mark-bookmark` đặt bookmark cho mọi dòng có đánh dấu (chạy nền, tối đa 100.000
+dòng) để dùng tiếp `bookmark-copy` / `bookmark-remove-lines`; `mark-clear` xóa đánh dấu.
+
 Enter giữ thụt lề của dòng hiện tại (không áp dụng khi đang dán). Gõ liên tục là
 một bước hoàn tác cho tới khi dừng khoảng 1 giây, di chuyển con trỏ, lưu hoặc dùng
 lệnh khác. Chi tiết: [hành vi editor](EDITOR_BEHAVIOR.md).

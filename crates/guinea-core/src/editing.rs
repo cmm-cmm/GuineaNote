@@ -802,7 +802,97 @@ impl Document {
             .all(|c| c.is_alphanumeric() || c == '_')
             .then_some(text)
     }
+
+    /// What Mark All uses without a query (Notepad++ Search › Mark All): the
+    /// selection if it is on one line and at most 1024 scalars, else the word
+    /// (letters, digits, `_`) at or just before the caret.
+    pub fn mark_target(&self) -> Option<String> {
+        let range = self.selection().range();
+        if !range.is_empty() {
+            let text = self.selected_text();
+            return (range.len() <= 1024 && !text.contains(['\n', '\r'])).then_some(text);
+        }
+        let caret = self.cursor();
+        let bounds = self.line_bounds(self.line_of(caret)).ok()?;
+        let start = bounds.start.max(caret.saturating_sub(WORD_WINDOW));
+        let end = bounds.end.min(caret.saturating_add(WORD_WINDOW));
+        let text = self.buffer().slice(start..end).ok()?;
+        let offset = caret - start;
+        let mut at = 0;
+        for word in text.split_word_bounds() {
+            let next = at + word.chars().count();
+            // The word containing the caret, or ending right at it. Word
+            // segments (UAX #29) keep combining marks, so NFD letters count.
+            if at <= offset
+                && offset <= next
+                && word
+                    .chars()
+                    .next()
+                    .is_some_and(|c| c.is_alphanumeric() || c == '_')
+            {
+                return Some(word.to_string());
+            }
+            if next > offset {
+                break;
+            }
+            at = next;
+        }
+        None
+    }
+
+    /// Bookmark every line holding (part of) a match of `needle`. Returns the
+    /// number of matching lines and whether the [`MARK_LINE_LIMIT`] stopped
+    /// the scan early. Reads the whole text: run it on a worker snapshot.
+    pub fn bookmark_matches(
+        &mut self,
+        needle: &str,
+        options: crate::SearchOptions,
+    ) -> (usize, bool) {
+        let text = self.buffer().text();
+        let mut lines = 0;
+        let mut last = None;
+        let line_of_byte = |byte: usize| {
+            let char = self
+                .buffer()
+                .byte_to_char(crate::coordinates::ByteOffset(byte))
+                .map_or(0, |c| c.0);
+            self.buffer().char_to_line(char).unwrap_or(0)
+        };
+        let mut found = Vec::new();
+        let mut truncated = false;
+        'scan: for range in crate::search::find_matches(&text, needle, options) {
+            // A match ending with a newline does not reach the next line.
+            let last_char = text[range.clone()]
+                .char_indices()
+                .next_back()
+                .map_or(range.start, |(i, _)| range.start + i);
+            let first = line_of_byte(range.start).max(last.map_or(0, |l: usize| l + 1));
+            let end = line_of_byte(last_char);
+            for line in first..=end {
+                if lines == MARK_LINE_LIMIT {
+                    truncated = true;
+                    break 'scan;
+                }
+                found.push(line);
+                lines += 1;
+                last = Some(line);
+            }
+        }
+        self.bookmarks.extend(found);
+        (lines, truncated)
+    }
+
+    /// Add bookmarks computed on a worker snapshot of the same revision.
+    pub fn add_bookmarks(&mut self, lines: impl IntoIterator<Item = usize>) {
+        let count = self.buffer().len_lines();
+        self.bookmarks
+            .extend(lines.into_iter().filter(|&line| line < count));
+    }
 }
+
+/// Upper bound on lines one Mark → bookmark pass adds, keeping the bookmark
+/// set (and the copy/remove-bookmarked-lines payloads) bounded.
+pub const MARK_LINE_LIMIT: usize = 100_000;
 
 impl Document {
     pub fn bookmarks(&self) -> impl Iterator<Item = usize> + '_ {
@@ -959,5 +1049,68 @@ mod bookmark_tests {
         );
         d.select(0, 0).unwrap();
         assert_eq!(d.matching_bracket(), None);
+    }
+
+    #[test]
+    fn mark_target_uses_one_line_selection_or_the_caret_word() {
+        let mut d = Document::from_text("let Vie\u{302}\u{301}t = total;\nnext");
+        d.select(4, 4).unwrap();
+        assert_eq!(d.mark_target().as_deref(), Some("Vie\u{302}\u{301}t"));
+        d.select(10, 10).unwrap();
+        assert_eq!(
+            d.mark_target().as_deref(),
+            Some("Vie\u{302}\u{301}t"),
+            "caret right after the word"
+        );
+        d.select(11, 11).unwrap();
+        assert_eq!(d.mark_target(), None, "between ' ' and '='");
+        d.select(13, 18).unwrap();
+        assert_eq!(d.mark_target().as_deref(), Some("total"));
+        d.select(13, 20).unwrap();
+        assert_eq!(d.mark_target(), None, "selection crosses a line");
+        d.select(0, 3).unwrap();
+        assert_eq!(d.mark_target().as_deref(), Some("let"));
+    }
+
+    #[test]
+    fn bookmark_matches_marks_each_matching_line_once_and_keeps_others() {
+        let mut d = Document::from_text("a cat\r\nno\r\nCAT cat\r\ncat");
+        d.toggle_bookmark(1);
+        let options = crate::SearchOptions {
+            ignore_case: true,
+            whole_word: true,
+        };
+        assert_eq!(d.bookmark_matches("cat", options), (3, false));
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [0, 1, 2, 3]);
+        let mut d = Document::from_text("x\nconcat\n");
+        assert_eq!(
+            d.bookmark_matches("cat", crate::SearchOptions::default()),
+            (1, false)
+        );
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [1]);
+        // Matches never split a grapheme: "e" inside "e + acute" is not one.
+        let mut d = Document::from_text("e\u{301}\ne");
+        assert_eq!(
+            d.bookmark_matches("e", crate::SearchOptions::default()),
+            (1, false)
+        );
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [1]);
+        d.add_bookmarks([0, 7]);
+        assert_eq!(
+            d.bookmarks().collect::<Vec<_>>(),
+            [0, 1],
+            "out of range dropped"
+        );
+    }
+
+    #[test]
+    fn bookmark_matches_stops_at_the_line_limit() {
+        let text = "x\n".repeat(super::MARK_LINE_LIMIT + 5);
+        let mut d = Document::from_text(&text);
+        assert_eq!(
+            d.bookmark_matches("x", crate::SearchOptions::default()),
+            (super::MARK_LINE_LIMIT, true)
+        );
+        assert_eq!(d.bookmarks().count(), super::MARK_LINE_LIMIT);
     }
 }

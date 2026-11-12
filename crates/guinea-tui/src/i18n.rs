@@ -107,6 +107,12 @@ impl Locale {
             "Bookmark set" => "Đã đặt bookmark",
             "Bookmark removed" => "Đã bỏ bookmark",
             "Bookmarks cleared" => "Đã xóa mọi bookmark",
+            "Bookmarking marked lines" => "Đang đặt bookmark cho dòng có đánh dấu",
+            "Nothing to mark: select text, put the caret on a word or set a Find query" => {
+                "Không có gì để đánh dấu: hãy chọn chữ, đặt con trỏ vào một từ hoặc nhập nội dung tìm"
+            }
+            "Marks cleared" => "Đã xóa đánh dấu",
+            "No marks: use mark-all first" => "Chưa có đánh dấu: dùng mark-all trước",
             "This file type has no line comment" => "Loại file này không có comment dòng",
             "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+N  New document" => {
                 "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+N  Tài liệu mới"
@@ -331,6 +337,27 @@ impl Locale {
                     (false, false) => "read-only",
                 }
             ),
+            Msg::Marked(text) => {
+                let mut shown: String = text.chars().take(40).collect();
+                if shown.len() < text.len() {
+                    shown.push('…');
+                }
+                if vi {
+                    format!("Đã đánh dấu mọi chỗ “{shown}” · F2 mark-clear để xóa")
+                } else {
+                    format!("Marked every “{shown}” · F2 mark-clear removes marks")
+                }
+            }
+            Msg::MarkBookmarked { lines, limited } => match (vi, limited) {
+                (true, false) => format!("Đã đặt bookmark cho {lines} dòng có đánh dấu"),
+                (false, false) => format!("Bookmarked {lines} line(s) with marks"),
+                (true, true) => format!(
+                    "Đã đặt bookmark cho {lines} dòng (giới hạn); các dòng sau chưa được đặt"
+                ),
+                (false, true) => {
+                    format!("Bookmarked {lines} line(s), the limit; later lines were not")
+                }
+            },
             Msg::SessionRestored { files, missing: 0 } if vi => {
                 format!("Đã mở lại phiên trước: {files} file")
             }
@@ -364,6 +391,13 @@ pub enum Msg<'a> {
     AgentSession {
         session: &'a str,
         write: bool,
+    },
+    /// Mark All target; a document excerpt, shown verbatim (truncated).
+    Marked(&'a str),
+    /// Lines with a mark bookmarked by Mark → bookmark.
+    MarkBookmarked {
+        lines: usize,
+        limited: bool,
     },
     /// Previous session reopened; `missing` files no longer existed.
     SessionRestored {

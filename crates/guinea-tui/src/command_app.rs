@@ -39,6 +39,8 @@ impl App {
             "delete-word-right",
         ];
         const REVIEW_BLOCKED: &[&str] = &[
+            "mark-all",
+            "mark-bookmark",
             "save",
             "save-as",
             "reload",
@@ -58,6 +60,7 @@ impl App {
             "delete-word-right",
         ];
         const BUSY_BLOCKED: &[&str] = &[
+            "mark-bookmark",
             "save",
             "save-as",
             "open",
@@ -241,6 +244,37 @@ impl App {
                 self.document_mut().clear_bookmarks();
                 self.message = "Bookmarks cleared".into();
             }
+            "mark-all" => {
+                let target = self
+                    .document()
+                    .mark_target()
+                    .or_else(|| (!self.search.is_empty()).then(|| self.search.clone()));
+                match target {
+                    Some(text) => {
+                        self.message = self.config.language.render(Msg::Marked(&text));
+                        self.tabs[self.active].mark = Some((text, self.search_options));
+                    }
+                    None => {
+                        self.message =
+                            "Nothing to mark: select text, put the caret on a word or set a Find query"
+                                .into();
+                    }
+                }
+            }
+            "mark-clear" => {
+                self.tabs[self.active].mark = None;
+                self.message = "Marks cleared".into();
+            }
+            "mark-bookmark" => match self.tabs[self.active].mark.clone() {
+                Some((needle, options)) => {
+                    let language = self.config.language;
+                    self.start_compute_with("Bookmarking marked lines", true, move |d| {
+                        let (lines, limited) = d.bookmark_matches(&needle, options);
+                        Ok(language.render(Msg::MarkBookmarked { lines, limited }))
+                    });
+                }
+                None => self.message = "No marks: use mark-all first".into(),
+            },
             "delete-word-left" => self.edit(Document::delete_word_left),
             "delete-word-right" => self.edit(Document::delete_word_right),
             _ => self.message = self.config.language.render(Msg::UnknownCommand(command)),

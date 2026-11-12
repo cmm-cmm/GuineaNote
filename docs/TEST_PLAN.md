@@ -149,6 +149,16 @@ replace the record; a vanished file is skipped and reported; `session = false`
 neither restores nor rewrites the record. Rust tests cover damaged/absent
 records, duplicate entries, positions past a changed file and atomic rewrite.
 
+## Mark — 2026-11-12
+
+`python -X utf8 scripts/pty_mark.py` (after a release build): F2 `mark-all`
+with the caret on a word paints both occurrences reversed (and not their
+neighbours), `mark-bookmark` bookmarks the two lines, `bookmark-remove-lines`
+plus Ctrl+S leaves exactly the remaining CRLF line, and `mark-clear` reports.
+Rust tests cover the target choice (selection, NFD caret word, Find query and
+options), the worker merge at the same revision, the 100,000-line limit and
+painting in the visible text.
+
 ## Dialog, mouse and search coverage
 
 After building release binaries, run sequentially:

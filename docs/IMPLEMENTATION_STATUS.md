@@ -1,5 +1,17 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (5) — Mark All (M8)
+
+| Change | Detail |
+| --- | --- |
+| Mark | Notepad++ Search › Mark All from F2: `mark-all` marks every occurrence of the one-line selection, else the caret word (NFD-safe), else the Find query with the current Match case / Whole word options; matches in the visible text are painted reversed warm (reverse video under NO_COLOR) until `mark-clear`. `mark-bookmark` bookmarks every line with a match on a worker (merged only at the same revision, at most 100,000 lines), feeding `bookmark-copy` / `bookmark-remove-lines` |
+
+Verification (Linux x86_64 cloud container, Python PTY + pyte; tests on Rust
+1.99.1, rustfmt/strict Clippy on 1.98.1): 187 Rust tests; new `pty_mark.py`
+plus smoke, keyboard, tabs, search, dialog/mouse, session and terminal-matrix
+probes pass. Interaction corpus: 1,540 PTY samples, max 10.3 ms; application
+max 4.1 ms; 0 samples above 50 ms, 0 dropped rows. Windows not re-run.
+
 ## Checkpoint 12/11/2026 (4) — session restore (M8)
 
 | Change | Detail |
