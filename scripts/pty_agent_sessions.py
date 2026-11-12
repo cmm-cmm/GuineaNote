@@ -19,7 +19,7 @@ def main():
                 root.mkdir()
                 (root / "same.txt").write_text(f"editor-{index}", encoding="utf-8")
                 grant = ["--agent-write"] if index == 0 else ["--readonly"]
-                ui = Session([str(BINARY), "--agent", *grant, str(root), str(root / "same.txt")])
+                ui = Session([str(BINARY), "--agent", *grant, str(root / "same.txt")])
                 editors.append(ui)
                 ui.wait("Opened")
             sessions = [data(cli(root, {"op": "list_editor_sessions"}))["sessions"] for root in roots]

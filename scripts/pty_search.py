@@ -50,7 +50,7 @@ def main():
         path=root/"note.txt"
         original="Việt 👩‍💻\r\nViệt e\u0301\r\n"
         path.write_bytes(b"\xef\xbb\xbf"+original.encode())
-        ui=start_session([str(BINARY),str(root),str(path)],colors=True)
+        ui=start_session([str(BINARY),str(path)],colors=True)
         try:
             ui.resize(42,148);ui.wait("Opened")
             action(ui,"search:open-replace",click(ui,"Find/Replace ^F"),"FIND / REPLACE")

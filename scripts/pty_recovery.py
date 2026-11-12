@@ -65,13 +65,13 @@ def main():
                 source.write_bytes(changed)
                 previous = set(checkpoints(recovery))
                 # Crash a second time after the recovered draft has been handed off.
-                ui = Session([*args, str(case)], preferences_path=preferences, env=env)
+                ui = Session(args, preferences_path=preferences, env=env)
                 ui.wait("draft original")
                 ui.wait("Recovered" if locale == "en" else "Khôi phục")
                 wait_checkpoint(ui, recovery, payload, previous)
                 assert source.read_bytes() == changed
                 crash(ui)
-                ui = Session([*args, str(case)], preferences_path=preferences, env=env)
+                ui = Session(args, preferences_path=preferences, env=env)
                 ui.wait("draft original")
                 saved = case / "saved.txt"
                 ui.send("\x1bOQ")

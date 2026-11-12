@@ -43,7 +43,7 @@ def main():
         base = "# Title\r\nViệt 👩‍💻\r\n"
         source.write_bytes(b"\xef\xbb\xbf" + base.encode())
         (root / ".env").write_text("TOKEN=private-fixture", encoding="utf-8")
-        ui = Session([str(BINARY), "--agent", "--agent-write", str(root), str(source)], colors=True)
+        ui = Session([str(BINARY), "--agent", "--agent-write", str(source)], colors=True)
         try:
             ui.resize(42, 148)
             ui.wait("Opened")

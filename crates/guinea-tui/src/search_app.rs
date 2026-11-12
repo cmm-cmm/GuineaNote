@@ -45,7 +45,6 @@ impl App {
             self.tabs[self.active].follow_cursor = true;
         }
         if matches!(command, Command::Go) && search.ready() {
-            self.focus = Focus::Editor;
             return;
         }
         self.modal = Some(Modal::Search(search));

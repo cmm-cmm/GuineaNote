@@ -35,9 +35,15 @@ fn unsupported_language_fails_before_entering_terminal() {
 }
 
 #[test]
-fn file_and_folder_modes_require_an_interactive_terminal() {
+fn folders_are_rejected_and_files_require_an_interactive_terminal() {
     let dir = tempfile::tempdir().unwrap();
     let output = binary().arg(dir.path()).output().unwrap();
+    assert!(!output.status.success());
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    assert!(stderr.contains("is a folder"), "{stderr}");
+    assert!(!output.stdout.contains(&0x1b));
+    let file = dir.path().join("note.txt");
+    let output = binary().arg(&file).output().unwrap();
     assert!(!output.status.success());
     assert!(
         String::from_utf8(output.stderr)

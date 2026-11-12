@@ -12,7 +12,6 @@ use std::{
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::config::Config;
-use crate::explorer::Explorer;
 use crate::review::{Review, ViewMode};
 #[path = "agent.rs"]
 mod agent;
@@ -22,8 +21,6 @@ mod command_ui;
 mod modal_ui;
 #[path = "mouse_app.rs"]
 mod mouse_ui;
-#[path = "project_app.rs"]
-mod project_ui;
 #[path = "search_app.rs"]
 mod search_ui;
 use crate::{
@@ -66,15 +63,8 @@ pub(crate) fn document_language(document: &Document) -> guinea_syntax::Language 
     )
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Focus {
-    Editor,
-    Explorer,
-}
-
 #[derive(Default)]
 pub struct HitRegions {
-    pub tree: Rect,
     pub tabs: Vec<(Rect, usize)>,
     pub tab_closes: Vec<(Rect, usize)>,
     pub tab_strip: Rect,
@@ -143,7 +133,6 @@ impl Tab {
 #[derive(Debug, Clone)]
 pub enum InputKind {
     Open,
-    Folder,
     SaveAs,
     Command,
     GoToLine,
@@ -152,8 +141,7 @@ pub enum InputKind {
 impl InputKind {
     pub fn label(&self) -> &str {
         match self {
-            Self::Open => "Open file or folder",
-            Self::Folder => "Open folder",
+            Self::Open => "File path to open",
             Self::SaveAs => "Save to NEW path",
             Self::Command => "Command (F1 lists commands)",
             Self::GoToLine => "Go to line[:column] (1-based)",
@@ -198,7 +186,6 @@ pub enum Modal {
     FileInfo(FileInfo),
     Tabs(TabManager),
     Search(crate::search::Search),
-    Project(Box<crate::project::Project>),
 }
 
 #[derive(Debug, Clone)]
@@ -233,9 +220,8 @@ pub struct App {
     pub exit: bool,
     pub redraw: bool,
     pub page_height: usize,
-    pub explorer: Explorer,
-    pub explorer_visible: bool,
-    pub focus: Focus,
+    /// Default file-picker location and Agent workspace scope (see `new`).
+    pub root: PathBuf,
     pub hits: HitRegions,
     pub preferences: Preferences,
     pub recovery: crate::recovery::Recovery,
@@ -247,7 +233,6 @@ pub struct App {
     pub layout: crate::layout_worker::LayoutWorker,
     /// Multi-line syntax state still propagating toward the viewport.
     pub syntax_pending: bool,
-    project_jump: Option<crate::project::Found>,
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
     saving: bool,
@@ -268,28 +253,16 @@ pub struct App {
 
 impl App {
     pub fn new(files: Vec<PathBuf>, readonly: bool, config: Config) -> Self {
+        // Folders are rejected before the terminal starts (lib.rs). The root
+        // only scopes the file-picker default and the Agent workspace policy:
+        // the first file's folder, else the current directory.
         let cwd = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-        let directory = files.iter().find(|path| path.is_dir()).cloned();
-        let explorer_visible = directory.is_some() || files.is_empty();
-        let root = directory
-            .clone()
-            .or_else(|| {
-                files
-                    .first()
-                    .and_then(|p| p.parent())
-                    .filter(|p| !p.as_os_str().is_empty())
-                    .map(PathBuf::from)
-            })
-            .unwrap_or_else(|| cwd.clone());
-        let root = if root.is_absolute() {
-            root
-        } else {
-            cwd.join(root)
-        };
-        let files = files
-            .into_iter()
-            .filter(|path| !path.is_dir())
-            .collect::<Vec<_>>();
+        let root = files
+            .first()
+            .and_then(|path| path.parent())
+            .filter(|parent| !parent.as_os_str().is_empty())
+            .map(|parent| cwd.join(parent))
+            .unwrap_or(cwd);
         let mut document = Document::default();
         document.readonly = readonly;
         let clipboard = crate::clipboard::Clipboard::new(config.clipboard);
@@ -300,17 +273,11 @@ impl App {
             active: 0,
             config,
             modal: None,
-            message: "Ready — open a file or a folder to begin".into(),
+            message: "Ready — open a file to begin".into(),
             exit: false,
             redraw: true,
             page_height: 20,
-            explorer: Explorer::new(root),
-            explorer_visible,
-            focus: if directory.is_some() && files.is_empty() {
-                Focus::Explorer
-            } else {
-                Focus::Editor
-            },
+            root,
             hits: HitRegions::default(),
             preferences: Preferences::default(),
             recovery: crate::recovery::Recovery::default(),
@@ -321,7 +288,6 @@ impl App {
             focus_mode: false,
             layout: crate::layout_worker::LayoutWorker::default(),
             syntax_pending: false,
-            project_jump: None,
             mouse_selecting: None,
             last_modal_click: None,
             readonly,
@@ -353,9 +319,6 @@ impl App {
             || matches!(&self.modal, Some(Modal::FilePicker(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::FileInfo(p)) if p.busy())
             || matches!(&self.modal, Some(Modal::Search(p)) if p.busy())
-            || matches!(&self.modal, Some(Modal::Project(p)) if p.busy())
-            || self.explorer.scanning()
-            || (self.explorer_visible && self.explorer.busy())
             || self.tabs[self.active]
                 .review
                 .needs_poll(self.document(), self.config.language)
@@ -511,9 +474,6 @@ impl App {
             self.redraw = true;
         }
         self.poll_clipboard();
-        if let Some(Modal::Project(project)) = &mut self.modal {
-            self.redraw |= project.poll();
-        }
         let mut documents_changed = false;
         if let Some(result) = self.preferences.poll() {
             self.redraw = true;
@@ -540,9 +500,6 @@ impl App {
         if let Some(path) = opened {
             self.modal = None;
             self.start_open(path, None, self.config.large_file_warning_bytes);
-            self.redraw = true;
-        }
-        if (self.explorer_visible || self.explorer.scanning()) && self.explorer.poll() {
             self.redraw = true;
         }
         if let Some(receiver) = &self.pending {
@@ -664,7 +621,6 @@ impl App {
     }
 
     fn finish_job(&mut self, completed: Completed) {
-        let opened = matches!(&completed.job, Job::Open { .. });
         match completed.result {
             Err(WorkerError::File(FileError::LargeFile { size, limit })) => {
                 if let Job::Open { path, replace, .. } = completed.job {
@@ -722,7 +678,6 @@ impl App {
                             *tab = Tab::new(document);
                         }
                         self.message = "Reloaded".into();
-                        self.focus = Focus::Editor;
                     }
                     Job::Open { .. } => {
                         if let Some(idx) = self.tabs.iter().position(|t| {
@@ -742,16 +697,9 @@ impl App {
                             self.active = self.tabs.len() - 1;
                             self.message = "Opened".into();
                         }
-                        self.focus = Focus::Editor;
-                        if let Some(path) = self.document().path.clone() {
-                            self.explorer.select_path(&path);
-                        }
                     }
                 }
             }
-        }
-        if opened {
-            self.apply_project_jump();
         }
     }
 
@@ -793,8 +741,6 @@ impl App {
                     }
                 } else if let Some(Modal::FilePicker(picker)) = self.modal.as_mut() {
                     picker.paste(&text);
-                } else if let Some(Modal::Project(project)) = self.modal.as_mut() {
-                    project.paste(&text);
                 } else if let Some(Modal::Tabs(manager)) = self.modal.as_mut() {
                     manager.paste(&text);
                 } else if let Some(Modal::Search(search)) = self.modal.as_mut() {
@@ -802,7 +748,6 @@ impl App {
                     self.search = search.query.clone();
                     self.replacement = search.replacement.clone();
                 } else if self.modal.is_none()
-                    && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode != ViewMode::Review
                 {
                     self.edit(|d| d.insert(&text));
@@ -813,7 +758,6 @@ impl App {
                 self.pending_indent = None;
                 self.last_modal_click = None;
                 if self.modal.is_none()
-                    && self.focus == Focus::Editor
                     && self.tabs[self.active].review.mode == ViewMode::Review
                     && !key.modifiers.contains(KeyModifiers::CONTROL)
                     && !(key.modifiers == KeyModifiers::ALT
@@ -846,7 +790,6 @@ impl App {
                 // Search/project panels can be dismissed safely by tab keys.
                 // Confirmation and save-path dialogs retain their own keys.
                 let tab_context = self.modal.is_none()
-                    || matches!(&self.modal, Some(Modal::Project(_)))
                     || matches!(&self.modal, Some(Modal::Search(search)) if !search.replacing());
                 if tab_context && let Some(command) = crate::commands::tab_command(key) {
                     self.modal = None;
@@ -902,13 +845,9 @@ impl App {
             return;
         }
         // Keymap v1 (commands.rs) owns every shortcut; the rest is context input.
-        let editor = self.focus == Focus::Editor && !review;
+        let editor = !review;
         if let Some(command) = crate::commands::lookup(key, editor, false) {
             self.command(command);
-            return;
-        }
-        if self.focus == Focus::Explorer {
-            self.tree_key(key);
             return;
         }
         if review {
@@ -1020,44 +959,6 @@ impl App {
         });
     }
 
-    fn open_folder(&mut self, path: PathBuf) {
-        self.explorer.open(path);
-        self.explorer_visible = true;
-        self.focus = Focus::Explorer;
-        self.message = "Workspace opened — Enter opens a file · F4 switches panes".into();
-    }
-
-    fn tree_key(&mut self, key: KeyEvent) {
-        match key.code {
-            KeyCode::Up => self.explorer.move_by(-1),
-            KeyCode::Down => self.explorer.move_by(1),
-            KeyCode::PageUp => self
-                .explorer
-                .move_by(-(self.explorer.viewport_height as isize)),
-            KeyCode::PageDown => self
-                .explorer
-                .move_by(self.explorer.viewport_height as isize),
-            KeyCode::Home => self.explorer.selected = 0,
-            KeyCode::End => self.explorer.selected = self.explorer.rows.len().saturating_sub(1),
-            KeyCode::Right => self.explorer.expand(),
-            KeyCode::Left => self.explorer.collapse(),
-            KeyCode::Enter => self.activate_tree(),
-            KeyCode::Tab | KeyCode::Esc => self.focus = Focus::Editor,
-            KeyCode::Char('r') => self.explorer.refresh(),
-            _ => {}
-        }
-    }
-
-    fn activate_tree(&mut self) {
-        if let Some(row) = self.explorer.current().cloned() {
-            if row.entry.directory {
-                self.explorer.toggle();
-            } else {
-                self.start_open(row.entry.path, None, self.config.large_file_warning_bytes);
-            }
-        }
-    }
-
     fn confirm(&mut self, action: Action) {
         match action {
             Action::Quit => self.request_quit(),
@@ -1095,7 +996,6 @@ impl App {
         self.next_untitled += 1;
         self.tabs.push(tab);
         self.active = self.tabs.len() - 1;
-        self.focus = Focus::Editor;
     }
     fn request_close_tab(&mut self, index: usize) {
         if index >= self.tabs.len() {
@@ -1153,7 +1053,6 @@ impl App {
         if self.tabs.is_empty() {
             self.new_blank();
         }
-        self.focus = Focus::Editor;
     }
 
     fn sync_review_tabs(&mut self) {
@@ -1187,7 +1086,6 @@ impl App {
         {
             self.active = index;
         }
-        self.focus = Focus::Editor;
     }
     fn open_review_tab(&mut self) {
         self.source_tab();
@@ -1208,7 +1106,6 @@ impl App {
             self.tabs.push(tab);
             self.active = self.tabs.len() - 1;
         }
-        self.focus = Focus::Editor;
     }
     fn apply_settings(&mut self, selected: Locale) {
         self.config.language = selected;
@@ -1262,37 +1159,6 @@ mod tests {
         assert_eq!(app.active, 2);
     }
     #[test]
-    fn project_navigation_keeps_dirty_buffer_and_stale_disk_results_safe() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("source.txt");
-        std::fs::write(&path, "first\nneedle e\u{301} 👩‍💻\n").unwrap();
-        let document = guinea_io::open(&path, false, u64::MAX).unwrap();
-        let found = crate::project::Found {
-            path: document.path.clone().unwrap(),
-            label: "source.txt".into(),
-            line: 1,
-            range: Some(6..12),
-            hash: document.fingerprint.as_ref().map(|f| f.sha256),
-            preview: "needle".into(),
-        };
-        let mut a = app();
-        a.tabs[0] = Tab::new(document);
-        a.open_project_result(found.clone());
-        assert_eq!(a.document().selected_text(), "needle");
-        a.document_mut().insert("changed").unwrap();
-        let text = a.document().text();
-        let selection = a.document().selection();
-        a.open_project_result(found.clone());
-        assert_eq!(a.document().text(), text);
-        assert_eq!(a.document().selection(), selection);
-        assert!(a.message.contains("Search result changed"));
-        let mut stale = found;
-        stale.hash = Some([0; 32]);
-        a.document_mut().undo().unwrap();
-        a.open_project_result(stale);
-        assert!(a.message.contains("Search result changed"));
-    }
-    #[test]
     fn goto_uses_grapheme_columns_and_rejects_out_of_range_without_moving() {
         let mut a = app();
         a.handle(Event::Paste("e\u{301}👩‍💻\r\nnext".into()));
@@ -1312,14 +1178,18 @@ mod tests {
     }
 
     #[test]
-    fn project_shortcuts_palette_completion_and_focus_mode_preserve_text() {
+    fn palette_completion_focus_mode_and_removed_folder_keys_preserve_text() {
         let mut a = app();
-        a.handle(Event::Key(KeyEvent::new(
-            KeyCode::Char('e'),
-            KeyModifiers::CONTROL,
-        )));
-        assert!(matches!(a.modal, Some(Modal::Project(_))));
-        a.handle(key(KeyCode::Esc));
+        for code in ['e', 'g', 'k', 'b'] {
+            a.handle(Event::Key(KeyEvent::new(
+                KeyCode::Char(code),
+                KeyModifiers::CONTROL,
+            )));
+            assert!(
+                a.modal.is_none(),
+                "Ctrl+{code} no longer opens folder features"
+            );
+        }
         a.handle(Event::Key(KeyEvent::new(
             KeyCode::Char('p'),
             KeyModifiers::CONTROL,
@@ -1327,24 +1197,31 @@ mod tests {
         assert!(matches!(a.modal, Some(Modal::Tabs(_))));
         a.handle(key(KeyCode::Esc));
         a.handle(key(KeyCode::F(2)));
-        a.handle(Event::Paste("project-se".into()));
+        a.handle(Event::Paste("save-a".into()));
         a.handle(key(KeyCode::Tab));
         a.handle(key(KeyCode::Enter));
-        assert!(
-            matches!(&a.modal,Some(Modal::Project(p)) if p.mode==crate::project::Mode::Contents)
-        );
+        assert!(matches!(
+            &a.modal,
+            Some(Modal::Input {
+                kind: InputKind::SaveAs,
+                ..
+            })
+        ));
         a.handle(key(KeyCode::Esc));
         a.handle(Event::Paste("draft".into()));
         a.handle(key(KeyCode::F(11)));
         assert!(a.focus_mode);
-        a.handle(key(KeyCode::F(11)));
+        a.handle(Event::Key(KeyEvent::new(
+            KeyCode::F(11),
+            KeyModifiers::SHIFT,
+        )));
         assert!(!a.focus_mode);
         assert_eq!(a.document().text(), "draft");
-        a.command("focus-mode");
-        a.command("focus");
-        assert!(!a.focus_mode);
-        assert!(a.explorer_visible);
-        assert_eq!(a.focus, Focus::Explorer);
+        for removed in ["explorer", "open-folder", "files", "project-search"] {
+            a.command(removed);
+            assert!(a.message.contains("Unknown command"), "{removed}");
+        }
+        assert_eq!(a.document().text(), "draft");
     }
 
     #[test]
@@ -1666,77 +1543,19 @@ mod tests {
         }
     }
 
-    fn drain_workspace(a: &mut App) {
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
-        loop {
-            a.poll_jobs();
-            if !a.busy() && a.queued.is_empty() && !a.explorer.busy() {
-                return;
-            }
-            assert!(std::time::Instant::now() < deadline);
-            thread::sleep(std::time::Duration::from_millis(2));
-        }
-    }
-
     #[test]
-    fn directory_navigation_opens_files_and_preserves_dirty_tabs() {
-        let directory = tempfile::tempdir().unwrap();
-        std::fs::create_dir(directory.path().join("src")).unwrap();
-        std::fs::write(directory.path().join("src/note.txt"), "original").unwrap();
-        std::fs::write(directory.path().join("Việt.md"), "second").unwrap();
-        let mut a = App::new(vec![directory.path().into()], false, Config::default());
-        drain_workspace(&mut a);
-        assert!(a.explorer_visible);
-        assert_eq!(a.focus, Focus::Explorer);
-        a.handle(key(KeyCode::Char('x')));
-        a.handle(Event::Paste("must not edit from tree".into()));
-        assert_eq!(a.document().text(), "");
-        assert!(!a.document().is_dirty());
-        a.handle(key(KeyCode::Right));
-        drain_workspace(&mut a);
-        assert_eq!(a.explorer.rows[1].entry.name, "note.txt");
-        a.handle(key(KeyCode::Down));
-        a.handle(key(KeyCode::Enter));
-        drain_workspace(&mut a);
-        assert_eq!(a.focus, Focus::Editor);
-        assert_eq!(a.document().text(), "original");
-        a.handle(Event::Paste("edit ".into()));
-        a.command("focus");
-        a.explorer.selected = a
-            .explorer
-            .rows
-            .iter()
-            .position(|r| r.entry.name == "Việt.md")
-            .unwrap();
-        a.handle(key(KeyCode::Enter));
-        drain_workspace(&mut a);
-        assert_eq!(a.tabs.len(), 2);
-        assert_eq!(a.document().text(), "second");
-        assert_eq!(a.tabs[0].document.text(), "edit original");
-        assert!(a.tabs[0].document.is_dirty());
-        a.command("quit");
-        assert!(matches!(a.modal, Some(Modal::Confirm { .. })));
-        assert_eq!(
-            std::fs::read_to_string(directory.path().join("src/note.txt")).unwrap(),
-            "original"
-        );
-    }
-
-    #[test]
-    fn standalone_file_mode_and_open_prompt_accept_folder() {
+    fn open_prompt_with_a_folder_path_opens_the_file_picker_there() {
         let directory = tempfile::tempdir().unwrap();
         let path = directory.path().join("file.txt");
         std::fs::write(&path, "file").unwrap();
         let mut a = App::new(vec![path], false, Config::default());
         drain_jobs(&mut a);
-        assert!(!a.explorer_visible);
         a.submit(
             InputKind::Open,
             directory.path().to_string_lossy().into_owned(),
         );
-        drain_workspace(&mut a);
-        assert!(a.explorer_visible);
-        assert_eq!(a.focus, Focus::Explorer);
+        assert!(matches!(a.modal, Some(Modal::FilePicker(_))));
+        assert_eq!(a.tabs.len(), 1);
         assert_eq!(a.document().text(), "file");
     }
 
@@ -1752,7 +1571,7 @@ mod tests {
             modifiers: KeyModifiers::NONE,
         }));
         assert_eq!(a.active, 0);
-        a.hits.actions.push((Rect::new(1, 1, 16, 1), "open-folder"));
+        a.hits.actions.push((Rect::new(1, 1, 16, 1), "save-as"));
         a.handle(Event::Mouse(MouseEvent {
             kind: MouseEventKind::Down(MouseButton::Left),
             column: 3,
@@ -1762,7 +1581,7 @@ mod tests {
         assert!(matches!(
             a.modal,
             Some(Modal::Input {
-                kind: InputKind::Folder,
+                kind: InputKind::SaveAs,
                 ..
             })
         ));
@@ -1836,12 +1655,6 @@ mod tests {
     #[test]
     fn idle_does_not_request_redraw_and_large_open_needs_yes() {
         let mut a = app();
-        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
-        while a.explorer.busy() {
-            a.poll_jobs();
-            assert!(std::time::Instant::now() < deadline);
-            thread::sleep(std::time::Duration::from_millis(2));
-        }
         a.redraw = false;
         for _ in 0..100 {
             a.poll_jobs();

@@ -88,14 +88,12 @@ require reload (with confirmation), a different save path, or cancel.
 `F2` opens the action list generated from the keymap (`commands.rs`), with
 each action's keys and, when unavailable, the reason. It is the fallback for
 every key a terminal intercepts; see KEYBOARD_SHORTCUTS.md.
-Directory browsing is now supported under the user's explicit scope expansion:
-`guineanote .` opens a workspace, no arguments show the current directory and
-welcome, and file arguments preserve standalone editing. Ctrl+K opens a folder,
-Ctrl+B toggles the tree, F4 changes pane, F5 refreshes, and tree arrows/Enter
-expand/collapse/open. Tab/Esc returns from tree to editor; Tab in the editor
-indents (see above). Opening another workspace keeps all dirty tabs and history.
-Tree entries are read-only and loaded asynchronously on demand. Symlinks are
-not followed. Clicks can activate tree entries, tabs and visible actions; clicking
+Folder features were removed on 12/11/2026: there is no directory tree, open
+folder, project search or folder argument (`guinea <folder>` exits with a
+message before touching the terminal). No arguments show the welcome screen;
+Ctrl+O opens the file picker, and typing a folder path in the F2 `open-path`
+prompt opens the picker in that folder. Clicks can activate tabs and visible
+actions; clicking
 text positions the caret on a grapheme boundary. Drag/Shift-click extends a
 selection; the wheel scrolls without moving the caret, Shift+wheel/horizontal
 wheel scrolls sideways. Keyboard navigation follows the caret again. Middle-click

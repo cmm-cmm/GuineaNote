@@ -32,8 +32,6 @@ impl Locale {
             return Cow::Borrowed(text);
         }
         let translated = match text {
-            " Files ^E " => " File ^E ",
-            " Project ^G " => " Project ^G ",
             "Go to line[:column] (1-based)" => "Đến dòng[:cột] (bắt đầu từ 1)",
             "Invalid line or column" => "Dòng hoặc cột không hợp lệ",
             "Indexing long line… keep typing or moving" => {
@@ -41,13 +39,6 @@ impl Locale {
             }
             "Indexing long line… click again when it finishes" => {
                 "Đang lập chỉ mục dòng dài… hãy nhấp lại khi hoàn tất"
-            }
-            "Search result changed; current buffer retained. Find again in this tab." => {
-                "Kết quả tìm đã thay đổi; giữ nội dung hiện tại. Hãy tìm lại trong thẻ này."
-            }
-            "Project match opened" => "Đã mở vị trí kết quả trong project",
-            " F11 Workspace   ^S Save   ^E Files   ^G Project search   ^P Tabs   F2 Commands" => {
-                " F11 Bố cục   ^S Lưu   ^E File   ^G Tìm project   ^P Thẻ   F2 Lệnh"
             }
             "Recovered" => "Khôi phục",
             "Recovered drafts opened; use Save As to keep them" => {
@@ -61,7 +52,6 @@ impl Locale {
                 "… Xem trước giới hạn 100.000 dòng hoặc 16 MiB ngân sách hiển thị; nguồn vẫn đầy đủ."
             }
 
-            "EXPLORER" => "THƯ MỤC",
             "EDITOR" => "SOẠN THẢO",
             "START HERE" => "BẮT ĐẦU",
             "SOURCE" => "NGUỒN",
@@ -78,9 +68,6 @@ impl Locale {
             "AI released this tab; original access restored" => {
                 "AI đã trả quyền thẻ; khôi phục trạng thái truy cập ban đầu"
             }
-            " ↑↓ Navigate   ^C Copy   F6/F7 Other tabs   ^T New tab   F10 Settings" => {
-                " ↑↓ Di chuyển   ^C Sao chép   F6/F7 Thẻ khác   ^T Thẻ mới   F10 Thiết lập"
-            }
             "REVIEW · F8" => "XEM TRƯỚC · F8",
             "Welcome" => "Chào bạn",
             "Untitled" => "Chưa đặt tên",
@@ -89,21 +76,41 @@ impl Locale {
                 "AI đang thao tác thẻ này; chỉ đọc cho đến khi hoàn tất"
             }
             "Tabs" => "Thẻ",
+            "Replacing" => "Đang thay thế",
+            "Finding" => "Đang tìm",
+            "Open file" => "Mở file",
+            "Open" => "Mở",
+            "Find/Replace" => "Tìm/Thay",
+            "Find" => "Tìm",
+            "Review" => "Xem trước",
+            "View" => "Xem",
+            "Settings" => "Thiết lập",
+            "Info" => "Chi tiết",
+            "New" => "Mới",
+            "Save" => "Lưu",
+            "Close" => "Đóng",
+            "All" => "Tất cả thẻ",
+            "Help" => "Trợ giúp",
+            "Commands" => "Lệnh",
+            "Exit focus" => "Thoát tập trung",
+            "Navigate" => "Di chuyển",
+            "Copy" => "Sao chép",
+            "Prev" => "Trước",
+            "Next" => "Sau",
+            "New tab" => "Thẻ mới",
+            "Quit" => "Thoát",
+            "Keyboard guide" => "Hướng dẫn phím",
+            "Type a file path" => "Nhập đường dẫn file",
+            "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+N  New document" => {
+                "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+N  Tài liệu mới"
+            }
+            "Ready — open a file to begin" => "Sẵn sàng — mở một file để bắt đầu",
             "unsaved" => "chưa lưu",
             " + New " => " + Mới ",
             " Save " => " Lưu ",
             " Close " => " Đóng ",
-            " All ^P " => " Tất cả ^P ",
-            " All ^P F12 " => " Thẻ ^P F12 ",
-            " + New ^T " => " + Mới ^T ",
-            " Close ^W " => " Đóng ^W ",
-            " ^S Save   ^F Find/Replace   F6 Prev   F7 Next   ^P Tabs   F1 Help   F4 Pane   F8 Review   ^Q Quit" => {
-                " ^S Lưu   ^F Tìm/Thay   F6 Trước   F7 Sau   ^P Thẻ   F1 Trợ giúp   F4 Khung   F8 Xem   ^Q Thoát"
-            }
             "    A little more focused." => "    Tập trung từng ý tưởng.",
             "WORKSPACE  /  v0.1.0 " => "KHÔNG GIAN  /  v0.1.0 ",
-            " Settings F10 " => " Thiết lập F10 ",
-            " Info F9 " => " Chi tiết F9 ",
             "Settings saved" => "Đã lưu thiết lập",
             "Saving settings…" => "Đang lưu thiết lập…",
             "Saving settings… Esc cancels exit" => "Đang lưu thiết lập… Esc hủy thoát",
@@ -113,18 +120,6 @@ impl Locale {
             }
             "Loading files…" => "Đang đọc danh sách file…",
             "Opening path…" => "Đang mở đường dẫn…",
-            " Open file  ^O " => " Mở file  ^O ",
-            " Open folder  ^K " => " Mở thư mục  ^K ",
-            " New  ^N " => " Tạo mới  ^N ",
-            " Save  ^S " => " Lưu  ^S ",
-            " Find ^F " => " Tìm ^F ",
-            " Find/Replace ^F " => " Tìm/Thay ^F ",
-            " Replace ^H " => " Thay ^H ",
-            " Open ^O " => " Mở ^O ",
-            " Folder ^K " => " Thư mục ^K ",
-            " New ^N " => " Mới ^N ",
-            " Save ^S " => " Lưu ^S ",
-            " View F8 " => " Xem F8 ",
             "Search closed" => "Đã đóng tìm kiếm",
             "Input is limited to 4096 UTF-8 bytes" => "Ô nhập giới hạn 4096 byte UTF-8",
             "Document changed; search again before replacing" => {
@@ -138,21 +133,11 @@ impl Locale {
             "Result exceeds 128 MiB; use a shorter replacement or replace one match" => {
                 "Kết quả vượt 128 MiB; giảm nội dung thay thế hoặc thay từng mục"
             }
-            " Review  F8 " => " Xem trước  F8 ",
-            "F1 Help   F2 Commands " => "F1 Trợ giúp  F2 Lệnh ",
-            "  Loading files…" => "  Đang đọc thư mục…",
-            "  Cannot read folder" => "  Không đọc được thư mục",
-            "  This folder is empty" => "  Thư mục trống",
-            " Loading…" => " Đang tải…",
-            " Entry cap reached · open subfolder" => " Đạt giới hạn · mở thư mục con",
             "Your files. Your flow. Your terminal." => "File của bạn. Nhịp làm việc của bạn.",
             "Open a file" => "Mở một file",
-            "Open a folder" => "Mở một thư mục",
             "Start a new document" => "Tạo tài liệu mới",
-            "F2 Commands     F1 Keyboard guide" => "F2 Danh sách lệnh    F1 Phím tắt",
             "Welcome / your next idea starts here" => "Chào bạn / ý tưởng tiếp theo bắt đầu ở đây",
             " READ ONLY " => " CHỈ ĐỌC ",
-            " FILES " => " THƯ MỤC ",
             " EDIT " => " SOẠN ",
             " REVIEW " => " XEM ",
             "  ● MODIFIED" => "  ● ĐÃ SỬA",
@@ -162,8 +147,7 @@ impl Locale {
             "UNSAVED CHANGES / CONFIRM" => "THAY ĐỔI CHƯA LƯU / XÁC NHẬN",
             "COMMANDS" => "DANH SÁCH LỆNH",
             "OPEN / SEARCH / SAVE" => "MỞ / TÌM / LƯU",
-            "Open file or folder" => "Mở file hoặc thư mục",
-            "Open folder" => "Mở thư mục",
+            "File path to open" => "Đường dẫn file cần mở",
             "Save to NEW path" => "Lưu vào đường dẫn MỚI",
             "Find literal (case sensitive)" => "Tìm chính xác (phân biệt hoa thường)",
             "Replace all: find literal" => "Thay tất cả: nội dung cần tìm",
@@ -171,9 +155,6 @@ impl Locale {
                 "Thay tất cả: nội dung mới (có thể để trống)"
             }
             "Command (F1 lists commands)" => "Nhập lệnh (F1 xem danh sách)",
-            "Ready — open a file or a folder to begin" => {
-                "Sẵn sàng — mở file hoặc thư mục để bắt đầu"
-            }
             "Already open; switched to its tab" => "File đã mở; đã chuyển sang tab tương ứng",
             "Review is read-only; F8 or Esc returns to source" => {
                 "Bản xem chỉ đọc; F8 hoặc Esc để về nguồn"
@@ -213,15 +194,9 @@ impl Locale {
             "Pasting from system clipboard…" => "Đang dán từ bộ nhớ tạm hệ thống…",
             "Paste cancelled: the active tab changed" => "Đã hủy dán: thẻ đang mở đã thay đổi",
             "Clipboard is empty" => "Bộ nhớ tạm đang trống",
-            "That path is not an accessible folder" => {
-                "Đường dẫn không phải thư mục có thể truy cập"
-            }
             "Empty input; cancelled" => "Nội dung trống; đã hủy",
             "Untitled buffer has no file to reload" => {
                 "File chưa đặt tên chưa có dữ liệu trên đĩa để tải lại"
-            }
-            "Workspace opened — Enter opens a file · F4 switches panes" => {
-                "Đã mở thư mục — Enter mở file · F4 chuyển khung"
             }
             "Background operation in progress; edits paused until it completes" => {
                 "Đang xử lý nền; tạm dừng sửa cho tới khi hoàn tất"
@@ -260,25 +235,10 @@ impl Locale {
             "Review worker failed; source retained" => {
                 "Tác vụ xem trước gặp lỗi; nguồn được giữ nguyên"
             }
-            "Explorer needs a wider terminal; Ctrl+O still opens files" => {
-                "Cần terminal rộng hơn để hiện cây thư mục; Ctrl+O vẫn mở được file"
-            }
-            " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files" => {
-                " ↑↓ Duyệt   → Mở nhánh   ← Thu gọn   Enter Mở   Tab Soạn thảo   ^B Ẩn cây"
-            }
-            " ^S Save   ^O Open   ^K Folder   ^B Files   F4 Pane   F6 Tabs   F8 Review   F2 Commands   ^Q Quit" => {
-                " ^S Lưu   ^O Mở   ^K Thư mục   ^B Cây   F4 Khung   F6 Tab   F8 Xem   F2 Lệnh   ^Q Thoát"
-            }
             "GUINEA NOTE\nResize to at least 30 × 9\nCtrl+Q to quit" => {
                 "GUINEA NOTE\nCần tối thiểu 30 × 9 ô\nCtrl+Q để thoát"
             }
-            "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document" => {
-                "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+K  Mở thư mục\nCtrl+N  Tài liệu mới"
-            }
             "\n\nEnter accepts     Esc cancels" => "\n\nEnter chấp nhận     Esc hủy",
-            "\n\nnew  open  open-folder  save  save-as  close\nexplorer  focus  refresh  find  replace  quit\n\nType a command · Enter runs · Esc closes" => {
-                "\n\nnew  open  open-folder  save  save-as  close\nexplorer  focus  refresh  find  replace  quit\npreview  review  source  split  language-vi  language-en\n\nNhập lệnh · Enter thực hiện · Esc đóng"
-            }
             "[Y] Confirm     [N / Esc] Keep working" => {
                 "[Y] Xác nhận     [N / Esc] Tiếp tục làm việc"
             }
@@ -421,7 +381,6 @@ mod tests {
             include_str!("modal_app.rs"),
             include_str!("mouse_app.rs"),
             include_str!("search_app.rs"),
-            include_str!("project_app.rs"),
             include_str!("agent.rs"),
             include_str!("workspace_render.rs"),
         ];

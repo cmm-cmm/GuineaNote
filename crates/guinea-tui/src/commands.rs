@@ -65,21 +65,6 @@ macro_rules! command {
 use KeyCode::{Backspace, Char, Delete, Down, F, Left, PageDown, PageUp, Right, Tab, Up};
 
 pub const COMMANDS: &[Command] = &[
-    // F2 lists actions in this order; project search stays first.
-    command!(
-        "files",
-        "Find a file in this project",
-        "Tìm file trong project",
-        Global,
-        [key(Char('e'), CTRL, "Ctrl+E"),]
-    ),
-    command!(
-        "project-search",
-        "Find text across project files",
-        "Tìm nội dung trong project",
-        Global,
-        [key(Char('g'), CTRL, "Ctrl+G"),]
-    ),
     // Files and tabs.
     command!(
         "new",
@@ -93,17 +78,10 @@ pub const COMMANDS: &[Command] = &[
     ),
     command!(
         "open",
-        "Open file or folder",
-        "Mở file hoặc thư mục",
+        "Open a file (file picker)",
+        "Mở file (bộ chọn file)",
         Global,
         [key(Char('o'), CTRL, "Ctrl+O"),]
-    ),
-    command!(
-        "open-folder",
-        "Choose project folder",
-        "Chọn thư mục project",
-        Global,
-        [key(Char('k'), CTRL, "Ctrl+K"),]
     ),
     command!(
         "save",
@@ -220,20 +198,6 @@ pub const COMMANDS: &[Command] = &[
         [key(F(2), NONE, "F2")]
     ),
     command!(
-        "focus",
-        "Switch editor / directory tree",
-        "Chuyển soạn thảo / cây thư mục",
-        Global,
-        [key(F(4), NONE, "F4"),]
-    ),
-    command!(
-        "refresh",
-        "Refresh directory tree",
-        "Đọc lại cây thư mục",
-        Global,
-        [key(F(5), NONE, "F5")]
-    ),
-    command!(
         "preview",
         "Choose source/review layout",
         "Chọn bố cục xem trước",
@@ -260,13 +224,6 @@ pub const COMMANDS: &[Command] = &[
         "Bật hoặc tắt chế độ tập trung",
         Global,
         [key(F(11), NONE, "F11"), key(F(11), SHIFT, "Shift+F11"),]
-    ),
-    command!(
-        "explorer",
-        "Show or hide directory tree",
-        "Hiện hoặc ẩn cây thư mục",
-        Global,
-        [key(Char('b'), CTRL, "Ctrl+B"),]
     ),
     command!(
         "outline",
@@ -479,7 +436,6 @@ pub fn tab_command(key: KeyEvent) -> Option<&'static str> {
     lookup(key, false, true)
 }
 
-#[cfg(test)]
 pub fn find(id: &str) -> Option<&'static Command> {
     COMMANDS.iter().find(|c| c.id == canonical(id))
 }
@@ -491,6 +447,26 @@ pub fn keys(command: &Command) -> String {
         .map(|b| b.label)
         .collect::<Vec<_>>()
         .join(" / ")
+}
+
+/// Compact primary key for buttons and hints ("Ctrl+O" → "^O", "F12").
+/// Every on-screen key label is derived here, so labels cannot drift from
+/// the dispatcher. Actions without a key show their F2 name.
+pub fn short_key(id: &str) -> String {
+    match find(id).and_then(|c| c.keys.first()) {
+        Some(binding) => binding.label.replacen("Ctrl+", "^", 1),
+        None => format!("F2 {id}"),
+    }
+}
+
+/// A hint line such as " ^S Save   F6 Prev" for `(action id, English label)`
+/// pairs; labels are translated, keys come from the keymap.
+pub fn hints(items: &[(&str, &str)], locale: Locale) -> String {
+    items
+        .iter()
+        .map(|(id, label)| format!(" {} {}", short_key(id), locale.tr(label)))
+        .collect::<Vec<_>>()
+        .join("  ")
 }
 
 pub fn suggestions(query: &str, locale: Locale) -> Vec<&'static Command> {
@@ -579,6 +555,16 @@ mod tests {
         assert_eq!(lookup(undo, false, false), None);
         assert_eq!(lookup(KeyEvent::new(F(6), NONE), false, true), Some("prev"));
         assert_eq!(lookup(KeyEvent::new(F(1), NONE), false, true), None);
+        for removed in [
+            KeyEvent::new(Char('k'), CTRL),
+            KeyEvent::new(Char('b'), CTRL),
+            KeyEvent::new(Char('e'), CTRL),
+            KeyEvent::new(Char('g'), CTRL),
+            KeyEvent::new(F(4), NONE),
+            KeyEvent::new(F(5), NONE),
+        ] {
+            assert_eq!(lookup(removed, true, false), None, "folder keys are gone");
+        }
         assert_eq!(find("info").unwrap().id, "file-info");
         assert!(description(find("save").unwrap(), Locale::Vi).ends_with("· Ctrl+S"));
     }
@@ -598,5 +584,73 @@ mod tests {
                 );
             }
         }
+    }
+
+    /// The F1 guides may only name keys that the keymap binds, or keys that
+    /// a dialog/context handles itself (listed here). Removed shortcuts such
+    /// as Ctrl+K, Ctrl+B, Ctrl+E, Ctrl+G, F4 and F5 therefore cannot linger.
+    #[test]
+    fn keyboard_guides_only_name_bound_or_context_keys() {
+        const CONTEXT: &[&str] = &[
+            // Find/Replace panel, prompts, manager filters and confirmations.
+            "Ctrl+R",
+            "Ctrl+Shift+R",
+            "Ctrl+U",
+            "Alt+A",
+            "Alt+C",
+            "Alt+W",
+            "Shift+F3",
+            "Shift+Enter",
+            // Editor movement handled outside the keymap.
+            "Ctrl+Home",
+            "Ctrl+End",
+        ];
+        let bound: Vec<&str> = COMMANDS
+            .iter()
+            .flat_map(|c| c.keys.iter().map(|b| b.label))
+            .collect();
+        // String literals of the UI code count too (titles, hints, labels).
+        let mut unbound = Vec::new();
+        let ui_literals = [
+            include_str!("dialogs.rs"),
+            include_str!("workspace_render.rs"),
+            include_str!("i18n.rs"),
+        ]
+        .map(|code| {
+            code.split("#[cfg(test)]")
+                .next()
+                .unwrap_or(code)
+                .split('"')
+                .skip(1)
+                .step_by(2)
+                .collect::<Vec<_>>()
+                .join(
+                    "
+",
+                )
+        });
+        for (name, guide) in [
+            ("EN", crate::keyboard::GUIDE_EN),
+            ("VI", crate::keyboard::GUIDE_VI),
+            ("dialogs", ui_literals[0].as_str()),
+            ("workspace", ui_literals[1].as_str()),
+            ("i18n", ui_literals[2].as_str()),
+        ] {
+            for token in guide.split(|c: char| {
+                c.is_whitespace() || matches!(c, '/' | ',' | '·' | ':' | '(' | ')')
+            }) {
+                let key = token.trim_end_matches('.');
+                let combo = key.starts_with("Ctrl+")
+                    || key.starts_with("Alt+")
+                    || key.starts_with("Shift+");
+                let function = key.len() >= 2
+                    && key.starts_with('F')
+                    && key[1..].chars().all(|c| c.is_ascii_digit());
+                if (combo || function) && !bound.contains(&key) && !CONTEXT.contains(&key) {
+                    unbound.push(format!("{name}: {key}"));
+                }
+            }
+        }
+        assert!(unbound.is_empty(), "keys not in the keymap: {unbound:#?}");
     }
 }

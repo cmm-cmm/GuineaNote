@@ -8,7 +8,9 @@ pub struct Config {
     pub tab_width: usize,
     pub large_file_warning_bytes: u64,
     pub syntax: bool,
-    pub sidebar_width: u16,
+    /// Removed with the directory explorer; accepted so old configs still load.
+    #[serde(rename = "sidebar_width")]
+    pub _sidebar_width: Option<u16>,
     pub basic_colors: bool,
     pub mouse: bool,
     pub recovery: bool,
@@ -25,7 +27,7 @@ impl Default for Config {
             tab_width: 4,
             large_file_warning_bytes: 10 * 1024 * 1024,
             syntax: true,
-            sidebar_width: 30,
+            _sidebar_width: None,
             basic_colors: !cfg!(windows)
                 && !std::env::var("COLORTERM")
                     .is_ok_and(|value| matches!(value.as_str(), "truecolor" | "24bit")),
@@ -65,9 +67,6 @@ impl Config {
         if config.large_file_warning_bytes == 0 {
             return Err("large_file_warning_bytes must be positive".into());
         }
-        if !(22..=50).contains(&config.sidebar_width) {
-            return Err("sidebar_width must be between 22 and 50".into());
-        }
         Ok(config)
     }
 }
@@ -79,6 +78,9 @@ mod tests {
     #[test]
     fn config_has_safe_defaults_and_rejects_unknown_fields() {
         let config: Config = toml::from_str("tab_width = 8").unwrap();
+        // Configs written before the explorer was removed still load.
+        let old: Config = toml::from_str("sidebar_width = 30").unwrap();
+        assert_eq!(old.tab_width, 4);
         assert_eq!(config.tab_width, 8);
         assert_eq!(config.large_file_warning_bytes, 10 * 1024 * 1024);
         assert!(toml::from_str::<Config>("unknown_key = true").is_err());

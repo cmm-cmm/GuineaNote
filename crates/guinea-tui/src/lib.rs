@@ -3,7 +3,6 @@ mod clipboard;
 mod commands;
 mod config;
 mod dialogs;
-mod explorer;
 mod file_info;
 mod file_picker;
 mod i18n;
@@ -11,7 +10,6 @@ mod input;
 mod keyboard;
 mod layout_worker;
 mod preferences;
-mod project;
 mod recovery;
 mod render;
 mod review;
@@ -107,6 +105,14 @@ pub fn run_with_agent(
             "en" => i18n::Locale::En,
             _ => return Err("language must be vi or en".into()),
         };
+    }
+    // Guinea Note edits files; folder/workspace modes were removed.
+    if let Some(folder) = files.iter().find(|path| path.is_dir()) {
+        return Err(format!(
+            "{} is a folder; Guinea Note opens files (use Ctrl+O to browse for one)",
+            folder.display()
+        )
+        .into());
     }
     if !io::stdin().is_terminal() || !io::stdout().is_terminal() {
         return Err("Guinea Note requires an interactive terminal (try --help)".into());

@@ -6,7 +6,6 @@ impl App {
         let modal = self.modal.take().expect("modal exists");
         match modal {
             Modal::Search(search) => self.search_key(search, key),
-            Modal::Project(project) => self.project_key(project, key),
             Modal::Tabs(mut manager) => {
                 let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
                 match key.code {
@@ -20,7 +19,6 @@ impl App {
                     KeyCode::Char('s') if ctrl => {
                         if let Some(index) = manager.current() {
                             self.active = index;
-                            self.focus = Focus::Editor;
                             self.command("save");
                             return;
                         }
@@ -34,7 +32,6 @@ impl App {
                     KeyCode::Enter => {
                         if let Some(index) = manager.current() {
                             self.active = index;
-                            self.focus = Focus::Editor;
                             return;
                         }
                     }
@@ -245,12 +242,12 @@ impl App {
 
     pub(super) fn submit(&mut self, kind: InputKind, value: String) {
         match kind {
-            InputKind::Open | InputKind::Folder
-                if !value.is_empty() && PathBuf::from(&value).is_dir() =>
-            {
-                self.open_folder(PathBuf::from(value))
+            // A folder path opens the file picker there to choose a file.
+            InputKind::Open if !value.is_empty() && PathBuf::from(&value).is_dir() => {
+                self.modal = Some(Modal::FilePicker(Box::new(FilePicker::new(PathBuf::from(
+                    value,
+                )))));
             }
-            InputKind::Folder => self.message = "That path is not an accessible folder".into(),
             InputKind::Open if !value.is_empty() => self.start_open(
                 PathBuf::from(value),
                 None,

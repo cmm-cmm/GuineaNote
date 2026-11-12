@@ -21,11 +21,8 @@ impl App {
         secrets: bool,
         wake: Option<Arc<dyn Fn() + Send + Sync>>,
     ) -> Result<()> {
-        let policy = guinea_service::policy::Policy::new(
-            &self.explorer.root,
-            write && !self.readonly,
-            secrets,
-        )?;
+        let policy =
+            guinea_service::policy::Policy::new(&self.root, write && !self.readonly, secrets)?;
         let bridge = guinea_service::ipc::Bridge::start(policy, wake)?;
         self.message = self.config.language.render(crate::i18n::Msg::AgentSession {
             session: &bridge.session.to_string(),
@@ -213,7 +210,6 @@ impl App {
                     .iter()
                     .position(|t| t.id == tab)
                     .ok_or_else(|| Error::new("NOT_FOUND", "Tab was closed"))?;
-                self.focus = Focus::Editor;
                 self.redraw = true;
                 Ok(self.agent_value(self.active))
             }
@@ -234,7 +230,6 @@ impl App {
                     self.tabs.push(Tab::new(document));
                     self.active = self.tabs.len() - 1;
                 }
-                self.focus = Focus::Editor;
                 self.redraw = true;
                 Ok(self.agent_value(self.active))
             }
@@ -329,7 +324,6 @@ mod tests {
             readonly,
             Config::default(),
         );
-        app.focus = Focus::Editor;
         app.agent = Some(
             guinea_service::ipc::Bridge::start_in(
                 guinea_service::policy::Policy::new(directory.path(), !readonly, false).unwrap(),

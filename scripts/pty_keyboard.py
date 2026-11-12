@@ -39,7 +39,7 @@ def main():
         beta.write_bytes(b"beta original\n")
         config = root / "keyboard.toml"
         config.write_text('language = "en"\nmouse = false\n', encoding="utf-8")
-        ui = Session([str(BINARY), "--config", str(config), str(root), str(alpha), str(beta)], colors=True)
+        ui = Session([str(BINARY), "--config", str(config), str(alpha), str(beta)], colors=True)
         try:
             ui.resize(42, 148)
             ui.wait("Tabs 2/2")
@@ -128,19 +128,18 @@ def main():
             assert saved.read_bytes() == original
             completed.append("Ctrl+L goto, Ctrl+U clear prompt, Alt+S Save As")
 
-            ui.send("\x1bOQ")  # F2: navigate the action list, no typed command.
+            ui.send("\x1bOQ")  # F2: arrows move in the action list; typing filters.
             ui.wait("Command (")
-            ui.send("\x1b[B\x1b[A\r")
-            ui.wait("PROJECT · Ctrl+E / Ctrl+G")
-            ui.send("\t")
-            ui.wait("Find text")
+            ui.send("\x1b[B\x1b[A")
+            ui.send("goto\r")
+            ui.wait("Go to line")
             ui.send("\x1b")
-            ui.wait_until(lambda rows: "PROJECT · Ctrl+E / Ctrl+G" not in "\n".join(rows))
+            ui.wait_until(lambda rows: "Go to line" not in "\n".join(rows))
             ui.send("\x0f")
-            ui.wait("Open file or folder")
+            ui.wait("Choose a file to open")
             ui.send("\x1b")
-            ui.wait_until(lambda rows: "Open file or folder" not in "\n".join(rows))
-            for sequence in ["\x1bOS", "\x1bOS", "\x1b[23~", "\x1b[23~"]:  # F4, F11
+            ui.wait_until(lambda rows: "Choose a file to open" not in "\n".join(rows))
+            for sequence in ["\x1b[23~", "\x1b[23;2~"]:  # F11 on, Shift+F11 off
                 ui.send(sequence)
                 ui.read(.02)
             ui.send("\x1b[20~")
@@ -153,7 +152,7 @@ def main():
             ui.wait("Tabs 3/3")
             ui.send("\x17")
             ui.wait("Tabs 1/2")
-            completed.append("F2 action-list navigation, project modes, file picker, pane/focus mode, file details and review chooser")
+            completed.append("F2 action-list navigation, file picker, focus mode (F11/Shift+F11), file details and review chooser")
 
             ui.send("\x14draft")
             ui.wait("MODIFIED")

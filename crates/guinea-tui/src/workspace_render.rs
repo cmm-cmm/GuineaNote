@@ -11,7 +11,7 @@ use ratatui::{
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::{
-    app::{App, Focus, HitRegions},
+    app::{App, HitRegions},
     i18n::Locale,
     render::{LinePaint, safe, styled_line},
     review::ViewMode,
@@ -103,31 +103,21 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         }
     }
     let mut x = area.x + 1;
-    for (label, command) in [
-        (" Open file  ^O ", "open"),
-        (" Open folder  ^K ", "open-folder"),
-        (" Files ^E ", "files"),
-        (" Project ^G ", "project-search"),
-        (" Find/Replace ^F ", "find"),
-        (" Review  F8 ", "preview"),
-        (" Settings F10 ", "settings"),
-        (" Info F9 ", "info"),
+    // (action, wide label, compact label); keys come from the keymap.
+    for (command, wide, compact) in [
+        ("open", "Open file", "Open"),
+        ("find", "Find/Replace", "Find/Replace"),
+        ("preview", "Review", "View"),
+        ("settings", "Settings", ""),
+        ("file-info", "Info", ""),
     ] {
-        let label = if area.width < 110 {
-            match command {
-                "open" => " Open ^O ",
-                "open-folder" => " Folder ^K ",
-                "new" => " New ^N ",
-                "save" => " Save ^S ",
-                "preview" => " View F8 ",
-                "settings" => " F10 ",
-                "info" => " F9 ",
-                _ => label,
-            }
+        let text = if area.width < 110 { compact } else { wide };
+        let key = crate::commands::short_key(command);
+        let label: std::borrow::Cow<'_, str> = if text.is_empty() {
+            format!(" {key} ").into()
         } else {
-            label
+            format!(" {} {key} ", locale.tr(text)).into()
         };
-        let label = locale.tr(label);
         let width = Line::from(label.as_ref()).width() as u16;
         if x + width > area.right() {
             break;
@@ -148,149 +138,14 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     }
     if area.right().saturating_sub(x) >= 25 {
         frame.render_widget(
-            Paragraph::new(locale.tr("F1 Help   F2 Commands ").into_owned())
-                .style(text_style(theme.secondary))
-                .alignment(Alignment::Right),
+            Paragraph::new(format!(
+                "{} ",
+                crate::commands::hints(&[("help", "Help"), ("commands", "Commands")], locale)
+            ))
+            .style(text_style(theme.secondary))
+            .alignment(Alignment::Right),
             Rect::new(area.right() - 25, actions_y, 25, 1),
         );
-    }
-}
-
-fn explorer(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
-    let locale = app.config.language;
-    let focused = app.focus == Focus::Explorer;
-    let block = panel(&locale.tr("EXPLORER"), theme, focused);
-    let inner = block.inner(area);
-    frame.render_widget(block, area);
-    if inner.width == 0 || inner.height < 3 {
-        return;
-    }
-    let name = format!(" ▾ {}", app.explorer.name());
-    frame.render_widget(
-        Paragraph::new(clipped(&name, inner.width as usize)).style(bold(theme.text)),
-        Rect::new(inner.x, inner.y, inner.width, 1),
-    );
-    frame.render_widget(
-        Paragraph::new("─".repeat(inner.width as usize)).style(text_style(theme.line)),
-        Rect::new(inner.x, inner.y + 1, inner.width, 1),
-    );
-    let body = Rect::new(inner.x, inner.y + 2, inner.width, inner.height - 3);
-    app.hits.tree = body;
-    app.explorer.viewport_height = body.height.max(1) as usize;
-    let tree = &mut app.explorer;
-    if tree.selected < tree.top {
-        tree.top = tree.selected;
-    }
-    if tree.selected >= tree.top + body.height.max(1) as usize {
-        tree.top = tree.selected + 1 - body.height.max(1) as usize;
-    }
-    let active_path = app.tabs[app.active].document.path.as_deref();
-    for (offset, row) in tree
-        .rows
-        .iter()
-        .skip(tree.top)
-        .take(body.height as usize)
-        .enumerate()
-    {
-        let index = tree.top + offset;
-        let selected = index == tree.selected;
-        let mut guides = String::new();
-        for &continuation in &row.guides {
-            guides.push_str(if continuation { "│ " } else { "  " });
-        }
-        guides.push_str(if row.last { "└ " } else { "├ " });
-        let icon = if row.entry.symlink {
-            "›"
-        } else if row.entry.directory {
-            if tree.is_expanded(&row.entry.path) {
-                "▾"
-            } else {
-                "▸"
-            }
-        } else {
-            file_icon(&row.entry.path)
-        };
-        let mut spans = vec![
-            Span::styled(
-                if selected { "▌" } else { " " },
-                text_style(if focused {
-                    theme.accent
-                } else {
-                    theme.secondary
-                }),
-            ),
-            Span::styled(guides, text_style(theme.faint)),
-            Span::styled(
-                format!("{icon} "),
-                text_style(if row.entry.directory {
-                    theme.accent
-                } else {
-                    theme.secondary
-                }),
-            ),
-            Span::styled(
-                safe(&row.entry.name),
-                if selected {
-                    bold(theme.text)
-                } else {
-                    text_style(theme.muted)
-                },
-            ),
-        ];
-        if active_path == Some(row.entry.path.as_path()) {
-            spans.push(Span::styled(" ●", text_style(theme.accent)));
-        }
-        let style = Style::default().bg(if selected { theme.raised } else { theme.panel });
-        frame.render_widget(
-            Paragraph::new(Line::from(spans)).style(style),
-            Rect::new(body.x, body.y + offset as u16, body.width, 1),
-        );
-    }
-    if tree.rows.is_empty() {
-        let message = if tree.busy() {
-            "  Loading files…"
-        } else if tree.status.starts_with("Cannot") {
-            "  Cannot read folder"
-        } else {
-            "  This folder is empty"
-        };
-        frame.render_widget(
-            Paragraph::new(locale.tr(message).into_owned()).style(text_style(theme.muted)),
-            body,
-        );
-    }
-    let hint = if tree.status.contains("limit reached") {
-        " Entry cap reached · open subfolder".into()
-    } else if tree.busy() {
-        " Loading…".into()
-    } else {
-        if locale == Locale::Vi {
-            format!(" {} mục  ·  F5 đọc lại", tree.rows.len())
-        } else {
-            format!(" {} items  ·  F5 refresh", tree.rows.len())
-        }
-    };
-    frame.render_widget(
-        Paragraph::new(clipped(&locale.tr(&hint), inner.width as usize))
-            .style(text_style(theme.faint)),
-        Rect::new(inner.x, inner.bottom() - 1, inner.width, 1),
-    );
-}
-
-fn file_icon(path: &std::path::Path) -> &'static str {
-    match path
-        .extension()
-        .and_then(|extension| extension.to_str())
-        .unwrap_or("")
-    {
-        "rs" => "rs",
-        "ts" | "tsx" => "ts",
-        "js" | "jsx" => "js",
-        "py" => "py",
-        "json" => "{}",
-        "toml" | "yml" | "yaml" => "≡",
-        "md" => "#",
-        _ => "·",
     }
 }
 
@@ -352,51 +207,52 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         Rect::new(area.x, area.y, count_width, 1),
     );
     let mut x = area.x + count_width + 1;
-    let controls: Vec<(&str, &str)> = if area.width >= 96 {
+    // Keys shown on the toolbar come from the keymap (primary key).
+    let key = crate::commands::short_key;
+    let controls: Vec<(String, &str)> = if area.width >= 96 {
         vec![
-            (" + New ^T ", "new"),
-            (" Save ^S ", "save"),
-            (" Close ^W ", "close"),
-            (" < F6 ", "prev"),
-            (" F7 > ", "next"),
-            (" All ^P F12 ", "tabs"),
+            (format!(" + {} {} ", locale.tr("New"), key("new")), "new"),
+            (format!(" {} {} ", locale.tr("Save"), key("save")), "save"),
+            (
+                format!(" {} {} ", locale.tr("Close"), key("close")),
+                "close",
+            ),
+            (format!(" < {} ", key("prev")), "prev"),
+            (format!(" {} > ", key("next")), "next"),
+            (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
         ]
     } else if area.width >= 56 {
         vec![
-            (" + New ", "new"),
-            (" Save ", "save"),
-            (" Close ", "close"),
-            (" < ", "prev"),
-            (" > ", "next"),
-            (" All ^P ", "tabs"),
+            (format!(" + {} ", locale.tr("New")), "new"),
+            (format!(" {} ", locale.tr("Save")), "save"),
+            (format!(" {} ", locale.tr("Close")), "close"),
+            (" < ".into(), "prev"),
+            (" > ".into(), "next"),
+            (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
         ]
     } else {
         vec![
-            (" + ", "new"),
-            (" < ", "prev"),
-            (" > ", "next"),
-            (" =^P ", "tabs"),
+            (" + ".into(), "new"),
+            (" < ".into(), "prev"),
+            (" > ".into(), "next"),
+            (format!(" {} ", key("tabs")), "tabs"),
         ]
     };
     for (label, action) in controls {
-        let label = locale.tr(label);
-        let width = Line::from(label.as_ref()).width() as u16;
+        let width = Line::from(label.as_str()).width() as u16;
         if x + width > area.right() {
             break;
         }
         let rect = Rect::new(x, area.y, width, 1);
         frame.render_widget(
-            Paragraph::new(label.into_owned()).style(Style::default().bg(theme.raised).fg(
-                if action == "new" {
-                    theme.accent
-                } else if app.tabs[app.active].ai_action.is_some()
-                    && matches!(action, "save" | "close")
-                {
-                    theme.faint
-                } else {
-                    theme.text
-                },
-            )),
+            Paragraph::new(label).style(Style::default().bg(theme.raised).fg(if action == "new" {
+                theme.accent
+            } else if app.tabs[app.active].ai_action.is_some() && matches!(action, "save" | "close")
+            {
+                theme.faint
+            } else {
+                theme.text
+            })),
             rect,
         );
         app.hits.actions.push((rect, action));
@@ -505,7 +361,9 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.height < 10 || area.width < 34 {
         frame.render_widget(
             Paragraph::new(
-                locale.tr("GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+K  Open folder\nCtrl+N  New document").into_owned(),
+                locale
+                    .tr("GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+N  New document")
+                    .into_owned(),
             )
             .style(text_style(theme.accent))
             .alignment(Alignment::Center),
@@ -550,14 +408,17 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         .style(text_style(theme.muted)),
         Rect::new(x, top + logo_height + 1, width, 1),
     );
-    for (index, (label, shortcut, action)) in [
-        ("Open a file", "Ctrl+O", "open"),
-        ("Open a folder", "Ctrl+K", "open-folder"),
-        ("Start a new document", "Ctrl+N", "new"),
+    for (index, (label, action)) in [
+        ("Open a file", "open"),
+        ("Type a file path", "open-path"),
+        ("Start a new document", "new"),
     ]
     .into_iter()
     .enumerate()
     {
+        let shortcut = crate::commands::find(action)
+            .and_then(|c| c.keys.first())
+            .map_or_else(|| format!("F2 {action}"), |b| b.label.to_string());
         let row = Rect::new(
             x + 2,
             top + logo_height + 3 + index as u16 * 2,
@@ -582,9 +443,12 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     }
     if top + logo_height + 10 < area.bottom() {
         frame.render_widget(
-            Paragraph::new(locale.tr("F2 Commands     F1 Keyboard guide").into_owned())
-                .alignment(Alignment::Center)
-                .style(text_style(theme.faint)),
+            Paragraph::new(crate::commands::hints(
+                &[("commands", "Commands"), ("help", "Keyboard guide")],
+                locale,
+            ))
+            .alignment(Alignment::Center)
+            .style(text_style(theme.faint)),
             Rect::new(x, top + logo_height + 10, width, 1),
         );
     }
@@ -623,7 +487,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         .path
         .as_ref()
         .map(|path| {
-            path.strip_prefix(&app.explorer.root)
+            path.strip_prefix(&app.root)
                 .unwrap_or(path)
                 .to_string_lossy()
                 .into_owned()
@@ -709,7 +573,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             "EDITOR"
         }),
         theme,
-        app.focus == Focus::Editor,
+        true,
     );
     let body = block.inner(editor_area);
     frame.render_widget(block, editor_area);
@@ -846,8 +710,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             Rect::new(body.x + gutter as u16, body.y + offset, width as u16, 1),
         );
     }
-    if app.focus == Focus::Editor
-        && app.modal.is_none()
+    if app.modal.is_none()
         && !busy
         && (tab.top..tab.top + body.height as usize).contains(&cursor_line)
     {
@@ -1036,12 +899,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
 
 fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
     let locale = app.config.language;
-    let message = if app.focus == Focus::Explorer
-        && (app.explorer.status.starts_with("Cannot")
-            || app.explorer.status.contains("limit reached"))
-    {
-        app.explorer.status.as_str()
-    } else if app.layout.busy() && app.caret_layout_pending() {
+    let message = if app.layout.busy() && app.caret_layout_pending() {
         "Indexing long line… keep typing or moving"
     } else {
         app.message.as_str()
@@ -1086,8 +944,6 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         " READ ONLY "
     } else if app.tabs[app.active].review.mode == ViewMode::Review {
         " REVIEW "
-    } else if app.focus == Focus::Explorer {
-        " FILES "
     } else {
         " EDIT "
     };
@@ -1186,17 +1042,51 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             .style(Style::default().bg(theme.raised)),
         Rect::new(areas[1].right() - right_width, areas[1].y, right_width, 1),
     );
+    // Footer hints are generated from the keymap; see commands::hints.
     let hints = if app.focus_mode {
-        " F11 Workspace   ^S Save   ^E Files   ^G Project search   ^P Tabs   F2 Commands"
+        crate::commands::hints(
+            &[
+                ("focus-mode", "Exit focus"),
+                ("save", "Save"),
+                ("open", "Open"),
+                ("find", "Find"),
+                ("tabs", "Tabs"),
+                ("commands", "Commands"),
+            ],
+            locale,
+        )
     } else if app.tabs[app.active].ai_action.is_some() {
-        " ↑↓ Navigate   ^C Copy   F6/F7 Other tabs   ^T New tab   F10 Settings"
-    } else if app.focus == Focus::Explorer {
-        " ↑↓ Browse   → Expand   ← Collapse   Enter Open   Tab Editor   ^B Hide files"
+        format!(
+            " ↑↓ {}  {}",
+            locale.tr("Navigate"),
+            crate::commands::hints(
+                &[
+                    ("copy", "Copy"),
+                    ("prev", "Prev"),
+                    ("next", "Next"),
+                    ("new", "New tab"),
+                    ("settings", "Settings"),
+                ],
+                locale,
+            )
+        )
     } else {
-        " ^S Save   ^F Find/Replace   F6 Prev   F7 Next   ^P Tabs   F1 Help   F4 Pane   F8 Review   ^Q Quit"
+        crate::commands::hints(
+            &[
+                ("save", "Save"),
+                ("find", "Find/Replace"),
+                ("prev", "Prev"),
+                ("next", "Next"),
+                ("tabs", "Tabs"),
+                ("help", "Help"),
+                ("preview", "Review"),
+                ("quit", "Quit"),
+            ],
+            locale,
+        )
     };
     frame.render_widget(
-        Paragraph::new(locale.tr(hints).into_owned()).style(text_style(theme.muted)),
+        Paragraph::new(hints).style(text_style(theme.muted)),
         areas[2],
     );
 }
@@ -1208,7 +1098,6 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
     app.hits = HitRegions::default();
     frame.render_widget(Block::default().style(theme.base()), area);
     if area.width < 30 || area.height < 9 {
-        app.focus = Focus::Editor;
         frame.render_widget(
             Paragraph::new(
                 locale
@@ -1250,23 +1139,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App) {
         areas[2].width.saturating_sub(2),
         areas[2].height,
     );
-    if app.explorer_visible && !app.focus_mode && workspace.width >= 64 {
-        let sidebar = app.config.sidebar_width.min(workspace.width / 3).max(22);
-        let split = Layout::horizontal([
-            Constraint::Length(sidebar),
-            Constraint::Length(1),
-            Constraint::Min(20),
-        ])
-        .split(workspace);
-        explorer(frame, app, split[0], theme);
-        editor(frame, app, split[2], theme);
-    } else {
-        if app.focus == Focus::Explorer {
-            app.focus = Focus::Editor;
-            app.message = "Explorer needs a wider terminal; Ctrl+O still opens files".into();
-        }
-        editor(frame, app, workspace, theme);
-    }
+    editor(frame, app, workspace, theme);
     status(frame, app, &areas[3..], theme);
     crate::dialogs::draw(frame, app, area, theme);
 }

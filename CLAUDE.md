@@ -15,8 +15,8 @@ cargo test --workspace
 cargo build --workspace --release      # editor + guineanote-agent + guineanote-mcp
 ```
 
-- Run: `cargo run -- .` (workspace browser; needs an interactive terminal), `cargo run -- file.txt`, `cargo run -- --language vi .`
-- Run with Agent access: `cargo build --workspace` then `cargo run -- --agent --agent-write .`
+- Run: `cargo run -- file.txt` (needs an interactive terminal; folder arguments are rejected), `cargo run -- --language vi file.txt`
+- Run with Agent access: `cargo build --workspace` then `cargo run -- --agent --agent-write file.txt` (Agent workspace = the first file's folder, else the cwd)
 - Single crate / single test: `cargo test -p guinea-core <test_name_substring>`
 - Integration tests: `cargo test --test cli`, `cargo test --test file_workflow`, `cargo test -p guinea-service --test contract`
 - Benchmarks: `cargo bench --bench editor`; core profiling: `cargo run --release -p guinea-core --example interaction_profile`
@@ -45,14 +45,14 @@ Workspace crates (dependency direction: core ← io ← service ← tui ← root
 - **guinea-io** — Streaming strict UTF-8 reads/writes with BOM kept separate and original LF/CRLF/mixed bytes preserved, file identity + external-modification conflict checks, platform metadata (Windows/Unix specific deps), and the private checksummed crash-recovery store. Policy details: `docs/FILE_SAFETY.md`.
 - **guinea-syntax** — Filename/content language detection and a revision-tagged lexer; `LineState` carries block comments/triple strings/templates/markup comments across lines (TUI caches states per tab in `syntax_state.rs`).
 - **guinea-service** — Typed Agent operations, workspace/secret path policy, bounded analysis, and the live revision/lease IPC protocol (`interprocess` + tokio).
-- **guinea-tui** — The **sole owner of application state** and of all document commits. `app.rs` is the central state (with `command_app.rs` for action dispatch/availability, `modal_app.rs` for dialog keys, `mouse_app.rs` for mouse input, all `impl App` child modules); `commands.rs` is keymap v1, the single source for bindings, F2 and guide checks; `lib.rs` holds the event loop and `TerminalGuard` (restores raw mode/alt screen/mouse/cursor on exit and panic). Feature modules: dialogs, search/search_app, project/project_app, explorer, file_picker, tab_manager, review (Markdown/JSON/CSV/XML/TOML/YAML/… read-only formatted views), recovery, agent, i18n (Vietnamese/English), theme, trace.
+- **guinea-tui** — The **sole owner of application state** and of all document commits. `app.rs` is the central state (with `command_app.rs` for action dispatch/availability, `modal_app.rs` for dialog keys, `mouse_app.rs` for mouse input, all `impl App` child modules); `commands.rs` is keymap v1, the single source for bindings, F2 and guide checks; `lib.rs` holds the event loop and `TerminalGuard` (restores raw mode/alt screen/mouse/cursor on exit and panic). Feature modules: dialogs, search/search_app, file_picker, tab_manager, review (Markdown/JSON/CSV/XML/TOML/YAML/… read-only formatted views), recovery, agent, i18n (Vietnamese/English), theme, trace.
 - **guinea-agent** — Two binaries: `guineanote-agent` (JSON CLI) and `guineanote-mcp` (rmcp stdio server), talking to a running editor over authenticated local IPC.
 - **Root `src/main.rs`** — clap CLI that calls `guinea_tui::run_with_agent`.
 
 Key cross-cutting patterns:
 
-- **Background work, single committer.** File I/O, full-document search/replace, project indexing, review rendering, recovery checkpoints and Agent requests run on workers; results are epoch/revision-tagged and the UI applies them only if they still match (stale results are dropped). Agent edits are applied only at the expected document revision with access/lease checks; while an Agent owns a document, its source and linked review tabs are read-only to the user.
-- **Bounded resources.** At most two search/review CPU jobs hold a shared permit (`guinea-tui/src/work.rs`); large cache drops go through a bounded reclaim thread. Caches, review output (100,000 rows / 16 MiB), history (2048 transactions / 64 MiB charged payload) and explorer listings (10,000 entries) are all capped — preserve these bounds when changing related code.
+- **Background work, single committer.** File I/O, full-document search/replace, long-line layout indexing, review rendering, recovery checkpoints and Agent requests run on workers; results are epoch/revision-tagged and the UI applies them only if they still match (stale results are dropped). Agent edits are applied only at the expected document revision with access/lease checks; while an Agent owns a document, its source and linked review tabs are read-only to the user.
+- **Bounded resources.** At most two search/review CPU jobs hold a shared permit (`guinea-tui/src/work.rs`); large cache drops go through a bounded reclaim thread. Caches, review output (100,000 rows / 16 MiB), history (2048 transactions / 64 MiB charged payload) and file-picker listings are all capped — preserve these bounds when changing related code.
 - **Event loop.** Polls at 8 ms while jobs are active, otherwise waits up to 250 ms; idle does not redraw; input bursts coalesce (≤4 ms, ≤128 events) per frame.
 - **Mouse is optional.** Every mouse action has a keyboard alternative; renders publish hit rectangles for clicks. Windows uses a dedicated safe input adapter (UTF-16, repeats, AltGr, native mouse records).
 

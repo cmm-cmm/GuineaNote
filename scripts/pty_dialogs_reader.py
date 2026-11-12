@@ -21,7 +21,7 @@ def main():
         root=Path(directory); prefs=root / "preferences.toml"; source=root / "Guide.md"
         original="# Build something thoughtful\n\nA **focused reader** for your ideas, code and data. Use `F8` to choose your space.\n\n## Today\n\n- [x] Settings and file navigation\n- [x] Live review tabs\n- [ ] The next idea\n\n> [!NOTE]\n> Read with context. Keep your source intact.\n\n## A little code\n\n```rust\n#[derive(Debug)]\nstruct Workspace { name: String }\nfn main() {\n    let project = Workspace { name: \"GuineaNote\".into() };\n    println!(\"Hello, {}\\n\", project.name);\n}\n```\n\n## Data at a glance\n\n| Format | Reader | State |\n|:---|:---|:---|\n| Markdown | Rich document | Ready |\n| JSON / YAML | Structured | Ready |\n| CSV / TSV | Table | Ready |\n\n## Explore\n\n[Project notes](https://example.com/notes)\n"
         source.write_bytes(original.encode()); (root/"main.rs").write_text('fn main() { println!("hello"); }\n',encoding="utf-8")
-        first=Session([str(BINARY),str(root),str(source)],colors=True,preferences_path=prefs)
+        first=Session([str(BINARY),str(source)],colors=True,preferences_path=prefs)
         try:
             first.wait("Opened"); first.resize(42,148); first.read(.1)
             first.send(F10); first.wait("SETTINGS · F10"); snapshot(first,"settings-en")
@@ -29,7 +29,7 @@ def main():
         finally: first.close()
         assert '"vi"' in prefs.read_text(encoding="utf-8")
         config=root/"ui.toml"; config.write_text("tab_width = 4\n",encoding="utf-8")
-        session=Session([str(BINARY),"--config",str(config),str(root),str(source)],colors=True,preferences_path=prefs)
+        session=Session([str(BINARY),"--config",str(config),str(source)],colors=True,preferences_path=prefs)
         try:
             session.resize(42,148); session.wait("Đã mở")
             session.send(F10); session.wait("THIẾT LẬP · F10"); session.send("e\x1b")

@@ -20,7 +20,7 @@ def main():
         for filename, content in fixtures:
             (root / filename).write_bytes(content.encode())
         for filename, _ in fixtures:
-            session = Session([str(binary), "--language", "vi", str(root), str(root / filename)], colors=True)
+            session = Session([str(binary), "--language", "vi", str(root / filename)], colors=True)
             try:
                 session.resize(38, 148)
                 session.wait("Đã mở")

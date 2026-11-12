@@ -20,7 +20,7 @@ Ctrl+P / F12 manage all tabs
 F6 previous / F7 next tab
 Alt+Right / Alt+Left next / previous tab
 Ctrl+Tab / Ctrl+Shift+Tab when delivered by terminal
-Ctrl+PgDn / Ctrl+PgUp next / previous tab
+Ctrl+PageDown / Ctrl+PageUp next / previous tab
 Ctrl+N / Ctrl+T new · Ctrl+W close
 Manager: type to filter · Ctrl+U clear
 Manager: arrows / Tab / Shift+Tab choose
@@ -38,7 +38,7 @@ Ctrl+Shift+R also replaces all where supported
 Esc close · Ctrl+Z undo in editor · Ctrl+S save
 
 FILES AND EDITING
-Ctrl+O open · Ctrl+K folder · Ctrl+S save
+Ctrl+O open (file picker) · Ctrl+S save
 Alt+S / Ctrl+Shift+S save as · Ctrl+L go to line
 Ctrl+Z / Ctrl+Y undo / redo · Ctrl+A select all
 Ctrl+C / Ctrl+X / Ctrl+V copy / cut / paste (system clipboard)
@@ -57,11 +57,7 @@ Alt+Up / Alt+Down move line(s) up / down
 Ctrl+C / Ctrl+X without a selection: whole line
 Typing is one Undo step until a pause or caret move
 
-WORKSPACE
-Ctrl+B explorer · F4 switch pane · F5 refresh
-Tree: arrows navigate · Enter open · Tab/Esc editor
-Ctrl+E project files · Ctrl+G project text search
-Project: arrows choose · Tab mode · Enter open
+VIEW
 File picker: arrows choose · Tab complete · Alt+Up parent
 F11 / Shift+F11 focus mode · F10 settings · F9 file details
 F8 split/review chooser: arrows or Tab, Enter apply
@@ -78,8 +74,8 @@ Help: arrows / PgUp/PgDn scroll · Home/End jump
 WHEN THE TERMINAL KEEPS A KEY
 F2 runs every action by name
 Windows Terminal F11 fullscreen: use Shift+F11
-Ctrl+Tab / Ctrl+PgUp switch terminal tabs: use F6 / F7
-tmux prefix Ctrl+B: F2 explorer · screen prefix Ctrl+A: F2 select-all
+Ctrl+Tab / Ctrl+PageUp switch terminal tabs: use F6 / F7
+GNU screen prefix Ctrl+A: F2 select-all
 Ctrl+Backspace sent as Ctrl+H on Unix: use Alt+Backspace
 
 UTF-8 only · resident memory · periodic draft recovery";
@@ -94,7 +90,7 @@ Ctrl+P / F12 quản lý toàn bộ thẻ
 F6 thẻ trước / F7 thẻ sau
 Alt+Right / Alt+Left thẻ sau / thẻ trước
 Ctrl+Tab / Ctrl+Shift+Tab khi terminal truyền được
-Ctrl+PgDn / Ctrl+PgUp thẻ sau / thẻ trước
+Ctrl+PageDown / Ctrl+PageUp thẻ sau / thẻ trước
 Ctrl+N / Ctrl+T tạo thẻ · Ctrl+W đóng thẻ
 Danh sách: gõ để lọc · Ctrl+U xóa lọc
 Danh sách: mũi tên / Tab / Shift+Tab chọn
@@ -112,7 +108,7 @@ Ctrl+Shift+R cũng thay tất cả nếu terminal hỗ trợ
 Esc đóng · Ctrl+Z hoàn tác ở editor · Ctrl+S lưu
 
 FILE VÀ SOẠN THẢO
-Ctrl+O mở · Ctrl+K thư mục · Ctrl+S lưu
+Ctrl+O mở (chọn file) · Ctrl+S lưu
 Alt+S / Ctrl+Shift+S lưu thành · Ctrl+L đến dòng
 Ctrl+Z / Ctrl+Y hoàn tác / làm lại · Ctrl+A chọn hết
 Ctrl+C / Ctrl+X / Ctrl+V sao chép / cắt / dán (bộ nhớ tạm hệ thống)
@@ -131,11 +127,7 @@ Alt+Up / Alt+Down đưa dòng lên / xuống
 Ctrl+C / Ctrl+X khi không chọn: cả dòng
 Gõ liên tục là một bước hoàn tác tới khi dừng hoặc di chuyển
 
-KHÔNG GIAN LÀM VIỆC
-Ctrl+B cây thư mục · F4 chuyển khung · F5 đọc lại
-Cây: mũi tên duyệt · Enter mở · Tab/Esc về editor
-Ctrl+E tìm file · Ctrl+G tìm nội dung project
-Project: mũi tên chọn · Tab chế độ · Enter mở
+HIỂN THỊ
 Chọn file: mũi tên chọn · Tab điền · Alt+Up thư mục cha
 F11 / Shift+F11 tập trung · F10 thiết lập · F9 thông tin file
 F8 chọn xem: mũi tên hoặc Tab, Enter áp dụng
@@ -152,8 +144,8 @@ Trợ giúp: mũi tên / PgUp/PgDn cuộn · Home/End đầu/cuối
 KHI TERMINAL GIỮ PHÍM
 F2 chạy mọi thao tác theo tên
 Windows Terminal dùng F11 toàn màn hình: dùng Shift+F11
-Ctrl+Tab / Ctrl+PgUp đổi thẻ terminal: dùng F6 / F7
-tmux dùng Ctrl+B: F2 explorer · screen dùng Ctrl+A: F2 select-all
+Ctrl+Tab / Ctrl+PageUp đổi thẻ terminal: dùng F6 / F7
+GNU screen dùng Ctrl+A: F2 select-all
 Unix gửi Ctrl+Backspace thành Ctrl+H: dùng Alt+Backspace
 
 Chỉ UTF-8 · dữ liệu trong RAM · khôi phục bản nháp";

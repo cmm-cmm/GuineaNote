@@ -63,22 +63,20 @@ def snapshot(session, name):
 
 def main():
     binary = ROOT / "target" / "release" / ("guinea.exe" if os.name == "nt" else "guinea")
-    session = Session([str(binary), str(ROOT)], colors=True)
+    session = Session([str(binary)], colors=True)
     try:
         session.resize(36, 124)
-        session.wait("EXPLORER")
+        session.wait("START HERE")
         session.read(0.8)
         snapshot(session, "guineanote-welcome")
         session.command("open")
-        session.wait("Open file or folder")
+        session.wait("Choose a file to open")
         session.write(str(ROOT / "README.md") + "\r")
         session.wait("Opened")
         session.command("open")
-        session.wait("Open file or folder")
+        session.wait("Choose a file to open")
         session.write(str(ROOT / "src" / "main.rs") + "\r")
         session.wait("Opened")
-        session.write("\x1bOS")  # F4 focuses explorer.
-        session.write("\x1b[H" + "\x1b[B" * 5 + "\x1b[C")
         session.read(0.5)
         snapshot(session, "guineanote-workspace")
         session.write("\x11")

@@ -36,7 +36,7 @@ def main():
         originals = {path: f"original-{path.stem}" for path in paths}
         for path, content in originals.items():
             path.write_bytes(content.encode())
-        session = Session([str(BINARY), str(root), *map(str, paths)], colors=True)
+        session = Session([str(BINARY), *map(str, paths)], colors=True)
         try:
             session.resize(42, 148)
             session.wait("Tabs 12/12")
@@ -56,7 +56,7 @@ def main():
             action(session, "tabs:individual-close", close_label(session, "draft.txt"), "Tabs 12/12")
             assert saved.read_bytes() == "draft Việt 👩‍💻".encode()
 
-            action(session, "tabs:mouse-all", click(session, " All ^P ", "Tabs "), "OPEN TABS · Ctrl+P")
+            action(session, "tabs:mouse-all", click(session, " All F12 ", "Tabs "), "OPEN TABS · Ctrl+P")
             capture(session, "tab-manager-all")
             action(session, "tabs:filter-alpha", "alpha", "› alpha│")
             action(session, "tabs:activate-alpha", "\r", "Tabs 1/12")

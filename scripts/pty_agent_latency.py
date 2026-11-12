@@ -33,7 +33,7 @@ def main():
         text += ' ' * (size - len(text))
         source = root / "large.json"
         source.write_bytes(text.encode())
-        ui = Session([str(BINARY), "--agent", "--agent-write", str(root), str(source)])
+        ui = Session([str(BINARY), "--agent", "--agent-write", str(source)])
         client = None
         try:
             ui.wait("Opened")

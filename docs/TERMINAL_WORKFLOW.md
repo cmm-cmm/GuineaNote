@@ -1,9 +1,13 @@
-# Workflow terminal và project
+# Workflow terminal
+
+> 12/11/2026: cây thư mục, Ctrl+K/Ctrl+B/F4/F5, tìm file/nội dung project
+> (Ctrl+E/Ctrl+G) và tham số `guinea <thư mục>` đã bị gỡ. Các mục về project bên
+> dưới là lịch sử; bảng phím hiện hành ở [KEYBOARD_SHORTCUTS](KEYBOARD_SHORTCUTS.md).
 
 Tập trung TUI cho terminal/SSH; không có GUI hoặc Node runtime. Header khi soạn
 thảo thu về một hàng; welcome vẫn có nhãn sản phẩm. Nền navy tối được giữ,
 chi tiết xanh lá, hổ phách và trắng ấm. F11 mở chế độ tập trung, giữ tab/count
-và status; F11 trở lại workspace. F4/Ctrl+B mở lại cây và thoát focus mode.
+và status; F11 hoặc Shift+F11 thoát chế độ tập trung.
 
 Menu chính và toolbar quản lý tab có hàng phân cách riêng. Vùng click của menu,
 nút quản lý tab và nhãn tab được kiểm tra tách biệt ở VI/EN và cửa sổ nhỏ;

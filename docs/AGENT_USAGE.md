@@ -4,7 +4,7 @@ Chạy ở chế độ dev từ thư mục dự án:
 
 ```powershell
 cargo build --workspace
-cargo run -- --agent --agent-write .
+cargo run -- --agent --agent-write duong-dan/file.txt
 ```
 
 `--agent` bật đọc cả nội dung chưa lưu; thêm `--agent-write` cho phép Agent

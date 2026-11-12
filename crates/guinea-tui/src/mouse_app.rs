@@ -78,21 +78,6 @@ impl App {
                 _ => {}
             }
             self.redraw = true;
-        } else if self.hits.tree.contains(position) {
-            match mouse.kind {
-                MouseEventKind::ScrollDown => self.explorer.move_by(3),
-                MouseEventKind::ScrollUp => self.explorer.move_by(-3),
-                MouseEventKind::Down(MouseButton::Left) => {
-                    let index = self.explorer.top + (mouse.row - self.hits.tree.y) as usize;
-                    if index < self.explorer.rows.len() {
-                        self.explorer.selected = index;
-                        self.focus = Focus::Explorer;
-                        self.activate_tree();
-                    }
-                }
-                _ => return,
-            }
-            self.redraw = true;
         } else if self.hits.editor.contains(position)
             && matches!(
                 mouse.kind,
@@ -131,7 +116,6 @@ impl App {
                 .find(|(rect, _)| rect.contains(position))
             {
                 self.active = *index;
-                self.focus = Focus::Editor;
                 self.redraw = true;
             } else if let Some((_, action)) = self
                 .hits
@@ -141,7 +125,6 @@ impl App {
             {
                 self.command(action);
             } else if self.hits.editor.contains(position) {
-                self.focus = Focus::Editor;
                 self.place_cursor(
                     mouse.column,
                     mouse.row,
@@ -167,10 +150,6 @@ impl App {
             self.modal = None;
             self.last_modal_click = None;
             self.message = if search { "Search closed" } else { "Cancelled" }.into();
-            return;
-        }
-        if matches!(&self.modal, Some(Modal::Project(_))) {
-            self.project_mouse(mouse);
             return;
         }
         if mouse.kind == MouseEventKind::Down(MouseButton::Left)
@@ -235,7 +214,6 @@ impl App {
                         let index = manager.entries[entry].index;
                         if self.double_click(ModalClick::Tab(self.tabs[index].id)) {
                             self.active = index;
-                            self.focus = Focus::Editor;
                             return;
                         }
                     }
@@ -314,7 +292,6 @@ impl App {
                                 self.request_close_tab(index);
                             } else {
                                 self.active = index;
-                                self.focus = Focus::Editor;
                                 if action == "tabs-save" {
                                     self.command("save");
                                 }

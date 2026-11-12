@@ -1,5 +1,24 @@
 # Test plan and reproduction
 
+## Folder features removed; key and mouse synchronization — 12/11/2026
+
+The directory explorer, open folder, project file/content search and folder
+arguments were removed. `pty_project.py` and `pty_workspace.py` were deleted;
+older sections below that run them are historical. Other probes now pass files
+only (Agent workspace = the first file's folder). Rust tests added:
+
+- `every_clickable_region_maps_to_a_handled_action` (render.rs): 5 sizes × 2
+  languages × welcome/editor/focus, every dialog opened; main-window actions must
+  run a known command, dialog buttons must have a mouse handler, F2 rows must be
+  keymap commands.
+- `keyboard_guides_only_name_bound_or_context_keys` (commands.rs): F1 guides and
+  UI string literals (dialogs, workspace renderer, i18n) may only name keys bound
+  in the keymap or listed dialog/context keys.
+- `folders_are_rejected_and_files_require_an_interactive_terminal` (tests/cli.rs).
+
+Header, tab toolbar, footer and welcome key labels are generated from the keymap
+(`commands::short_key`, `commands::hints`).
+
 ## Unprepared long lines, keymap v1 and editing — 12/11/2026
 
 After `cargo build --workspace --release`, run sequentially:

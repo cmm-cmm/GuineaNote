@@ -78,10 +78,6 @@ def main():
                     action(ui,'redo:'+label,'\x19','Ln 1, Col 2 ')
                     ui.send('\x7f');ui.wait('Ln 1, Col 1 ')
                 for _ in range(25):
-                    action(ui,'project-open:'+label,'\x05','PROJECT · Ctrl+E / Ctrl+G')
-                    action(ui,'project-query:'+label,'m','› m│')
-                    action(ui,'project-close:'+label,'\x1b',lambda s:'PROJECT · Ctrl+E / Ctrl+G' not in s)
-                for _ in range(25):
                     for rows,cols in [(24,80),(28,100)]:
                         # Drain the previous ConPTY frame before changing the
                         # observer geometry; late old-size output otherwise

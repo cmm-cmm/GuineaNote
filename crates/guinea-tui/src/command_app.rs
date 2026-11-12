@@ -97,24 +97,18 @@ impl App {
             "language" | "language-vi" | "language-en" => {
                 self.config.language = match command { "language-vi" => crate::i18n::Locale::Vi, "language-en" => crate::i18n::Locale::En, _ => self.config.language.toggle() };
             }
-            "files" => self.open_project(crate::project::Mode::Files),
-            "project-search" => self.open_project(crate::project::Mode::Contents),
             "goto" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Source; self.prompt(InputKind::GoToLine); }
-            "focus-mode" => { self.focus_mode = !self.focus_mode; self.focus = Focus::Editor; }
+            "focus-mode" => { self.focus_mode = !self.focus_mode; }
             "settings" => self.modal = Some(Modal::Settings { selected: self.config.language }),
             "tabs" => self.modal = Some(Modal::Tabs(TabManager::new(&self.tabs, self.active, self.config.language))),
             "info" | "file-info" => self.modal = Some(Modal::FileInfo(FileInfo::new(self.document(), self.config.language))),
             "preview" => self.modal = Some(Modal::ReviewOptions { selected: 0 }),
             "review" | "review-tab" => self.open_review_tab(),
             "source" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Source; },
-            "split" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Split; self.focus = Focus::Editor; },
+            "split" => { self.source_tab(); self.tabs[self.active].review.mode = ViewMode::Split; },
             "new" => self.new_blank(),
-            "open-folder" => self.prompt(InputKind::Folder),
-            "explorer" => { if self.focus_mode { self.focus_mode = false; self.explorer_visible = true; } else { self.explorer_visible = !self.explorer_visible; } self.focus = if self.explorer_visible { Focus::Explorer } else { Focus::Editor }; }
-            "focus" => { self.focus_mode = false; self.explorer_visible = true; self.focus = if self.focus == Focus::Editor { Focus::Explorer } else { Focus::Editor }; }
-            "refresh" => self.explorer.refresh(),
             "open" => {
-                let root = self.document().path.as_ref().and_then(|p| p.parent()).filter(|p| !p.as_os_str().is_empty()).map(PathBuf::from).unwrap_or_else(|| self.explorer.root.clone());
+                let root = self.document().path.as_ref().and_then(|p| p.parent()).filter(|p| !p.as_os_str().is_empty()).map(PathBuf::from).unwrap_or_else(|| self.root.clone());
                 self.modal = Some(Modal::FilePicker(Box::new(FilePicker::new(root))));
             }
             "open-path" => self.prompt(InputKind::Open),
@@ -128,8 +122,8 @@ impl App {
             "quit" => self.request_quit(),
             "reload" if self.document().path.is_some() => self.modal = Some(Modal::Confirm { selected: false, action: Action::Reload, message: "Reload from disk and discard this tab's edits/history? Y reload / N cancel".into() }),
             "reload" => self.message = "Untitled buffer has no file to reload".into(),
-            "next" => { self.active = (self.active + 1) % self.tabs.len(); self.focus = Focus::Editor; }
-            "prev" => { self.active = (self.active + self.tabs.len() - 1) % self.tabs.len(); self.focus = Focus::Editor; }
+            "next" => { self.active = (self.active + 1) % self.tabs.len(); }
+            "prev" => { self.active = (self.active + self.tabs.len() - 1) % self.tabs.len(); }
             "help" => {
                 self.help_scroll = 0;
                 self.modal = Some(Modal::Help);

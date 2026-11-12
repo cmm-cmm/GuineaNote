@@ -165,10 +165,8 @@ pub fn received(app: &crate::app::App, event: &crossterm::event::Event) -> Optio
                 KeyCode::F(11) => "focus_mode",
                 KeyCode::Char('p' | 't' | 'n') if ctrl => "tabs",
                 _ if crate::keyboard::tab_command(*key).is_some() => "tabs",
-                KeyCode::Char('e' | 'g') if ctrl => "project_open",
                 KeyCode::Char('f' | 'h') if ctrl => "search_ui",
                 KeyCode::Char('z' | 'y') if ctrl => "history",
-                _ if matches!(&app.modal, Some(crate::app::Modal::Project(_))) => "project_query",
                 _ if matches!(&app.modal, Some(crate::app::Modal::Search(_))) => "search_query",
                 _ if app.modal.is_some() => "dialog_input",
                 KeyCode::End

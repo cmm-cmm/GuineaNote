@@ -42,7 +42,7 @@ def main():
         alpha.write_bytes(original.encode())
         beta=root/"beta.json"
         beta.write_bytes(b'{"name":"GuineaNote"}')
-        ui=Session([str(BINARY),str(root),str(alpha),str(beta)],colors=True)
+        ui=Session([str(BINARY),str(alpha),str(beta)],colors=True)
         try:
             ui.resize(42,148)
             ui.wait("Tabs 2/2")

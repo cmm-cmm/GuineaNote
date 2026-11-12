@@ -6,10 +6,10 @@ use std::path::PathBuf;
     name = "guinea",
     version,
     about = "Unicode-aware terminal text editor",
-    after_help = "Open a folder with: guinea .\nOpen individual files with: guinea a.txt b.txt\nCtrl+B toggles the explorer; F4 switches panes."
+    after_help = "Open files with: guinea a.txt b.txt\nMissing paths become new buffers; Ctrl+O opens the file picker."
 )]
 struct Args {
-    /// Files or a workspace folder. Missing file paths become unsaved buffers.
+    /// Files to open. Missing file paths become unsaved buffers; folders are rejected.
     files: Vec<PathBuf>,
     /// Disable document edits and saves.
     #[arg(long)]

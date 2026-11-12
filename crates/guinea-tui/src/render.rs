@@ -328,7 +328,7 @@ mod tests {
             );
             app.tabs[0].document.insert("text").unwrap();
             let mut terminal = Terminal::new(TestBackend::new(size.0, size.1)).unwrap();
-            for command in ["files", "project-search", "goto", "help"] {
+            for command in ["open-path", "save-as", "goto", "help"] {
                 app.command(command);
                 terminal.draw(|f| draw(f, &mut app)).unwrap();
                 for cell in terminal.backend().buffer().content() {
@@ -348,7 +348,6 @@ mod tests {
             app.command("focus-mode");
             terminal.draw(|f| draw(f, &mut app)).unwrap();
             assert!(app.hits.editor_text.height >= normal);
-            assert_eq!(app.hits.tree.height, 0);
         }
     }
     #[test]
@@ -787,18 +786,15 @@ mod tests {
                 .collect::<Vec<_>>(),
             vec![0, 1]
         );
-        assert!(app.hits.tree.width > 0);
         terminal.backend_mut().resize(50, 10);
         terminal.autoresize().unwrap();
         terminal.draw(|frame| draw(frame, &mut app)).unwrap();
-        assert_eq!(app.hits.tree.width, 0);
         assert!(app.hits.editor.width > 20);
     }
 
     #[test]
-    fn explorer_focus_keeps_global_cancellation_feedback_visible() {
+    fn status_keeps_global_cancellation_feedback_visible() {
         let mut app = App::new(vec![], false, Config::default());
-        app.focus = crate::app::Focus::Explorer;
         app.message = "Cancelled".into();
         let mut terminal = Terminal::new(TestBackend::new(100, 28)).unwrap();
         terminal.draw(|frame| draw(frame, &mut app)).unwrap();
@@ -915,6 +911,83 @@ mod tests {
             assert!(
                 settled.contains(&format!("{expected} ")),
                 "exact column after indexing"
+            );
+        }
+    }
+
+    /// Every clickable region must run something real: main-window actions
+    /// are commands the dispatcher knows, dialog actions are handled by the
+    /// dialog mouse code, and F2 rows are keymap commands. Checked at the
+    /// supported sizes, in both languages, for welcome/editor/focus states
+    /// and with every dialog open.
+    #[test]
+    fn every_clickable_region_maps_to_a_handled_action() {
+        use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+        let mouse_code = concat!(include_str!("mouse_app.rs"), include_str!("search_app.rs"));
+        let mut main_actions = std::collections::BTreeSet::new();
+        let mut modal_actions = std::collections::BTreeSet::new();
+        for locale in [crate::i18n::Locale::En, crate::i18n::Locale::Vi] {
+            for size in [(30, 9), (56, 20), (80, 24), (100, 28), (148, 42)] {
+                for state in 0..3 {
+                    let mut app = App::new(
+                        vec![],
+                        false,
+                        Config {
+                            language: locale,
+                            ..Config::default()
+                        },
+                    );
+                    if state > 0 {
+                        app.handle(Event::Paste("Việt e\u{301} 👩‍💻\nline two".into()));
+                        app.command("new");
+                    }
+                    if state == 2 {
+                        app.command("focus-mode");
+                    }
+                    let mut terminal = Terminal::new(TestBackend::new(size.0, size.1)).unwrap();
+                    terminal.draw(|f| draw(f, &mut app)).unwrap();
+                    main_actions.extend(app.hits.actions.iter().map(|(_, id)| *id));
+                    for open in [
+                        "find",
+                        "tabs",
+                        "settings",
+                        "preview",
+                        "help",
+                        "open",
+                        "goto",
+                        "file-info",
+                        "commands",
+                        "quit",
+                    ] {
+                        app.modal = None;
+                        app.command(open);
+                        terminal.draw(|f| draw(f, &mut app)).unwrap();
+                        modal_actions.extend(app.hits.modal_actions.iter().map(|(_, id)| *id));
+                        for (_, id) in &app.hits.commands {
+                            assert!(crate::commands::find(id).is_some(), "F2 row {id}");
+                        }
+                    }
+                    app.handle(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+                }
+            }
+        }
+        assert!(main_actions.contains("open") && main_actions.contains("tabs"));
+        for id in &main_actions {
+            let mut app = App::new(vec![], false, Config::default());
+            app.command(id);
+            assert!(
+                !app.message.contains("Unknown command"),
+                "main-window button {id} runs no command"
+            );
+        }
+        assert!(
+            modal_actions.contains("cancel") && modal_actions.contains("search-query"),
+            "{modal_actions:?} {main_actions:?}"
+        );
+        for id in &modal_actions {
+            assert!(
+                mouse_code.contains(&format!("\"{id}\"")),
+                "dialog button {id} has no mouse handler"
             );
         }
     }

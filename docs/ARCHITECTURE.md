@@ -120,8 +120,11 @@ review views while other tabs stay editable. Recovery provenance is retained
 separately from save destinations, including across repeated crashes; Agent tab
 listing and snapshots enforce workspace/secret policy on that provenance.
 
-Explorer remains shallow/lazy: one background scan, generation checks, no final
-symlink traversal, 10000-entry visible cap. Mouse actions publish hit rectangles;
+The directory explorer, folder workspaces and project file/content search were
+removed on 12/11/2026 (folder arguments are rejected before the terminal
+starts; the Ctrl+O file picker remains). Mouse actions publish hit rectangles;
+every main-window action and dialog button is checked by a test to map to a
+handled command, and on-screen key labels are generated from the keymap;
 keyboard alternatives remain. Unix uses Crossterm input; the existing safe Windows
 adapter handles UTF-16/repeats/AltGr and native mouse records. Terminal cleanup
 restores raw mode, alternate screen, mouse and cursor on normal exit/panic.

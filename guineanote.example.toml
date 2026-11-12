@@ -4,7 +4,6 @@ language = "vi"
 tab_width = 4
 large_file_warning_bytes = 10485760
 syntax = true
-sidebar_width = 30
 mouse = true
 # Use a 256-color theme for terminals without true color.
 basic_colors = false

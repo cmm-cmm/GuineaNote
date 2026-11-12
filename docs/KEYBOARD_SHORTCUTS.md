@@ -14,8 +14,9 @@ xử lý, thẻ xem trước, tác vụ nền).
 
 ## Chính sách xung đột phím
 
-1. **Giữ phím đã có** của Guinea Note (Ctrl+L đến dòng, Ctrl+G tìm trong project,
-   F6/F7/F8/F10…) để không phá thói quen hiện tại.
+1. **Giữ phím đã có** của Guinea Note (Ctrl+L đến dòng, F6/F7/F8/F10…) để không
+   phá thói quen hiện tại. Phím của chức năng thư mục đã gỡ (Ctrl+K, Ctrl+B,
+   Ctrl+E, Ctrl+G, F4, F5) hiện không gán cho thao tác nào.
 2. **Thao tác mới theo Notepad++** khi terminal truyền được: Ctrl+D nhân đôi,
    Ctrl+←/→ theo từ, Ctrl+Backspace/Delete xóa theo từ, Tab/Shift+Tab thụt khối,
    Ctrl+X/C không chọn = cả dòng. Di chuyển dòng dùng **Alt+↑/↓** (kiểu VS Code)
@@ -29,7 +30,6 @@ xử lý, thẻ xem trước, tác vụ nền).
 | --- | --- | --- |
 | Tạo thẻ | Ctrl+N | Ctrl+T |
 | Mở file / thư mục | Ctrl+O | |
-| Chọn thư mục project | Ctrl+K | |
 | Lưu / lưu thành | Ctrl+S / **Alt+S** | Ctrl+Shift+S |
 | Đóng thẻ / thoát | Ctrl+W / Ctrl+Q | |
 | Quản lý toàn bộ thẻ | **F12** | Ctrl+P |
@@ -83,17 +83,13 @@ Ctrl+F rồi Tab cũng tới ô thay nếu terminal không truyền đúng Ctrl+
 | --- | --- | --- |
 | Hướng dẫn / danh sách thao tác | F1 / F2 | |
 | Tìm kết quả tiếp theo | F3 | |
-| Chuyển soạn thảo / cây thư mục | F4 | |
-| Đọc lại cây thư mục | F5 | |
 | Chọn bố cục xem trước | F8 | |
 | Thông tin file / thiết lập | F9 / F10 | |
 | Chế độ tập trung | F11 | **Shift+F11** |
-| Ẩn/hiện cây thư mục | Ctrl+B | F2 `explorer` |
-| Tìm file / tìm nội dung project | Ctrl+E / Ctrl+G | |
 | Mục lục Markdown | Alt+M | |
 
-Cây thư mục: ↑↓ chọn, → mở nhánh, ← thu, Enter mở, Tab/Esc về editor. Chọn file:
-↑↓/Page chọn, Enter mở, Tab điền, Alt+↑ thư mục cha, Ctrl+U xóa, Esc hủy. Xem
+Chọn file (Ctrl+O):
+↑↓/Page chọn, Enter mở, Tab điền, Alt+Up thư mục cha, Ctrl+U xóa, Esc hủy. Xem
 trước: mũi tên/Page/Home/End cuộn, Esc về nguồn. Xác nhận mặc định **Tiếp
 tục/Keep working**; Tab/←→ chọn, Enter chạy, Y xác nhận bỏ, N/Esc hủy.
 
@@ -114,16 +110,25 @@ trên từng terminal.
 | Alt+← → ↑ ↓ | Windows Terminal khi có nhiều pane (chuyển pane); macOS Terminal gửi Option+←/→ thành Alt+B/F | F6 / F7; F2 `move-line-up/down`; Alt+B/F vẫn là di chuyển theo từ |
 | Ctrl+Shift+chữ (S, Z, R) | Mã hóa terminal cũ không phân biệt với Ctrl+chữ; Windows Terminal dành Ctrl+Shift+T/W/P/F/C/V | Alt+S, Ctrl+Y, Alt+A |
 | Ctrl+Shift+↑ / ↓ | Windows Terminal: cuộn | Alt+↑ / Alt+↓ |
-| Ctrl+B / Ctrl+A | tmux / GNU screen dùng làm prefix | F2 `explorer`, F4; F2 `select-all` |
+| Ctrl+A | GNU screen dùng làm prefix | F2 `select-all` |
 | Ctrl+Backspace | Nhiều terminal Unix gửi `^H`, crossterm đọc thành Ctrl+H (mở Thay thế) | **Alt+Backspace** |
 | Ctrl+C | Windows Terminal: sao chép khi đang có vùng chọn của terminal | F2 `copy` |
 | Ctrl+V | Windows Terminal: tự dán (vẫn vào editor như một lần dán) | — |
-| Ctrl+P, Ctrl+E, Ctrl+K, Ctrl+G | Terminal tích hợp của VS Code có thể giữ cho lệnh của VS Code | F12, F2 |
+| Ctrl+P | Terminal tích hợp của VS Code có thể giữ cho lệnh của VS Code | F12, F2 |
 | Ctrl+M, Ctrl+I, Ctrl+[, Ctrl+J | Là Enter, Tab, Esc, LF | Không gán cho thao tác nào |
 
 Ctrl+S, Ctrl+Q, Ctrl+Z và Ctrl+Y không bị hiểu thành XON/XOFF/tạm dừng vì Guinea
 Note bật raw mode. Trên Windows, adapter đọc mã phím ảo nên phân biệt được
 Ctrl+Backspace với Ctrl+H và Ctrl+Shift+chữ với Ctrl+chữ.
+
+## Đồng bộ phím và chuột
+
+Mọi nhãn phím trên header, thanh công cụ thẻ, chân trang và màn hình chào được
+sinh từ bảng phím (`commands::short_key`, `commands::hints`), không viết tay.
+Test kiểm tra: mọi vùng bấm của cửa sổ chính chạy một lệnh hợp lệ và mọi nút
+trong hộp thoại có bộ xử lý chuột (5 kích thước × 2 ngôn ngữ × chào/soạn
+thảo/tập trung, mỗi hộp thoại); hướng dẫn F1 và chuỗi giao diện chỉ nhắc phím có
+trong bảng phím hoặc phím ngữ cảnh của hộp thoại.
 
 Ảnh bảng phím v1 (EN/VI, 30×9): [docs/diagnostics/keymap-v1](diagnostics/keymap-v1/manifest.json).
 Ảnh trong `diagnostics/keyboard/` là bằng chứng lịch sử trước khi đổi F7/F8/F10.

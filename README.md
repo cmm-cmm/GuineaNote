@@ -8,8 +8,10 @@ Keyboard-only workflow: one Find/Replace panel, F12/Ctrl+P tab manager,
 F6/F7 or Alt+Left/Right tab switching, and a scrollable F1 guide.
 See the [complete shortcut reference](docs/KEYBOARD_SHORTCUTS.md).
 
-New terminal workflow: Ctrl+E project files, Ctrl+G disk content search,
-F2 searchable command suggestions and `goto`, F11 focus mode, ANSI16 fallback.
+Terminal workflow: F2 searchable command suggestions and `goto`, F11 /
+Shift+F11 focus mode, ANSI16 fallback. Folder features (directory tree, open
+folder, project file/content search, `guinea <folder>`) were removed on
+12/11/2026 to keep the editor simple; Ctrl+O still opens a file picker.
 The main menu and tab-management toolbar have a dedicated separator, including
 compact layouts. Current performance policy investigates every interaction >50 ms;
 see [targets](docs/performance/INTERACTION_LATENCY_TARGETS.md).
@@ -23,7 +25,7 @@ see [implementation status](docs/IMPLEMENTATION_STATUS.md) for verified scope.
 ```sh
 cargo build --release
 cargo run -- file.txt
-cargo run --release -- --language vi .
+cargo run --release -- --language vi notes.md
 cargo run -- --help
 ```
 
@@ -34,31 +36,26 @@ tools on Windows). During development checks run locally; GitHub Actions/CI
 is intentionally not configured. Linux/macOS runtime verification remains
 pending. No package has been published.
 
-Open a workspace with `guinea .` or `cargo run -- .` during development.
-No arguments show the current directory and welcome screen. Open a standalone
-file with `guinea file.txt`, or combine a folder and files with
-`guinea . src/main.rs README.md`.
+Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
+show the welcome screen. A folder argument is rejected with a message before the
+terminal starts; use Ctrl+O to pick a file.
 
-The workspace has a lazy directory tree, tab strip, breadcrumbs, syntax colors,
-current-line highlighting and a status/shortcut bar. Directories expand on
-demand; opening a folder does not replace dirty tabs. Select with Up/Down,
-expand/collapse with Right/Left, and open with Enter. Click tree rows, tabs or
-toolbar actions, or place the editor caret, when mouse support is enabled. Use F4 to switch panes; Tab/Esc
-returns from the tree to the editor. The sidebar hides automatically below
-66 columns. Recommended workspace size: 100×28 or larger.
+The window has a tab strip, breadcrumbs, syntax colors, current-line
+highlighting and a status/shortcut bar. Click tabs or toolbar actions, or place
+the editor caret, when mouse support is enabled. Every key label on buttons,
+the tab toolbar and the footer is generated from the keymap, so labels always
+match the active bindings. Recommended size: 100×28 or larger.
 
 Open several files with `guinea a.txt b.txt`. Missing paths become buffers;
 files are created only on save. Use `--readonly` to prevent edits and saves,
 `--config guineanote.example.toml` for explicit TOML configuration, and
 `--help` / `--version` without entering the terminal UI. An interactive terminal
-is required to edit or browse. Folder browsing was added at the user's request
-after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
+is required to edit. Folder browsing, added after the original MVP scope
+([redesign notes](docs/UI_REDESIGN.md)), was removed again on 12/11/2026.
 
 | Keys | Action |
 | --- | --- |
 | Ctrl+N / Ctrl+O / Ctrl+S | New / open / save |
-| Ctrl+K / Ctrl+B | Open folder / toggle directory tree |
-| F4 / F5 | Switch pane / refresh directory listing |
 | Alt+S / Ctrl+Shift+S | Save to a new path |
 | Ctrl+W / Ctrl+Q | Close tab / quit (dirty buffers require confirmation) |
 | Ctrl+Z / Ctrl+Y | Undo / redo |
