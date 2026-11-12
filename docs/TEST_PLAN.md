@@ -138,6 +138,17 @@ See [workflow limits](TERMINAL_WORKFLOW.md) and [baseline](performance/LATENCY_B
 Rust checks cover project ignore/cancel/stale result behavior, safe dirty-buffer
 jumps, grapheme goto/out-of-range, focus/palette, ANSI16 and narrow layouts.
 
+## Session restore — 2026-11-12
+
+`python -X utf8 scripts/pty_session.py` (after a release build) runs five
+native cases with a private preferences/session folder: exit records the open
+files; a bare `guinea` reopens both tabs with the previous active tab and the
+caret at a grapheme column after an NFD "é" (typed text and Ctrl+S keep the
+CRLF/emoji bytes exact); files named on the command line skip the restore and
+replace the record; a vanished file is skipped and reported; `session = false`
+neither restores nor rewrites the record. Rust tests cover damaged/absent
+records, duplicate entries, positions past a changed file and atomic rewrite.
+
 ## Dialog, mouse and search coverage
 
 After building release binaries, run sequentially:

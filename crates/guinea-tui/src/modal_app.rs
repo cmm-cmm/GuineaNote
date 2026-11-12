@@ -291,7 +291,11 @@ impl App {
 /// multi-MiB line never copies or segments the whole line. Grapheme starts
 /// before the prefix's last cluster do not depend on text beyond the prefix;
 /// the prefix end itself only counts at the true line end.
-fn grapheme_column_to_char(document: &Document, line: usize, column: usize) -> Option<usize> {
+pub(super) fn grapheme_column_to_char(
+    document: &Document,
+    line: usize,
+    column: usize,
+) -> Option<usize> {
     use guinea_core::TextBuffer;
     let bounds = document.line_bounds(line).ok()?;
     let mut length = column.saturating_mul(4).saturating_add(64);

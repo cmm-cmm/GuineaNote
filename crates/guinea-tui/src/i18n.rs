@@ -331,6 +331,18 @@ impl Locale {
                     (false, false) => "read-only",
                 }
             ),
+            Msg::SessionRestored { files, missing: 0 } if vi => {
+                format!("Đã mở lại phiên trước: {files} file")
+            }
+            Msg::SessionRestored { files, missing: 0 } => {
+                format!("Previous session reopened: {files} file(s)")
+            }
+            Msg::SessionRestored { files, missing } if vi => format!(
+                "Đã mở lại phiên trước: {files} file; bỏ qua {missing} file đã mất hoặc không mở được"
+            ),
+            Msg::SessionRestored { files, missing } => format!(
+                "Previous session reopened: {files} file(s); skipped {missing} missing or unreadable file(s)"
+            ),
         }
     }
 }
@@ -352,6 +364,11 @@ pub enum Msg<'a> {
     AgentSession {
         session: &'a str,
         write: bool,
+    },
+    /// Previous session reopened; `missing` files no longer existed.
+    SessionRestored {
+        files: usize,
+        missing: usize,
     },
 }
 

@@ -16,5 +16,8 @@ clipboard = "auto"
 
 # Private periodic draft checkpoints; source files still save explicitly.
 recovery = true
+# Reopen the last session's files, carets and active tab when `guinea` is run
+# without file arguments (paths and positions only, never file contents).
+session = true
 # NO_COLOR is honored by default. Set explicitly to override it.
 # no_color = true

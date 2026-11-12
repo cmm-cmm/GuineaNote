@@ -1026,7 +1026,14 @@ mod tests {
             Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
         };
         use ratatui::style::Modifier;
-        let mut app = App::new(vec![], false, Config::default());
+        // The palette assertions below need the colour theme, whatever TERM
+        // or NO_COLOR the test runs under (TERM=linux selects ANSI-16).
+        let config = Config {
+            ansi_colors: false,
+            no_color: false,
+            ..Config::default()
+        };
+        let mut app = App::new(vec![], false, config);
         app.handle(Event::Paste(
             "let total = f(total);\ntotal += 1;\nnext".into(),
         ));

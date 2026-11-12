@@ -95,7 +95,7 @@ pub struct Tab {
 }
 
 impl Tab {
-    fn new(document: Document) -> Self {
+    pub(crate) fn new(document: Document) -> Self {
         static NEXT_TAB: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
         Self {
             id: NEXT_TAB.fetch_add(1, std::sync::atomic::Ordering::Relaxed),
@@ -249,6 +249,8 @@ pub struct App {
     pending: Option<Receiver<Completed>>,
     worker: Option<thread::JoinHandle<()>>,
     queued: VecDeque<PathBuf>,
+    /// Positions and active tab still to apply from the previous session.
+    pub session: Option<crate::session::Restore>,
 }
 
 impl App {
@@ -304,6 +306,7 @@ impl App {
             pending: None,
             worker: None,
             queued: files.into(),
+            session: None,
         }
     }
 
@@ -624,6 +627,11 @@ impl App {
         match completed.result {
             Err(WorkerError::File(FileError::LargeFile { size, limit })) => {
                 if let Job::Open { path, replace, .. } = completed.job {
+                    // Confirming still opens the file, just at its start.
+                    if let Some(session) = self.session.as_mut() {
+                        session.deferred(&path);
+                    }
+                    self.session_file_done(&path, None);
                     self.modal = Some(Modal::Confirm {
                         selected: false,
                         action: Action::OpenLarge { path, replace },
@@ -633,6 +641,9 @@ impl App {
             }
             Err(error) => {
                 self.message = error.to_string();
+                if let Job::Open { path, .. } = &completed.job {
+                    self.session_file_done(path, None);
+                }
             }
             Ok(mut document) => {
                 match completed.job {
@@ -697,9 +708,55 @@ impl App {
                             self.active = self.tabs.len() - 1;
                             self.message = "Opened".into();
                         }
+                        if let Some(path) = self.document().path.clone() {
+                            let index = self.active;
+                            self.session_file_done(&path, Some(index));
+                        }
                     }
                 }
             }
+        }
+    }
+
+    /// One queued session file finished opening (`Some(tab index)`) or did not
+    /// (counted as skipped unless already deferred). Restores its caret; after
+    /// the last one, reselects the previously active tab and reports the
+    /// restore (an open error stays visible when nothing else reopened).
+    fn session_file_done(&mut self, path: &std::path::Path, opened: Option<usize>) {
+        let Some(session) = self.session.as_mut() else {
+            return;
+        };
+        match opened {
+            Some(index) => {
+                if let Some((line, column)) = session.opened(path) {
+                    let document = &self.tabs[index].document;
+                    let at = modal_ui::grapheme_column_to_char(document, line, column)
+                        .or_else(|| document.line_bounds(line).ok().map(|b| b.start));
+                    if let Some(at) = at
+                        && self.tabs[index].document.select(at, at).is_ok()
+                    {
+                        self.tabs[index].follow_cursor = true;
+                    }
+                }
+            }
+            None => session.failed(path),
+        }
+        if !session.is_empty() {
+            return;
+        }
+        let mut session = self.session.take().expect("checked above");
+        if let Some(active) = session.take_active()
+            && let Some(index) = self.tabs.iter().position(|t| {
+                t.review_source.is_none() && t.document.path.as_deref() == Some(active.as_path())
+            })
+        {
+            self.active = index;
+        }
+        if session.total > 0 || session.missing > 1 {
+            self.message = self.config.language.render(Msg::SessionRestored {
+                files: session.total,
+                missing: session.missing,
+            });
         }
     }
 
@@ -1582,6 +1639,82 @@ mod tests {
             assert!(std::time::Instant::now() < deadline, "worker timed out");
             thread::sleep(std::time::Duration::from_millis(2));
         }
+    }
+
+    #[test]
+    fn previous_session_reopens_tabs_carets_and_active_tab() {
+        let dir = tempfile::tempdir().unwrap();
+        let a_path = dir.path().join("a.txt");
+        let b_path = dir.path().join("b.rs");
+        let gone = dir.path().join("gone.txt");
+        std::fs::write(&a_path, "alpha\nbeta e\u{301}x\n").unwrap();
+        std::fs::write(&b_path, "fn main() {}\n").unwrap();
+        std::fs::write(&gone, "x").unwrap();
+        let session = dir.path().join("session.toml");
+        {
+            let mut first = App::new(
+                vec![a_path.clone(), gone.clone(), b_path.clone()],
+                false,
+                Config::default(),
+            );
+            drain_jobs(&mut first);
+            first.active = 0;
+            first.submit(InputKind::GoToLine, "2:7".into());
+            assert_eq!(first.document().position(), (1, 6));
+            first.new_blank();
+            first.active = 2;
+            crate::session::save(&session, &first.tabs, first.active).unwrap();
+        }
+        std::fs::remove_file(&gone).unwrap();
+
+        let (files, restore, missing) = crate::session::Restore::load(&session);
+        assert_eq!(missing, 1);
+        let mut a = App::new(files, false, Config::default());
+        a.session = Some(restore);
+        drain_jobs(&mut a);
+        assert!(a.session.is_none(), "every queued file was handled");
+        let paths: Vec<_> = a.tabs.iter().map(|t| t.document.path.clone()).collect();
+        assert_eq!(paths, vec![Some(a_path.clone()), Some(b_path.clone())]);
+        assert_eq!(a.active, 1, "b.rs was the active file tab");
+        assert_eq!(a.tabs[0].document.position(), (1, 6), "grapheme caret kept");
+        assert_eq!(
+            a.message,
+            "Previous session reopened: 2 file(s); skipped 1 missing or unreadable file(s)"
+        );
+    }
+
+    #[test]
+    fn session_positions_beyond_a_changed_file_fall_back_safely() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("short.txt");
+        std::fs::write(&path, "one\ntwo\n").unwrap();
+        let session = dir.path().join("session.toml");
+        std::fs::write(
+            &session,
+            format!(
+                "version = 1\nactive = 0\n[[files]]\npath = {:?}\nline = 1\ncolumn = 99\n",
+                path.to_str().unwrap()
+            ),
+        )
+        .unwrap();
+        let (files, restore, _) = crate::session::Restore::load(&session);
+        let mut a = App::new(files, false, Config::default());
+        a.session = Some(restore);
+        drain_jobs(&mut a);
+        assert_eq!(a.document().position(), (1, 0), "line kept, column clamped");
+        std::fs::write(
+            &session,
+            format!(
+                "version = 1\n[[files]]\npath = {:?}\nline = 500\ncolumn = 0\n",
+                path.to_str().unwrap()
+            ),
+        )
+        .unwrap();
+        let (files, restore, _) = crate::session::Restore::load(&session);
+        let mut a = App::new(files, false, Config::default());
+        a.session = Some(restore);
+        drain_jobs(&mut a);
+        assert_eq!(a.document().cursor(), 0, "missing line stays at the start");
     }
 
     #[test]

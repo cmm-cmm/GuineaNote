@@ -14,6 +14,7 @@ mod recovery;
 mod render;
 mod review;
 mod search;
+mod session;
 mod syntax_state;
 mod tab_manager;
 mod theme;
@@ -128,8 +129,32 @@ pub fn run_with_agent(
         write_times.clone(),
     )))?;
     let mut interactions = trace::Frames::default();
+    let preferences_path = preferences::path();
+    // Notepad++-style session: reopened only when no files were named.
+    let session_path = session::path(preferences_path.as_deref()).filter(|_| config.session);
+    let mut files = files;
+    let mut restore = None;
+    if files.is_empty()
+        && let Some(path) = &session_path
+    {
+        let (queued, loaded, _) = session::Restore::load(path);
+        files = queued;
+        restore = Some(loaded);
+    }
     let mut app = app::App::new(files, readonly, config);
-    app.preferences.path = preferences::path();
+    if let Some(restore) = restore {
+        if restore.is_empty() {
+            if restore.missing > 0 {
+                app.message = app.config.language.render(i18n::Msg::SessionRestored {
+                    files: 0,
+                    missing: restore.missing,
+                });
+            }
+        } else {
+            app.session = Some(restore);
+        }
+    }
+    app.preferences.path = preferences_path;
     app.recovery = recovery::Recovery::start(app.preferences.path.clone(), app.config.recovery);
     let mut input = input::Input::new();
     if agent.enabled {
@@ -207,6 +232,12 @@ pub fn run_with_agent(
             }
             app.end_input(drained);
         }
+    }
+    if let Some(path) = &session_path {
+        let _span = trace::span("session_save");
+        // Best effort: a failed session write must not lose the exit status
+        // of drafts/recovery below, and there is no screen left to report on.
+        let _ = session::save(path, &app.tabs, app.active);
     }
     {
         let _span = trace::span("recovery_finish");

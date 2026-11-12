@@ -220,6 +220,13 @@ automatically. Set `recovery = false` in TOML to disable it. Drafts are private
 local plaintext with quotas; the last uncheckpointed edits can still be lost.
 See [file safety](docs/FILE_SAFETY.md) for storage paths and limits.
 
+Like Notepad++'s "remember current session", a normal exit records the open
+file tabs, each caret (line and grapheme column) and the active tab. Running
+`guinea` without file arguments reopens them; files named on the command line
+open instead, missing or unreadable files are skipped with a status message, and untitled or
+review tabs are not recorded (unsaved text stays with recovery drafts). Set
+`session = false` in TOML to neither restore nor record it.
+
 History defaults to 2048 Undo/Redo transactions and 64 MiB charged edit payload,
 retaining the nearest transaction even if oversized. Old steps are trimmed with
 feedback; F9 reports their counts. This is not a process-RAM limit. The

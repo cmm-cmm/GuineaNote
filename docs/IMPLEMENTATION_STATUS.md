@@ -1,5 +1,20 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (4) — session restore (M8)
+
+| Change | Detail |
+| --- | --- |
+| Session | Notepad++-style "remember current session": a normal exit writes `session.toml` (open file tabs, caret line + grapheme column, active tab; paths only). A launch without file arguments reopens them through the normal loader; named files win; missing or unreadable files are skipped and reported; `session = false` disables reading and writing. See FILE_SAFETY.md |
+| Test fix | `bookmarks_smart_highlight_and_brackets_are_painted` no longer depends on TERM/NO_COLOR (it failed under TERM=linux, which selects ANSI-16) |
+
+Verification (Linux x86_64 cloud container, kernel 6.18, Python PTY + pyte,
+Rust 1.99.1 for tests and 1.98.1 for rustfmt/strict Clippy): 181 Rust tests;
+new `pty_session.py` (5 cases) and the existing smoke, panic cleanup, recovery,
+tabs, keyboard, dialogs/reader, search, dialog/mouse and terminal-matrix probes
+pass. Interaction corpus: 1,540 PTY samples, max 13.8 ms; application warm max
+5.1 ms; 0 samples above 50 ms, 0 dropped rows. Windows was not re-run for this
+change; the input path is unchanged (session work happens at startup and exit).
+
 ## Checkpoint 12/11/2026 (3) — bookmarks, smart highlighting, native Linux
 
 | Commit | Change |

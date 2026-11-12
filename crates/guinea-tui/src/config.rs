@@ -14,6 +14,8 @@ pub struct Config {
     pub basic_colors: bool,
     pub mouse: bool,
     pub recovery: bool,
+    /// Reopen the previous session's files when launched without files.
+    pub session: bool,
     pub no_color: bool,
     pub ansi_colors: bool,
     /// `auto`, `system`, `osc52` or `internal`; see `clipboard.rs`.
@@ -33,6 +35,7 @@ impl Default for Config {
                     .is_ok_and(|value| matches!(value.as_str(), "truecolor" | "24bit")),
             mouse: true,
             recovery: true,
+            session: true,
             no_color: std::env::var_os("NO_COLOR").is_some_and(|value| !value.is_empty()),
             ansi_colors: std::env::var("TERM")
                 .is_ok_and(|term| matches!(term.as_str(), "linux" | "vt100" | "vt102" | "ansi")),

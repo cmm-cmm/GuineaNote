@@ -63,6 +63,23 @@ writer can still change a path after the final check, and ancestor-directory
 races/network filesystems are outside this guarantee. File locking is advisory
 for recovery sessions, not an exclusion lock against every external file writer.
 
+## Session
+
+A normal exit writes `session.toml` (format version 1): absolute UTF-8 paths of
+the open file tabs (at most 64), each caret as 0-based line and grapheme column,
+and the active tab. It never contains document text; dirty content is protected
+only by recovery drafts. The file is replaced atomically (temporary file in the
+same folder, sync, rename). Location: GUINEANOTE_SESSION; else a sibling of an
+explicit GUINEANOTE_PREFERENCES; else %LOCALAPPDATA%/GuineaNote/session.toml on
+Windows and $XDG_STATE_HOME/GuineaNote/session.toml (or
+~/.local/state/GuineaNote/session.toml) on Unix. A crash does not update it.
+
+Only a launch without file arguments reads it. Missing, unreadable or damaged
+sessions restore nothing; vanished or unreadable files are skipped and counted; a caret past
+the end of a changed file falls back to the start of its line or the document.
+Opening goes through the same strict loader, size confirmation and conflict
+checks as Ctrl+O. `session = false` disables both reading and writing.
+
 ## Crash recovery
 
 Enabled by default; set recovery = false in explicit TOML to disable it.
