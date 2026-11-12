@@ -1,0 +1,24 @@
+fmt exit=0 seconds=0
+clippy exit=0 seconds=0
+test exit=0 seconds=8
+build-release exit=0 seconds=11
+build-panic-example exit=0 seconds=1
+pip exit=0 seconds=8
+unittest-observer exit=0 seconds=0
+smoke exit=0 seconds=9
+panic-cleanup exit=0 seconds=0
+keyboard exit=0 seconds=1
+dialogs-reader exit=0 seconds=2
+search exit=0 seconds=1
+tabs exit=0 seconds=2
+dialog-mouse exit=0 seconds=1
+agent exit=0 seconds=3
+recovery exit=0 seconds=3
+terminal-matrix exit=0 seconds=0
+clipboard exit=0 seconds=1
+latency-trace exit=0 seconds=11
+latency-no-trace exit=0 seconds=11
+navigation exit=0 seconds=3
+navigation-unprepared-2cpu exit=0 seconds=4
+navigation-unprepared-1cpu exit=0 seconds=3
+done

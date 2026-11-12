@@ -297,7 +297,38 @@ cargo clippy --locked --workspace --all-targets --target x86_64-unknown-linux-gn
 cargo clippy --locked --workspace --all-targets --target aarch64-apple-darwin -- -D warnings
 ```
 
-These checks do not link or execute native binaries. The Unix PTY helper now
+These checks do not link or execute native binaries.
+
+### Native Linux x86_64 in a container
+
+With Docker running, from the repository root:
+
+```sh
+bash scripts/linux/run.sh
+```
+
+It builds `scripts/linux/Dockerfile` (Rust 1.98 on Debian 12 with rustfmt,
+Clippy, Python, xclip, Xvfb and DejaVu fonts), copies the working tree and git
+history into the `guinea-linux-work` volume, and runs `scripts/linux/verify.sh`:
+fmt, strict Clippy, workspace tests, release build, then every PTY probe in the
+Windows order plus `pty_clipboard.py` against a private Xvfb X server, the
+interaction-latency corpus with and without trace, and navigation on 12/2/1
+CPUs. Results land in `target/linux-out/`. Do not run it while Windows probes
+are measuring latency: the container shares the CPUs.
+
+Scope: a Linux kernel (WSL2 6.6 under Docker Desktop) driven through Python's
+`pty` and pyte — not GNOME Terminal/Konsole/xterm, Wayland, SSH or tmux.
+First run 12/11/2026 (HEAD 79073e9 + working tree): the gate and all 17 probe
+steps pass;
+see `docs/diagnostics/linux-container/`.
+
+`python -X utf8 scripts/pty_clipboard.py --use-system-clipboard` is the only
+probe that uses the real system clipboard: Ctrl+A/Ctrl+C of a Unicode CRLF
+document must reach the OS clipboard byte for byte and OS text must paste and
+save exactly. It saves and restores the previous clipboard text and refuses to
+run when the clipboard holds an image or files.
+
+The Unix PTY helper now
 creates a controlling terminal/session so /dev/tty and resize SIGWINCH can work
 on a native Unix validation run. Screen waits inspect the current emulated screen,
 not historical output. `python scripts/pty_latency.py` records narrow native

@@ -59,8 +59,9 @@ hard RSS bound; parser ignore và allocation hệ thống cần profile riêng.
 `NO_COLOR`, `no_color`, `basic_colors` (256 màu), `ansi_colors` (16 màu), truecolor.
 TERM linux/vt100/vt102/ansi chọn ANSI16 mặc định. Không bắt buộc Nerd Font.
 `mouse=false` cho keyboard-only. Clipboard: `clipboard = "auto"` dùng bộ nhớ tạm
-hệ thống khi chạy local (Windows API; pbcopy/wl-copy/xclip/xsel chưa kiểm chứng
-runtime), bộ nhớ nội bộ khi qua SSH; `"osc52"` sao chép qua terminal (tối đa 74 KiB),
+hệ thống khi chạy local (Windows API và xclip/X11 đã kiểm chứng bằng
+`scripts/pty_clipboard.py`; pbcopy, wl-copy, xsel chưa kiểm chứng runtime),
+bộ nhớ nội bộ khi qua SSH; `"osc52"` sao chép qua terminal (tối đa 74 KiB),
 `"internal"` không chạm bộ nhớ tạm hệ thống. Probe đặt `GUINEANOTE_CLIPBOARD=internal`.
 
 Windows legacy console adapter nhận LF và ghép Enter/LF liền kề trong cửa sổ
@@ -71,8 +72,9 @@ và CR/LF bị chia/trễ có thể mơ hồ. Không coi đây là chứng nhậ
 `scripts/terminal_matrix.py` chạy 6 cấu hình local, hoặc `--tmux`, hoặc
 `--ssh user@host --remote-binary /path/to/guinea` trên host được cung cấp rõ.
 Không cài binary/service hoặc sửa SSH config. Fixture riêng, byte verify,
-cleanup terminal và raw logs được giữ. Máy hiện tại chỉ kiểm chứng native
-Windows/ConPTY; Linux/macOS/SSH/tmux chưa có runtime evidence.
+cleanup terminal và raw logs được giữ. Đã kiểm chứng native Windows/ConPTY và
+Linux x86_64 trong container Debian 12 (PTY của Python, không phải terminal
+emulator thật); macOS/SSH/tmux chưa có runtime evidence.
 
 GitHub Actions chưa kích hoạt. Build/release matrix native, artifact/checksum,
 SBOM, package availability và install/rollback là release gates còn mở.

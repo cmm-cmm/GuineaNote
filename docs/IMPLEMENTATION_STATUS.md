@@ -1,5 +1,28 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (3) — bookmarks, smart highlighting, native Linux
+
+| Commit | Change |
+| --- | --- |
+| 79073e9 | Bookmarks (Ctrl+F2 / gutter click, Alt+F2 / Shift+F2, F2 copy/remove/clear) following edits, Undo and Redo; smart highlighting of the selected word in visible lines; bracket pair highlight (64 Ki-scalar window) |
+| next | Native Linux x86_64 verification (`scripts/linux/`); fixes it found: Unix-only Clippy error in `clipboard.rs`, duplicate recovered drafts after a crash during checkpoint handoff, `pty_agent` lease-wait race; live clipboard probe `pty_clipboard.py` |
+
+Verification on that tree, sequentially:
+
+- Windows x64 MSVC release, ConPTY: 182 Rust tests, rustfmt, strict Clippy;
+  all 17 probe steps pass including the real system clipboard (copy and paste
+  byte-exact, previous text restored). Interaction corpus 1,540 PTY samples per
+  run, application max 4.4 ms, PTY max 27.4 / 29.5 ms trace on/off; navigation
+  max 21.0 / 23.8 / 27.5 ms on 12/2/1 CPUs; nothing above 50 ms, 0 dropped rows.
+- Linux x86_64, Debian 12 container (WSL2 kernel 6.6), Python PTY: 176 Rust
+  tests (5 repeated runs), rustfmt, strict Clippy; all 17 probe steps pass,
+  clipboard through xclip on a private Xvfb display. PTY max 6.4 / 6.2 ms,
+  application max 4.2 ms; navigation max 7.6 / 6.8 / 6.6 ms on 12/2/1 CPUs.
+
+Evidence: [docs/diagnostics/linux-container](diagnostics/linux-container/manifest.json).
+Open: macOS, ARM, real Linux terminal emulators, Wayland clipboard, SSH/tmux;
+Up/Down from a pending long line; startup resize on one pinned CPU (Windows).
+
 ## Checkpoint 12/11/2026 (2) — folder removal, key/mouse sync, M7 tools
 
 | Commit | Change |

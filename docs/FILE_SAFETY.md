@@ -93,7 +93,11 @@ retained on failure; corrupt/unknown leftovers are retained with a warning.
 Explicit clean/closed records free space before quota evaluation. No automatic
 old-draft deletion is used to make space. Storage failure warns to save manually.
 
-Only a successful new checkpoint retires its previous recovered origin. Normal
+Only a successful new checkpoint retires its previous recovered origin. A crash
+between that commit and the origin's removal leaves two identical checkpoints;
+on the next start drafts with the same source, BOM and bytes are offered once
+and the identical copy is deleted (the survivor stays on disk). Different drafts
+of the same file are never merged. Normal
 quit after deliberate save/discard removes acknowledged drafts. A quick quit
 before recovered tabs are delivered retains unseen drafts. Panic/disconnect/
 process kill preserves the last committed checkpoint. Checkpoints are periodic,

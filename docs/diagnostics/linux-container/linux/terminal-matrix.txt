@@ -1,0 +1,76 @@
+{
+  "observer_platform": "Linux-6.6.87.2-microsoft-standard-WSL2-x86_64-with-glibc2.36",
+  "transport": "local PTY",
+  "tmux_requested": false,
+  "cases": [
+    {
+      "case": "truecolor",
+      "status": "PASS",
+      "viewport": [
+        100,
+        28
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 83,
+      "elapsed_ms": 66.265
+    },
+    {
+      "case": "80x24",
+      "status": "PASS",
+      "viewport": [
+        80,
+        24
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 61,
+      "elapsed_ms": 78.347
+    },
+    {
+      "case": "40x12",
+      "status": "PASS",
+      "viewport": [
+        40,
+        12
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 60,
+      "elapsed_ms": 71.859
+    },
+    {
+      "case": "monochrome",
+      "status": "PASS",
+      "viewport": [
+        80,
+        24
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 41,
+      "elapsed_ms": 77.929
+    },
+    {
+      "case": "ansi16",
+      "status": "PASS",
+      "viewport": [
+        80,
+        24
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 58,
+      "elapsed_ms": 82.289
+    },
+    {
+      "case": "keyboard-only",
+      "status": "PASS",
+      "viewport": [
+        80,
+        24
+      ],
+      "exact_paste_save": true,
+      "cursor_output_bytes_observed": 61,
+      "elapsed_ms": 78.412
+    }
+  ],
+  "github_actions": false,
+  "coverage_note": "Only the selected runtime/transport is exercised; no cross-platform certification.",
+  "status": "PASS"
+}

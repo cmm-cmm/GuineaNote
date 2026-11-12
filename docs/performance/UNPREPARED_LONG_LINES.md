@@ -69,7 +69,10 @@ corpus 2,050 input-to-flush samples, application max 5.2 ms, PTY max 28.1 /
 - Up/Down from a pending long line still computes the preferred column
   synchronously.
 - Completion on one CPU is 74–195 ms; the editor stays responsive meanwhile.
-- Only Windows/ConPTY was measured; Linux/macOS remain unverified.
+- Linux x86_64 (Debian 12 container, Python PTY, 12/11): navigation including
+  the unprepared fixtures max 7.6 / 6.8 / 6.6 ms on 12/2/1 CPUs, no
+  investigation ([evidence](../diagnostics/linux-container/manifest.json)).
+  macOS remains unverified.
 
 Evidence: [docs/diagnostics/unprepared-lines](../diagnostics/unprepared-lines/manifest.json)
 (reports with binary hashes and SHA-256 manifest).

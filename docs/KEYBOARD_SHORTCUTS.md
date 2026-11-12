@@ -145,4 +145,6 @@ trong bảng phím hoặc phím ngữ cảnh của hộp thoại.
 Ảnh trong `diagnostics/keyboard/` là bằng chứng lịch sử trước khi đổi F7/F8/F10.
 
 Kiểm chứng Windows/ConPTY với `mouse = false`: `python -X utf8 scripts/pty_keyboard.py`.
-Runtime Linux/macOS/SSH vẫn được ghi riêng theo phạm vi dự án.
+Probe này cũng đạt trên Linux x86_64 (container Debian 12, PTY của Python). Xung
+đột phím của từng terminal emulator Linux/macOS và SSH chưa được kiểm chứng
+runtime.

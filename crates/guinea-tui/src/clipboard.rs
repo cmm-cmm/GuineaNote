@@ -263,12 +263,13 @@ mod system {
             let Ok(mut child) = child else {
                 continue;
             };
-            if let Some(mut stdin) = child.stdin.take() {
-                if let Err(error) = stdin.write_all(text.as_bytes()) {
-                    last = error.to_string();
-                    let _ = child.wait();
-                    continue;
-                }
+            // The pipe is closed at the end of this statement, so the tool sees EOF.
+            if let Some(mut stdin) = child.stdin.take()
+                && let Err(error) = stdin.write_all(text.as_bytes())
+            {
+                last = error.to_string();
+                let _ = child.wait();
+                continue;
             }
             match child.wait() {
                 Ok(status) if status.success() => return Ok(()),

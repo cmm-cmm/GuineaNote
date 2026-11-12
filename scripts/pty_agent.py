@@ -163,10 +163,14 @@ def main():
 
             # Cancellation while parsing must release the live-document lease
             # and update a tab manager that was opened while the lease existed.
+            # The save reply can arrive before its lease release is painted;
+            # "AI 1" must then not be mistaken for the analysis lease (on fast
+            # Linux PTYs the tab manager opened before the analysis acquired).
+            ui.wait_until(lambda lines: "AI 1" not in "\n".join(lines))
             client = Mcp(root, True, session_id)
             try:
                 cancel_id = client.send("tools/call", {"name": "analyze_document", "arguments": {"document": large_doc["document"]}})
-                ui.wait("AI 1")
+                ui.wait("AI · large.json")
                 ui.send("\x10")
                 ui.wait("OPEN TABS")
                 client.notify("notifications/cancelled", {"requestId": cancel_id, "reason": "local cancellation probe"})
@@ -183,7 +187,7 @@ def main():
             client = Mcp(root, True, session_id)
             try:
                 heavy = client.send("tools/call", {"name": "analyze_document", "arguments": {"document": large_doc["document"]}})
-                ui.wait("AI 1")
+                ui.wait("AI · large.json")
                 queued = [client.send("tools/call", {"name": "get_capabilities", "arguments": {}}) for _ in range(8)]
                 replies = [client.read(request) for request in queued]
                 assert any(packet.get("result", {}).get("structuredContent", {}).get("error", {}).get("code") == "BUSY" for packet in replies if packet.get("result", {}).get("isError")), replies

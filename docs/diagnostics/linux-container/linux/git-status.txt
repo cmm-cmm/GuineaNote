@@ -1,0 +1,12 @@
+ M CLAUDE.md
+ M README.md
+ M crates/guinea-io/src/recovery.rs
+ M crates/guinea-tui/src/clipboard.rs
+ M docs/FILE_SAFETY.md
+ M docs/KEYBOARD_SHORTCUTS.md
+ M docs/TERMINAL_WORKFLOW.md
+ M docs/TEST_PLAN.md
+ M docs/performance/UNPREPARED_LONG_LINES.md
+ M scripts/pty_agent.py
+?? scripts/linux/
+?? scripts/pty_clipboard.py

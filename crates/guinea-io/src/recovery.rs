@@ -247,23 +247,48 @@ impl Store {
         platform::private(&session, true)?;
         let lock = lock_file(&session.join("session.lock"), true)?;
         lock.try_lock().map_err(io::Error::from)?;
-        let origins = drafts
+        let mut store = Self {
+            root,
+            session,
+            _lock: Some(lock),
+            claimed,
+            origins: HashMap::new(),
+            versions: HashMap::new(),
+            records: HashSet::new(),
+        };
+        let drafts = store.drop_duplicates(drafts, &mut warnings);
+        store.origins = drafts
             .iter()
             .map(|d| (d.document.id, d.checkpoint.clone()))
             .collect();
-        Ok((
-            Self {
-                root,
-                session,
-                _lock: Some(lock),
-                claimed,
-                origins,
-                versions: HashMap::new(),
-                records: HashSet::new(),
-            },
-            drafts,
-            warnings,
-        ))
+        Ok((store, drafts, warnings))
+    }
+    /// A recovered draft is handed off by committing it to the new session
+    /// before its claimed origin is removed. A crash between the two leaves
+    /// both checkpoints; they hold the same draft, so only one is offered and
+    /// the identical copies are deleted (the survivor is still on disk).
+    fn drop_duplicates(
+        &self,
+        drafts: Vec<Recovered>,
+        warnings: &mut Vec<String>,
+    ) -> Vec<Recovered> {
+        let mut kept: Vec<Recovered> = Vec::with_capacity(drafts.len());
+        for draft in drafts {
+            let duplicate = kept.iter().any(|k| {
+                k.source == draft.source
+                    && k.document.bom == draft.document.bom
+                    && k.document.buffer().len_bytes() == draft.document.buffer().len_bytes()
+                    && k.document.text() == draft.document.text()
+            });
+            if !duplicate {
+                kept.push(draft);
+                continue;
+            }
+            if let Err(error) = self.remove_claimed(&draft.checkpoint) {
+                warnings.push(format!("Duplicate recovery checkpoint retained: {error}"));
+            }
+        }
+        kept
     }
     pub fn checkpoint(&mut self, snapshots: Vec<Checkpoint>, open: &[u64]) -> io::Result<()> {
         let quota = lock_file(&self.root.join("quota.lock"), true)?;
@@ -551,6 +576,60 @@ mod tests {
     use super::*;
 
     #[test]
+    fn crash_during_handoff_offers_the_draft_once() {
+        let dir = tempfile::tempdir().unwrap();
+        let root = dir.path().join("recovery");
+        let mut document = Document::from_text("draft e\u{301} 👩‍💻\r\n");
+        document.insert("x").unwrap();
+        let (mut first, _, _) = Store::open(&root).unwrap();
+        first
+            .checkpoint(vec![Checkpoint::capture(&document)], &[document.id])
+            .unwrap();
+        drop(first); // Crash.
+        let (second, mut found, _) = Store::open(&root).unwrap();
+        let recovered = found.pop().unwrap();
+        // Crash after the handoff commit but before the origin was removed.
+        let target = second
+            .session
+            .join(format!("{}.gnr", recovered.document.id));
+        write_checkpoint(&target, &Checkpoint::capture(&recovered.document)).unwrap();
+        assert!(recovered.checkpoint.exists());
+        drop(second);
+        let (mut third, found, warnings) = Store::open(&root).unwrap();
+        assert!(warnings.is_empty(), "{warnings:?}");
+        assert_eq!(found.len(), 1, "the same draft is offered once");
+        assert_eq!(found[0].document.text(), document.text());
+        let remaining = fs::read_dir(&root)
+            .unwrap()
+            .flat_map(|session| fs::read_dir(session.unwrap().path()).into_iter().flatten())
+            .filter(|e| {
+                e.as_ref()
+                    .unwrap()
+                    .path()
+                    .extension()
+                    .is_some_and(|x| x == "gnr")
+            })
+            .count();
+        assert_eq!(remaining, 1, "the identical copy is deleted");
+        // A different draft of the same file is never merged.
+        let mut other = Document::from_text(&found[0].document.text());
+        other.insert("y").unwrap();
+        third
+            .checkpoint(
+                vec![
+                    Checkpoint::capture(&found[0].document),
+                    Checkpoint::capture(&other),
+                ],
+                &[found[0].document.id, other.id],
+            )
+            .unwrap();
+        drop(third);
+        let (mut fourth, found, _) = Store::open(&root).unwrap();
+        assert_eq!(found.len(), 2);
+        fourth.discard(true).unwrap();
+    }
+
+    #[test]
     fn checkpoint_recovers_exact_unsaved_unicode_bom_and_source_without_overwriting() {
         let dir = tempfile::tempdir().unwrap();
         let root = dir.path().join("recovery");
@@ -636,7 +715,17 @@ mod tests {
         let last = bytes.len() - 1;
         bytes[last] ^= 0xFF;
         fs::write(&path, bytes).unwrap();
-        let (_, found, warnings) = Store::open(&root).unwrap();
+        // A parallel test spawning a child (real_process_kill_*) can briefly
+        // hold a forked copy of a lock descriptor on Unix; a locked session is
+        // skipped silently, so retry while the session was not inspected.
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(5);
+        let (found, warnings) = loop {
+            let (_, found, warnings) = Store::open(&root).unwrap();
+            if !found.is_empty() || !warnings.is_empty() || std::time::Instant::now() > deadline {
+                break (found, warnings);
+            }
+            std::thread::sleep(std::time::Duration::from_millis(10));
+        };
         assert!(found.is_empty());
         assert!(!warnings.is_empty());
         assert!(path.exists());

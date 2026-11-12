@@ -33,8 +33,10 @@ On Windows use `target\release\guinea.exe`; on Linux/macOS use
 `target/release/guinea`. Runtime does not require Rust or Node.js.
 Build with current stable Rust and the native platform toolchain (MSVC build
 tools on Windows). During development checks run locally; GitHub Actions/CI
-is intentionally not configured. Linux/macOS runtime verification remains
-pending. No package has been published.
+is intentionally not configured. Linux x86_64 was verified natively in a
+Debian 12 container (tests, release build, all PTY probes, X11 clipboard);
+macOS, ARM, real Linux terminal emulators, Wayland and SSH/tmux remain
+unverified. No package has been published.
 
 Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
 show the welcome screen. A folder argument is rejected with a message before the
@@ -237,7 +239,8 @@ cargo build --release
 [Performance](docs/PERFORMANCE.md) records measured workloads and limitations.
 [Dependency audit](docs/DEPENDENCY_AUDIT.md) records the advisory snapshot and
 license/source policy results. M4 continuation adds native NTFS/kill tests and
-long-line latency measurements; Linux/macOS execution is still unverified.
+long-line latency measurements; Linux x86_64 runs in a container are recorded
+in the test plan, macOS execution is still unverified.
 [Architecture](docs/ARCHITECTURE.md) and [editor behavior](docs/EDITOR_BEHAVIOR.md)
 describe the APIs and editing rules. Build and test locally on each target OS;
 there are no GitHub CI workflows during development. No npm package,

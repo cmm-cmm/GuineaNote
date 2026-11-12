@@ -35,7 +35,7 @@ python -m pip install --target target/pty-tools psutil==7.2.2 pyte==0.8.2
 
 After a release build: `python -X utf8 scripts/pty_smoke.py`. Panic cleanup: `cargo build -p guinea-tui --example panic_cleanup` then `python -X utf8 scripts/pty_smoke.py --panic target/debug/examples/panic_cleanup.exe`. Other probes (`pty_keyboard.py`, `pty_search.py`, `pty_tabs.py`, `pty_dialog_mouse.py`, `pty_interaction_latency.py`, `terminal_matrix.py`, …) and their invocation order are in `docs/TEST_PLAN.md`.
 
-Latency rules: run probes **sequentially**, never while a build or another probe is running. Every measured interaction **>50 ms must be investigated** (targets p50 ≤10 ms, p95 ≤20 ms, p99 ≤50 ms); `--record-only` keeps outliers as evidence but does not make them pass. Verification currently targets native Windows/ConPTY; Linux/macOS/SSH runtime is unverified.
+Latency rules: run probes **sequentially**, never while a build or another probe is running. Every measured interaction **>50 ms must be investigated** (targets p50 ≤10 ms, p95 ≤20 ms, p99 ≤50 ms); `--record-only` keeps outliers as evidence but does not make them pass. Verification targets native Windows/ConPTY plus Linux x86_64 in a Debian 12 Docker container (procedure in `docs/TEST_PLAN.md`); macOS, ARM, real Linux terminal emulators and SSH/tmux are unverified. `scripts/pty_clipboard.py --use-system-clipboard` is the only probe that touches the real clipboard (it restores the previous text).
 
 ## Architecture
 
