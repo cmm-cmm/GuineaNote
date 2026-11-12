@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::{EditError, RopeyBuffer, TextBuffer, ViewState, coordinates::CharIndex};
-use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
+use unicode_segmentation::UnicodeSegmentation;
 
 static NEXT_ID: AtomicU64 = AtomicU64::new(1);
 
@@ -722,6 +722,11 @@ impl Document {
 
     /// Literal search wraps; matches splitting a grapheme are skipped.
     pub fn find(&mut self, needle: &str) -> bool {
+        self.find_with(needle, crate::SearchOptions::default())
+    }
+
+    /// Select the next match at or after the selection end, wrapping once.
+    pub fn find_with(&mut self, needle: &str, options: crate::SearchOptions) -> bool {
         if needle.is_empty() {
             return false;
         }
@@ -734,19 +739,16 @@ impl Document {
         .0;
         let mut first = None;
         let mut chosen = None;
-        for (byte, matched) in text.match_indices(needle) {
-            let end = byte + matched.len();
-            if byte_is_grapheme_boundary(&text, byte) && byte_is_grapheme_boundary(&text, end) {
-                first.get_or_insert((byte, end));
-                if byte >= cursor_byte {
-                    chosen = Some((byte, end));
-                    break;
-                }
+        for range in crate::search::find_matches(&text, needle, options) {
+            first.get_or_insert(range.clone());
+            if range.start >= cursor_byte {
+                chosen = Some(range);
+                break;
             }
         }
-        if let Some((byte, end_byte)) = chosen.or(first) {
-            let start = text[..byte].chars().count();
-            let end = start + text[byte..end_byte].chars().count();
+        if let Some(range) = chosen.or(first) {
+            let start = text[..range.start].chars().count();
+            let end = start + text[range].chars().count();
             self.select(start, end).expect("checked boundaries");
             true
         } else {
@@ -755,6 +757,16 @@ impl Document {
     }
 
     pub fn replace_all(&mut self, needle: &str, replacement: &str) -> Result<usize, EditError> {
+        self.replace_all_with(needle, replacement, crate::SearchOptions::default())
+    }
+
+    /// Replace every match as one transaction (one Undo step).
+    pub fn replace_all_with(
+        &mut self,
+        needle: &str,
+        replacement: &str,
+        options: crate::SearchOptions,
+    ) -> Result<usize, EditError> {
         if self.readonly {
             return Err(EditError::ReadOnly);
         }
@@ -765,14 +777,11 @@ impl Document {
         let mut output = String::new();
         let mut previous_byte = 0;
         let mut count = 0;
-        for (byte, matched) in text.match_indices(needle) {
-            let end = byte + matched.len();
-            if byte_is_grapheme_boundary(&text, byte) && byte_is_grapheme_boundary(&text, end) {
-                output.push_str(&text[previous_byte..byte]);
-                output.push_str(replacement);
-                previous_byte = byte + matched.len();
-                count += 1;
-            }
+        for range in crate::search::find_matches(&text, needle, options) {
+            output.push_str(&text[previous_byte..range.start]);
+            output.push_str(replacement);
+            previous_byte = range.end;
+            count += 1;
         }
         if count > 0 {
             output.push_str(&text[previous_byte..]);
@@ -782,8 +791,9 @@ impl Document {
     }
 }
 
+#[cfg(test)]
 fn byte_is_grapheme_boundary(text: &str, byte: usize) -> bool {
-    GraphemeCursor::new(byte, text.len(), true)
+    unicode_segmentation::GraphemeCursor::new(byte, text.len(), true)
         .is_boundary(text, 0)
         .expect("complete UTF-8 snapshot provides all grapheme context")
 }

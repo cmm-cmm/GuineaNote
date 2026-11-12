@@ -93,7 +93,8 @@ a file-picker or tab-manager row to open/switch; one click selects it.
 
 Ctrl+F and Ctrl+H open a shared search panel with clickable input fields,
 line-numbered context, a match count, Previous/Next and Go to match buttons.
-Search is literal and case-sensitive, with Unicode grapheme boundaries.
+Search is literal and case-sensitive by default, with Unicode grapheme
+boundaries; Alt+C toggles case-insensitive and Alt+W whole-word matching.
 Enter/Shift+Enter selects the next/previous match in the fields; Tab/Shift+Tab
 cycles both fields, results and every button. Enter or Space activates a focused
 button; Enter in results returns to the editor. Ctrl+R replaces the current match;

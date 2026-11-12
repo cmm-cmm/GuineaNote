@@ -11,16 +11,20 @@ impl App {
                 self.search = value;
             }
         }
-        self.modal = Some(Modal::Search(Search::new(
-            self.document(),
-            self.search.clone(),
-            self.replacement.clone(),
-        )));
+        self.modal = Some(Modal::Search(
+            Search::new(
+                self.document(),
+                self.search.clone(),
+                self.replacement.clone(),
+            )
+            .with_options(self.search_options),
+        ));
     }
     pub(super) fn search_key(&mut self, mut search: Search, key: KeyEvent) {
         let command = search.key(key);
         self.search = search.query.clone();
         self.replacement = search.replacement.clone();
+        self.search_options = search.options;
         self.search_command(search, command);
     }
     fn search_command(&mut self, mut search: Search, command: Command) {
@@ -68,6 +72,11 @@ impl App {
             "search-go" => Command::Go,
             "search-replace" => Command::Replace,
             "search-all" => Command::ReplaceAll,
+            "search-case" | "search-word" => {
+                search.toggle(action == "search-word");
+                self.search_options = search.options;
+                Command::None
+            }
             _ => Command::None,
         };
         self.search_command(search, command);

@@ -247,6 +247,7 @@ pub struct App {
     clipboard: String,
     search: String,
     replacement: String,
+    search_options: guinea_core::SearchOptions,
     pending: Option<Receiver<Completed>>,
     worker: Option<thread::JoinHandle<()>>,
     queued: VecDeque<PathBuf>,
@@ -315,6 +316,7 @@ impl App {
             clipboard: String::new(),
             search: String::new(),
             replacement: String::new(),
+            search_options: guinea_core::SearchOptions::default(),
             pending: None,
             worker: None,
             queued: files.into(),
@@ -1336,8 +1338,9 @@ impl App {
 
     fn find_next(&mut self) {
         let needle = self.search.clone();
+        let options = self.search_options;
         self.start_compute("Finding", move |d| {
-            Ok(if d.find(&needle) {
+            Ok(if d.find_with(&needle, options) {
                 "Match selected (F3 next)"
             } else {
                 "No grapheme-aligned match"

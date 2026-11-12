@@ -324,16 +324,38 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
             let tight = body.height < 7;
             let query_y = if compact { 0 } else { 3 };
             if !compact {
-                text(
-                    frame,
-                    row(body, 0, 1),
-                    Line::from(tr(
-                        locale,
-                        "Source text · literal · case sensitive",
-                        "Nội dung nguồn · văn bản · phân biệt hoa thường",
-                    )),
-                    fg(theme.muted),
-                );
+                // Clickable option toggles; Alt+C / Alt+W are the keyboard path.
+                let toggles = [
+                    (
+                        !search.options.ignore_case,
+                        tr(locale, "Match case · Alt+C", "Phân biệt hoa thường · Alt+C"),
+                        "search-case",
+                    ),
+                    (
+                        search.options.whole_word,
+                        tr(locale, "Whole word · Alt+W", "Khớp cả từ · Alt+W"),
+                        "search-word",
+                    ),
+                ];
+                let mut x = body.x;
+                for (on, label, action) in toggles {
+                    let label = format!("{} {label}", if on { "[x]" } else { "[ ]" });
+                    let width = (Line::from(label.as_str()).width() as u16)
+                        .min(body.right().saturating_sub(x));
+                    let rect = Rect::new(x, body.y, width, 1);
+                    text(
+                        frame,
+                        rect,
+                        Line::from(label),
+                        if on {
+                            fg(theme.accent)
+                        } else {
+                            fg(theme.muted)
+                        },
+                    );
+                    hits.modal_actions.push((rect, action));
+                    x = x.saturating_add(width + 3).min(body.right());
+                }
                 text(
                     frame,
                     row(body, 2, 1),

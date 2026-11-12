@@ -1,7 +1,7 @@
 //! Bounded, cancellable search/replace work. UI handlers only edit small fields
 //! and select cached scalar ranges; scanning and replacement stay on workers.
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
-use guinea_core::{Document, TextBuffer};
+use guinea_core::{Document, SearchOptions, TextBuffer};
 use ratatui::layout::Rect;
 use std::{
     ops::Range,
@@ -12,7 +12,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use unicode_segmentation::{GraphemeCursor, UnicodeSegmentation};
+use unicode_segmentation::UnicodeSegmentation;
 
 pub const PAGE: usize = 200;
 static WORKERS: AtomicUsize = AtomicUsize::new(0);
@@ -63,6 +63,8 @@ pub enum Command {
 pub struct Search {
     pub query: String,
     pub replacement: String,
+    /// Alt+C toggles case-insensitive and Alt+W whole-word matching.
+    pub options: SearchOptions,
     pub focus: usize,
     pub entries: Vec<Found>,
     pub total: usize,
@@ -96,6 +98,7 @@ impl Search {
         Self {
             query,
             replacement,
+            options: SearchOptions::default(),
             focus: 0,
             entries: vec![],
             total: 0,
@@ -116,6 +119,22 @@ impl Search {
             advance: false,
             resume: None,
         }
+    }
+    pub fn with_options(mut self, options: SearchOptions) -> Self {
+        self.options = options;
+        self
+    }
+    /// Toggle an option and rescan; ignored while a replacement is running.
+    pub fn toggle(&mut self, whole_word: bool) {
+        if self.replacing() {
+            return;
+        }
+        if whole_word {
+            self.options.whole_word = !self.options.whole_word;
+        } else {
+            self.options.ignore_case = !self.options.ignore_case;
+        }
+        self.changed();
     }
     pub fn busy(&self) -> bool {
         self.dirty || self.pending.is_some()
@@ -204,6 +223,8 @@ impl Search {
             KeyCode::Char('r') if ctrl && shift => return Command::ReplaceAll,
             KeyCode::Char('r') if ctrl => return Command::Replace,
             KeyCode::Char('a' | 'A') if alt => return Command::ReplaceAll,
+            KeyCode::Char('c' | 'C') if alt && !ctrl => self.toggle(false),
+            KeyCode::Char('w' | 'W') if alt && !ctrl => self.toggle(true),
             KeyCode::Enter if self.focus == 2 => return Command::Go,
             KeyCode::Enter | KeyCode::Char(' ') if self.focus >= 3 => {
                 return match self.focus {
@@ -397,6 +418,7 @@ impl Search {
         snapshot.readonly = false;
         let query = self.query.clone();
         let replacement = self.replacement.clone();
+        let options = self.options;
         let range = self.entries[self.selected].range.clone();
         let (tx, rx) = mpsc::channel();
         let cancel = Arc::new(AtomicBool::new(false));
@@ -412,7 +434,7 @@ impl Search {
             let _guard = guard;
             let result = if all {
                 snapshot
-                    .replace_all(&query, &replacement)
+                    .replace_all_with(&query, &replacement, options)
                     .map(|n| Reply::Edit(Box::new(snapshot), n))
             } else {
                 snapshot
@@ -527,6 +549,7 @@ impl Search {
                 let guard = Worker { _permit: permit };
                 let snapshot = document.worker_snapshot();
                 let query = self.query.clone();
+                let options = self.options;
                 let offset = self.offset;
                 let (tx, rx) = mpsc::channel();
                 let cancel = Arc::new(AtomicBool::new(false));
@@ -541,8 +564,8 @@ impl Search {
                 changed = true;
                 std::thread::spawn(move || {
                     let _guard = guard;
-                    let result =
-                        scan(&snapshot.text(), &query, offset, &worker_cancel).map(Reply::Scan);
+                    let result = scan(&snapshot.text(), &query, options, offset, &worker_cancel)
+                        .map(Reply::Scan);
                     let _ = tx.send(result);
                 });
             }
@@ -564,26 +587,25 @@ impl Search {
     }
 }
 
-fn scan(text: &str, query: &str, offset: usize, cancel: &AtomicBool) -> Result<Scan, String> {
+fn scan(
+    text: &str,
+    query: &str,
+    options: SearchOptions,
+    offset: usize,
+    cancel: &AtomicBool,
+) -> Result<Scan, String> {
     let mut entries = Vec::new();
     let mut total = 0;
     let mut scalar = 0;
     let mut previous = 0;
     let mut line = 0;
-    let length = query.chars().count();
-    for (byte, matched) in text.match_indices(query) {
+    for range in guinea_core::search::find_matches(text, query, options) {
         if cancel.load(Ordering::Acquire) {
             return Err("Search cancelled".into());
         }
-        if !GraphemeCursor::new(byte, text.len(), true)
-            .is_boundary(text, 0)
-            .unwrap_or(false)
-            || !GraphemeCursor::new(byte + matched.len(), text.len(), true)
-                .is_boundary(text, 0)
-                .unwrap_or(false)
-        {
-            continue;
-        }
+        let byte = range.start;
+        let matched = &text[range];
+        let length = matched.chars().count();
         scalar += text[previous..byte].chars().count();
         line += text[previous..byte].bytes().filter(|&b| b == b'\n').count();
         previous = byte;
@@ -674,10 +696,20 @@ mod tests {
     #[test]
     fn unicode_matches_are_paged_and_never_split_clusters() {
         let cancelled = AtomicBool::new(false);
-        assert_eq!(scan("e\u{301} 👩‍💻", "e", 0, &cancelled).unwrap().total, 0);
-        assert_eq!(scan("e\u{301} 👩‍💻", "💻", 0, &cancelled).unwrap().total, 0);
+        assert_eq!(
+            scan("e\u{301} 👩‍💻", "e", SearchOptions::default(), 0, &cancelled)
+                .unwrap()
+                .total,
+            0
+        );
+        assert_eq!(
+            scan("e\u{301} 👩‍💻", "💻", SearchOptions::default(), 0, &cancelled)
+                .unwrap()
+                .total,
+            0
+        );
         let text = format!("# title\r\n{}", "Việt ".repeat(PAGE + 3));
-        let page = scan(&text, "Việt", PAGE, &cancelled).unwrap();
+        let page = scan(&text, "Việt", SearchOptions::default(), PAGE, &cancelled).unwrap();
         assert_eq!(page.total, PAGE + 3);
         assert_eq!(page.entries.len(), 3);
         let document = Document::from_text(&text);
@@ -686,7 +718,16 @@ mod tests {
             assert!(document.is_grapheme_boundary(found.range.end));
             assert_eq!(found.line, 1);
         }
-        assert!(scan(&text, "Việt", 0, &AtomicBool::new(true)).is_err());
+        assert!(
+            scan(
+                &text,
+                "Việt",
+                SearchOptions::default(),
+                0,
+                &AtomicBool::new(true)
+            )
+            .is_err()
+        );
     }
     #[test]
     fn replacement_is_prepared_off_thread_and_commits_as_one_undo() {
@@ -715,6 +756,33 @@ mod tests {
                 .as_deref()
                 .is_some_and(|s| s.contains("read-only"))
         );
+    }
+    #[test]
+    fn case_and_whole_word_options_rescan_and_scope_replace_all() {
+        let original = "Việt việt Việtnam VIỆT";
+        let mut document = Document::from_text(original);
+        let mut search = Search::new(&document, "việt".into(), "X".into());
+        settle(&mut search, &document);
+        assert_eq!(search.total, 1);
+        let alt = |c| KeyEvent::new(KeyCode::Char(c), KeyModifiers::ALT);
+        assert!(matches!(search.key(alt('c')), Command::None));
+        assert!(search.options.ignore_case);
+        settle(&mut search, &document);
+        assert_eq!(search.total, 4);
+        search.key(alt('w'));
+        assert!(search.options.whole_word);
+        settle(&mut search, &document);
+        assert_eq!(search.total, 3);
+        assert_eq!(search.entries[2].range, 18..22);
+        start_replacement(&mut search, &document, true);
+        let changed = settle(&mut search, &document).unwrap();
+        assert_eq!(changed.count, 3);
+        document
+            .accept_prepared(&changed.document, changed.revision)
+            .unwrap();
+        assert_eq!(document.text(), "X X Việtnam X");
+        assert!(document.undo().unwrap());
+        assert_eq!(document.text(), original);
     }
     #[test]
     fn replace_one_advances_past_newly_inserted_matches() {

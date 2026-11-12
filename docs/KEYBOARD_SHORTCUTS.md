@@ -33,6 +33,7 @@ danh sách. Thẻ ngoài dải đang hiển thị vẫn chọn được trong da
 | Kết quả sau / trước | F3 / Shift+F3; Enter / Shift+Enter ở ô nhập; ↓ / ↑ |
 | Về vị trí kết quả trong editor | Enter ở danh sách hoặc nút Go |
 | Thay một / tất cả | **Ctrl+R / Alt+A** |
+| Phân biệt hoa thường / khớp cả từ | **Alt+C / Alt+W** (bật/tắt, mặc định: phân biệt hoa thường, không khớp cả từ) |
 | Thay tất cả, tổ hợp cũ | Ctrl+Shift+R nếu terminal phân biệt được |
 | Chọn hết / xóa ô | Ctrl+A / Ctrl+U |
 | Đóng, hủy công việc chưa áp dụng | Esc |

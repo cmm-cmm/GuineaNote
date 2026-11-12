@@ -28,8 +28,14 @@ thị preview thay thế. File chỉ đọc, review tab và file đang do AI tha
 
 ## Implementation and limits
 
-Search uses literal, case-sensitive matching at whole Unicode grapheme
-boundaries, not regular expressions. Inputs are single-line and capped at
+Search uses literal matching at whole Unicode grapheme boundaries, not regular
+expressions. It is case-sensitive by default; **Alt+C** (or clicking the option)
+toggles case-insensitive matching and **Alt+W** toggles whole-word matching.
+Options stay for the session and also apply to F3 and Replace all.
+Case-insensitive matching uses simple one-to-one lowercase folding, so a match
+always has the query's scalar length: `İ` and `ß` match only themselves.
+Whole word requires a non-alphanumeric, non-underscore scalar (or the text
+edge) on both sides of the match. Inputs are single-line and capped at
 4,096 UTF-8 bytes each; pasted CR/LF/NUL characters are removed. Replacement
 output is capped at 128 MiB. The measured interaction workload is up to 10 MiB.
 
