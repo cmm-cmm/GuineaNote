@@ -124,6 +124,14 @@ impl App {
                 .find(|(rect, _)| rect.contains(position))
             {
                 self.command(action);
+            } else if self.hits.editor.contains(position)
+                && position.x < self.hits.editor_text.x
+                && (self.hits.editor_text.y..self.hits.editor_text.bottom()).contains(&position.y)
+            {
+                // Clicking the line-number gutter toggles a bookmark (Notepad++).
+                let line =
+                    self.tabs[self.active].top + (position.y - self.hits.editor_text.y) as usize;
+                self.toggle_bookmark(line);
             } else if self.hits.editor.contains(position) {
                 self.place_cursor(
                     mouse.column,

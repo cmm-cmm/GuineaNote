@@ -256,6 +256,50 @@ pub const COMMANDS: &[Command] = &[
         Global,
         []
     ),
+    // Bookmarks (Notepad++ Search › Bookmark). F2 itself opens the action
+    // list, so "next" uses Alt+F2 instead of Notepad++'s plain F2.
+    command!(
+        "bookmark-toggle",
+        "Toggle bookmark on the caret line",
+        "Bật/tắt bookmark ở dòng hiện tại",
+        Editor,
+        [key(F(2), CTRL, "Ctrl+F2"),]
+    ),
+    command!(
+        "bookmark-next",
+        "Next bookmark",
+        "Bookmark tiếp theo",
+        Editor,
+        [key(F(2), ALT, "Alt+F2")]
+    ),
+    command!(
+        "bookmark-prev",
+        "Previous bookmark",
+        "Bookmark trước",
+        Editor,
+        [key(F(2), SHIFT, "Shift+F2")]
+    ),
+    command!(
+        "bookmark-copy",
+        "Copy bookmarked lines",
+        "Sao chép các dòng có bookmark",
+        Editor,
+        []
+    ),
+    command!(
+        "bookmark-remove-lines",
+        "Remove bookmarked lines",
+        "Xóa các dòng có bookmark",
+        Editor,
+        []
+    ),
+    command!(
+        "bookmark-clear",
+        "Clear all bookmarks",
+        "Xóa mọi bookmark",
+        Editor,
+        []
+    ),
     // Line and text operations (Notepad++ Edit menu); F2 only.
     command!(
         "sort-lines",

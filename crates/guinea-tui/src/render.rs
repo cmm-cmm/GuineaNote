@@ -88,6 +88,7 @@ fn visible_line(
             cell_start: 0,
             theme: Theme::new(false),
             highlights: &[],
+            marks: &[],
         },
     )
 }
@@ -96,6 +97,16 @@ pub(crate) struct LinePaint<'a> {
     pub cell_start: usize,
     pub theme: Theme,
     pub highlights: &'a [HighlightSpan],
+    /// Absolute scalar ranges painted over syntax colors (selection wins).
+    pub marks: &'a [(std::ops::Range<usize>, Mark)],
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Mark {
+    /// Another occurrence of the selected word (smart highlighting).
+    Occurrence,
+    /// The bracket at the caret or its match.
+    Bracket,
 }
 
 pub(crate) fn styled_line(
@@ -159,6 +170,23 @@ pub(crate) fn styled_line(
                     TokenKind::Escape => base.fg(paint.theme.warm).add_modifier(Modifier::BOLD),
                 }
             });
+            match paint
+                .marks
+                .iter()
+                .find(|(range, _)| range.contains(&char_idx))
+                .map(|(_, mark)| *mark)
+            {
+                Some(Mark::Occurrence) => {
+                    style = style.add_modifier(Modifier::UNDERLINED | Modifier::BOLD);
+                }
+                Some(Mark::Bracket) => {
+                    style = style
+                        .fg(paint.theme.canvas)
+                        .bg(paint.theme.accent)
+                        .add_modifier(Modifier::BOLD);
+                }
+                None => {}
+            }
             if char_idx < selection.end && char_idx + count > selection.start {
                 style = style.bg(paint.theme.line).fg(paint.theme.text);
             }
@@ -990,5 +1018,79 @@ mod tests {
                 "dialog button {id} has no mouse handler"
             );
         }
+    }
+
+    #[test]
+    fn bookmarks_smart_highlight_and_brackets_are_painted() {
+        use crossterm::event::{
+            Event, KeyCode, KeyEvent, KeyModifiers, MouseButton, MouseEvent, MouseEventKind,
+        };
+        use ratatui::style::Modifier;
+        let mut app = App::new(vec![], false, Config::default());
+        app.handle(Event::Paste(
+            "let total = f(total);\ntotal += 1;\nnext".into(),
+        ));
+        app.handle(Event::Key(KeyEvent::new(
+            KeyCode::F(2),
+            KeyModifiers::CONTROL,
+        )));
+        assert!(app.document().is_bookmarked(2));
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let editor = app.hits.editor_text;
+        let row = |terminal: &Terminal<TestBackend>, y: u16| {
+            (0..80)
+                .map(|x| terminal.backend().buffer()[(x, y)].symbol().to_string())
+                .collect::<String>()
+        };
+        assert!(
+            row(&terminal, editor.y + 2).contains('◆'),
+            "bookmark gutter marker"
+        );
+        // Select the first "total": the other two visible ones are underlined.
+        let active = app.active;
+        let _ = app.tabs[active].document.select(4, 9);
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let underlined = |terminal: &Terminal<TestBackend>, x: u16, y: u16| {
+            terminal.backend().buffer()[(x, y)]
+                .modifier
+                .contains(Modifier::UNDERLINED)
+        };
+        assert!(
+            underlined(&terminal, editor.x + 14, editor.y),
+            "second total"
+        );
+        assert!(underlined(&terminal, editor.x, editor.y + 1), "third total");
+        assert!(
+            !underlined(&terminal, editor.x + 4, editor.y),
+            "selection itself"
+        );
+        // The caret before "(" highlights the bracket pair.
+        let _ = app.tabs[active].document.select(13, 13);
+        terminal.draw(|f| draw(f, &mut app)).unwrap();
+        let theme = crate::theme::Theme::new(app.config.basic_colors);
+        assert_eq!(
+            terminal.backend().buffer()[(editor.x + 13, editor.y)].bg,
+            theme.accent
+        );
+        assert_eq!(
+            terminal.backend().buffer()[(editor.x + 19, editor.y)].bg,
+            theme.accent
+        );
+        // Clicking the line number toggles the bookmark of that line.
+        app.handle(Event::Mouse(MouseEvent {
+            kind: MouseEventKind::Down(MouseButton::Left),
+            column: editor.x - 2,
+            row: editor.y,
+            modifiers: KeyModifiers::NONE,
+        }));
+        assert!(app.document().is_bookmarked(0));
+        app.handle(Event::Key(KeyEvent::new(KeyCode::F(2), KeyModifiers::ALT)));
+        assert_eq!(app.document().cursor_line(), 2);
+        app.handle(Event::Key(KeyEvent::new(
+            KeyCode::F(2),
+            KeyModifiers::SHIFT,
+        )));
+        assert_eq!(app.document().cursor_line(), 0);
     }
 }

@@ -731,3 +731,233 @@ mod line_operation_tests {
         assert_eq!(d.cursor(), 2);
     }
 }
+
+/// Brackets matched by `matching_bracket`.
+const BRACKETS: [(char, char); 3] = [('(', ')'), ('[', ']'), ('{', '}')];
+/// Scalars scanned for a matching bracket; beyond it nothing is highlighted.
+const BRACKET_WINDOW: usize = 64 * 1024;
+
+impl Document {
+    /// The bracket at the caret (or just before it) and its match, as scalar
+    /// positions (bracket, partner). The scan is bounded and does not skip
+    /// strings or comments, like a plain editor's brace highlight.
+    pub fn matching_bracket(&self) -> Option<(usize, usize)> {
+        let cursor = self.cursor();
+        let len = self.buffer().len_chars();
+        let char_at = |at: usize| -> Option<char> {
+            (at < len)
+                .then(|| self.buffer().slice(at..at + 1).ok()?.chars().next())
+                .flatten()
+        };
+        for at in [Some(cursor), cursor.checked_sub(1)].into_iter().flatten() {
+            let Some(c) = char_at(at) else {
+                continue;
+            };
+            if let Some(&(open, close)) = BRACKETS.iter().find(|(o, _)| *o == c) {
+                let end = (at + 1 + BRACKET_WINDOW).min(len);
+                let text = self.buffer().slice(at + 1..end).ok()?;
+                let mut depth = 0usize;
+                for (offset, ch) in text.chars().enumerate() {
+                    if ch == open {
+                        depth += 1;
+                    } else if ch == close {
+                        if depth == 0 {
+                            return Some((at, at + 1 + offset));
+                        }
+                        depth -= 1;
+                    }
+                }
+                return None;
+            }
+            if let Some(&(open, close)) = BRACKETS.iter().find(|(_, c2)| *c2 == c) {
+                let begin = at.saturating_sub(BRACKET_WINDOW);
+                let text = self.buffer().slice(begin..at).ok()?;
+                let mut depth = 0usize;
+                let count = text.chars().count();
+                for (index, ch) in text.chars().rev().enumerate() {
+                    if ch == close {
+                        depth += 1;
+                    } else if ch == open {
+                        if depth == 0 {
+                            return Some((at, begin + count - 1 - index));
+                        }
+                        depth -= 1;
+                    }
+                }
+                return None;
+            }
+        }
+        None
+    }
+
+    /// The selection when it is a single word (letters, digits, `_`; at most
+    /// 64 scalars on one line), used for smart highlighting of occurrences.
+    pub fn selected_word(&self) -> Option<String> {
+        let range = self.selection().range();
+        if range.is_empty() || range.len() > 64 {
+            return None;
+        }
+        let text = self.selected_text();
+        text.chars()
+            .all(|c| c.is_alphanumeric() || c == '_')
+            .then_some(text)
+    }
+}
+
+impl Document {
+    pub fn bookmarks(&self) -> impl Iterator<Item = usize> + '_ {
+        self.bookmarks.iter().copied()
+    }
+    pub fn is_bookmarked(&self, line: usize) -> bool {
+        self.bookmarks.contains(&line)
+    }
+    /// Toggle the bookmark on `line`; returns whether it is now set.
+    pub fn toggle_bookmark(&mut self, line: usize) -> bool {
+        if line >= self.buffer().len_lines() {
+            return false;
+        }
+        if !self.bookmarks.remove(&line) {
+            self.bookmarks.insert(line);
+            return true;
+        }
+        false
+    }
+    pub fn clear_bookmarks(&mut self) {
+        self.bookmarks.clear();
+    }
+    /// The next (or previous) bookmarked line after the caret line, wrapping.
+    pub fn bookmark_after(&self, forward: bool) -> Option<usize> {
+        let line = self.line_of(self.cursor());
+        if forward {
+            self.bookmarks
+                .range(line + 1..)
+                .next()
+                .or_else(|| self.bookmarks.iter().next())
+                .copied()
+        } else {
+            self.bookmarks
+                .range(..line)
+                .next_back()
+                .or_else(|| self.bookmarks.iter().next_back())
+                .copied()
+        }
+    }
+    /// Move the caret to the start of the next/previous bookmarked line.
+    pub fn goto_bookmark(&mut self, forward: bool) -> bool {
+        let Some(line) = self.bookmark_after(forward) else {
+            return false;
+        };
+        let Ok(at) = self.buffer().line_to_char(line) else {
+            return false;
+        };
+        self.select(at, at).is_ok()
+    }
+    /// Text of the bookmarked lines, each ending with its own newline (the
+    /// document newline for a last line without one).
+    pub fn bookmarked_text(&self) -> String {
+        let mut text = String::new();
+        for line in self.bookmarks.iter().copied() {
+            let range = self.line_range_with_newline(line);
+            if let Ok(slice) = self.buffer().slice(range) {
+                text.push_str(&slice);
+                if !slice.ends_with('\n') {
+                    text.push_str(self.line_ending().newline());
+                }
+            }
+        }
+        text
+    }
+    /// Delete every bookmarked line (with its newline) as one Undo step.
+    pub fn remove_bookmarked_lines(&mut self) -> Result<usize, EditError> {
+        let lines: Vec<usize> = self.bookmarks.iter().copied().collect();
+        if lines.is_empty() {
+            return Ok(0);
+        }
+        let last = self.buffer().len_lines() - 1;
+        let edits: Vec<crate::TextEdit> = lines
+            .iter()
+            .map(|&line| {
+                let mut range = self.line_range_with_newline(line);
+                // The last line has no newline: take the preceding one instead
+                // unless that line is also being removed.
+                if line == last && line > 0 && !lines.contains(&(line - 1)) {
+                    range.start = self.line_bounds(line - 1).map_or(range.start, |r| r.end);
+                }
+                crate::TextEdit {
+                    start: range.start,
+                    end: range.end,
+                    text: String::new(),
+                }
+            })
+            .collect();
+        self.bookmarks.clear();
+        self.apply_edits(&edits)?;
+        Ok(lines.len())
+    }
+}
+
+#[cfg(test)]
+mod bookmark_tests {
+    use crate::{Document, TextBuffer};
+
+    #[test]
+    fn bookmarks_follow_edits_undo_and_redo() {
+        let mut d = Document::from_text("a\r\nb\r\nc\r\nd");
+        assert!(d.toggle_bookmark(1));
+        assert!(d.toggle_bookmark(3));
+        // A new line above moves both bookmarks down with their text.
+        d.select(0, 0).unwrap();
+        d.insert("top\r\n").unwrap();
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [2, 4]);
+        d.undo().unwrap();
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [1, 3]);
+        d.redo().unwrap();
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [2, 4]);
+        // Deleting a bookmarked line removes its bookmark.
+        let line = d.buffer().line_to_char(2).unwrap();
+        let next = d.buffer().line_to_char(3).unwrap();
+        d.replace_range(line..next, "").unwrap();
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [3]);
+        // Typing inside a line keeps its bookmark.
+        d.select(next - 3, next - 3).unwrap();
+        d.type_text("xy").unwrap();
+        assert_eq!(d.bookmarks().collect::<Vec<_>>(), [3]);
+    }
+
+    #[test]
+    fn navigation_copy_and_removal_of_bookmarked_lines() {
+        let mut d = Document::from_text("one\ntwo\nthree\nfour");
+        d.toggle_bookmark(1);
+        d.toggle_bookmark(3);
+        assert!(d.goto_bookmark(true));
+        assert_eq!(d.cursor(), 4);
+        assert!(d.goto_bookmark(true));
+        assert_eq!(d.cursor(), 14);
+        assert!(d.goto_bookmark(true), "wraps to the first bookmark");
+        assert_eq!(d.cursor(), 4);
+        assert!(d.goto_bookmark(false));
+        assert_eq!(d.cursor(), 14);
+        assert_eq!(d.bookmarked_text(), "two\nfour\n");
+        assert_eq!(d.remove_bookmarked_lines().unwrap(), 2);
+        assert_eq!(d.text(), "one\nthree");
+        assert_eq!(d.bookmarks().count(), 0);
+        d.undo().unwrap();
+        assert_eq!(d.text(), "one\ntwo\nthree\nfour");
+        assert!(!d.toggle_bookmark(99));
+    }
+
+    #[test]
+    fn matching_bracket_is_found_in_both_directions_within_the_limit() {
+        let mut d = Document::from_text("fn x(a: [u8; 2]) { y(\"{\") }");
+        d.select(4, 4).unwrap();
+        assert_eq!(d.matching_bracket(), Some((4, 15)));
+        d.select(16, 16).unwrap();
+        assert_eq!(
+            d.matching_bracket(),
+            Some((15, 4)),
+            "bracket before the caret"
+        );
+        d.select(0, 0).unwrap();
+        assert_eq!(d.matching_bracket(), None);
+    }
+}

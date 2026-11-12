@@ -103,6 +103,10 @@ impl Locale {
             "Type a file path" => "Nhập đường dẫn file",
             "Nothing to change" => "Không có gì để thay đổi",
             "Moved to line" => "Đã đến dòng",
+            "No bookmarks" => "Chưa có bookmark",
+            "Bookmark set" => "Đã đặt bookmark",
+            "Bookmark removed" => "Đã bỏ bookmark",
+            "Bookmarks cleared" => "Đã xóa mọi bookmark",
             "This file type has no line comment" => "Loại file này không có comment dòng",
             "GUINEA NOTE\n\nCtrl+O  Open file\nCtrl+N  New document" => {
                 "GUINEA NOTE\n\nCtrl+O  Mở file\nCtrl+N  Tài liệu mới"

@@ -65,6 +65,17 @@ merged into one Undo step by typing coalescing.
   document's newline policy (CRLF only for exclusively CRLF files).
 - Commands that change text are refused with a reason (also shown in F2) for
   read-only documents, AI-owned tabs and linked review tabs.
+- **Bookmarks:** Ctrl+F2 (or a click on the line number) toggles a bookmark,
+  shown as `◆` in the gutter; Alt+F2 / Shift+F2 go to the next / previous one
+  (wrapping). Bookmarks are line numbers kept in the document and moved by every
+  edit, Undo and Redo; deleting a bookmarked line removes its bookmark. F2
+  `bookmark-copy` copies the bookmarked lines, `bookmark-remove-lines` deletes
+  them as one Undo step and `bookmark-clear` clears them. Bookmarks are not saved.
+- **Smart highlighting:** selecting a single word (letters, digits, `_`, up to 64
+  scalars) underlines its other whole-word, case-sensitive occurrences in the
+  visible text. **Bracket matching:** the `()[]{}` at or before the caret and its
+  partner are highlighted, searching at most 64 Ki scalars and not skipping
+  strings or comments.
 - **Line and text tools (F2):** sort ascending/descending, remove duplicate
   lines, remove empty (blank) lines and trim trailing spaces/tabs apply to the
   selected lines or the whole document; existing newline sequences are reused

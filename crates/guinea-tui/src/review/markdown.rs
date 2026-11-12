@@ -213,6 +213,7 @@ fn code_card(writer: &mut Writer, text: &str, alias: &str, theme: Theme) {
                 cell_start: 0,
                 theme,
                 highlights: &spans.spans,
+                marks: &[],
             },
         );
         let mut inner = Writer::new(inner_width, writer.locale);

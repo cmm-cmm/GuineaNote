@@ -56,6 +56,9 @@ Ctrl+D duplicate line or selection
 Alt+Up / Alt+Down move line(s) up / down
 Ctrl+C / Ctrl+X without a selection: whole line
 Typing is one Undo step until a pause or caret move
+Ctrl+F2 bookmark · Alt+F2 / Shift+F2 next / previous bookmark
+Click a line number to toggle its bookmark
+Selecting a word underlines its other visible occurrences
 F2 line tools: sort-lines, remove-duplicate-lines, remove-empty-lines,
   trim-trailing, upper-case, lower-case, title-case, toggle-comment
 
@@ -128,6 +131,9 @@ Ctrl+D nhân đôi dòng hoặc vùng chọn
 Alt+Up / Alt+Down đưa dòng lên / xuống
 Ctrl+C / Ctrl+X khi không chọn: cả dòng
 Gõ liên tục là một bước hoàn tác tới khi dừng hoặc di chuyển
+Ctrl+F2 bookmark · Alt+F2 / Shift+F2 bookmark sau / trước
+Nhấp vào số dòng để bật/tắt bookmark
+Chọn một từ sẽ gạch chân các chỗ trùng đang hiển thị
 Công cụ dòng trong F2: sort-lines, remove-duplicate-lines, remove-empty-lines,
   trim-trailing, upper-case, lower-case, title-case, toggle-comment
 

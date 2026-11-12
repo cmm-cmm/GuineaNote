@@ -167,6 +167,8 @@ pub struct Document {
     /// (revision, first changed scalar) for recent revisions; lets display
     /// caches such as multi-line syntax state recompute only changed lines.
     change_log: VecDeque<(u64, usize)>,
+    /// Bookmarked line numbers; they follow edits, Undo and Redo.
+    pub(crate) bookmarks: std::collections::BTreeSet<usize>,
 }
 
 impl Default for Document {
@@ -227,6 +229,7 @@ impl Document {
             newline_policy,
             typing_group: None,
             change_log: VecDeque::new(),
+            bookmarks: std::collections::BTreeSet::new(),
         }
     }
 
@@ -272,6 +275,7 @@ impl Document {
             newline_policy: self.newline_policy,
             typing_group: None,
             change_log: VecDeque::new(),
+            bookmarks: std::collections::BTreeSet::new(),
         }
     }
     /// Read-only linked view; never retains editable history or copies text.
@@ -383,6 +387,51 @@ impl Document {
         self.next_content_state += 1;
         self.revision += 1;
         self.note_change(0);
+    }
+
+    /// Move bookmarks after `old[start..start + old_len]` became
+    /// `new[start..start + new_len]` (`new` is the current buffer). Lines that
+    /// were removed lose their bookmark; inserting whole lines at a line start
+    /// moves the bookmarks of that line and below down with their text.
+    fn shift_bookmarks(&mut self, old: &RopeyBuffer, start: usize, old_len: usize, new_len: usize) {
+        if self.bookmarks.is_empty() {
+            return;
+        }
+        let (Ok(first), Ok(old_end), Ok(new_end), Ok(line_start)) = (
+            old.char_to_line(start),
+            old.char_to_line(start + old_len),
+            self.buffer.char_to_line(start + new_len),
+            old.line_to_char(old.char_to_line(start).unwrap_or(0)),
+        ) else {
+            self.bookmarks.clear();
+            return;
+        };
+        let removed = old_end - first;
+        let inserted = new_end - first;
+        // A change from a line start to a line start replaces whole lines:
+        // those lines' bookmarks go, and the lines after it move with their
+        // text (including plain insertion of new lines at a line start).
+        let whole_lines =
+            start == line_start && old.line_to_char(old_end).ok() == Some(start + old_len);
+        let shifted = self
+            .bookmarks
+            .iter()
+            .filter_map(|&line| {
+                let kept = if whole_lines {
+                    line < first
+                } else {
+                    line <= first
+                };
+                if kept {
+                    Some(line)
+                } else if line < first + removed + usize::from(!whole_lines) {
+                    None
+                } else {
+                    Some(line + inserted - removed)
+                }
+            })
+            .collect();
+        self.bookmarks = shifted;
     }
 
     fn note_change(&mut self, start: usize) {
@@ -504,6 +553,8 @@ impl Document {
             self.next_content_state += 1;
             self.revision += 1;
             self.note_change(range.start);
+            let inserted = text.chars().count();
+            self.shift_bookmarks(&before.buffer, range.start, range.len(), inserted);
             self.apply_layout_edit(layout_edit, text);
             self.clear_redo();
             self.push_history(Transaction {
@@ -671,6 +722,8 @@ impl Document {
         self.next_content_state += 1;
         self.revision += 1;
         self.note_change(0);
+        let lines = self.buffer.len_lines();
+        self.bookmarks.retain(|line| *line < lines);
         self.view.preferred_column = None;
         self.clear_view_cache();
         self.clear_redo();
@@ -829,8 +882,10 @@ impl Document {
             let layout_edit = replacement.as_ref().and_then(|text| {
                 self.prepare_layout_edit(&(tx.start..tx.start + tx.inserted), text)
             });
+            let after = tx.after.buffer.clone();
             self.restore(&tx.before);
             self.note_change(tx.start);
+            self.shift_bookmarks(&after, tx.start, tx.inserted, tx.removed);
             self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.redo.push(tx);
             Ok(true)
@@ -854,8 +909,10 @@ impl Document {
             let layout_edit = replacement.as_ref().and_then(|text| {
                 self.prepare_layout_edit(&(tx.start..tx.start + tx.removed), text)
             });
+            let before = tx.before.buffer.clone();
             self.restore(&tx.after);
             self.note_change(tx.start);
+            self.shift_bookmarks(&before, tx.start, tx.removed, tx.inserted);
             self.apply_layout_edit(layout_edit, replacement.as_deref().unwrap_or(""));
             self.undo.push_back(tx);
             Ok(true)

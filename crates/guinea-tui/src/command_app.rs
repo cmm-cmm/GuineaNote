@@ -16,6 +16,7 @@ impl App {
             "lower-case",
             "title-case",
             "toggle-comment",
+            "bookmark-remove-lines",
         ];
         const CHANGES: &[&str] = &[
             "save",
@@ -209,6 +210,37 @@ impl App {
                 Some(prefix) => self.edit(|d| d.toggle_line_comment(prefix).map(|_| ())),
                 None => self.message = "This file type has no line comment".into(),
             },
+            "bookmark-toggle" => {
+                let line = self.document().cursor_line();
+                self.toggle_bookmark(line);
+            }
+            "bookmark-next" | "bookmark-prev" => {
+                let forward = command == "bookmark-next";
+                if self.document_mut().goto_bookmark(forward) {
+                    self.tabs[self.active].follow_cursor = true;
+                } else {
+                    self.message = "No bookmarks".into();
+                }
+            }
+            "bookmark-copy" => {
+                let text = self.document().bookmarked_text();
+                if text.is_empty() {
+                    self.message = "No bookmarks".into();
+                } else {
+                    self.copy_text(text);
+                }
+            }
+            "bookmark-remove-lines" => {
+                if self.document().bookmarks().next().is_none() {
+                    self.message = "No bookmarks".into();
+                } else {
+                    self.edit(|d| d.remove_bookmarked_lines().map(|_| ()));
+                }
+            }
+            "bookmark-clear" => {
+                self.document_mut().clear_bookmarks();
+                self.message = "Bookmarks cleared".into();
+            }
             "delete-word-left" => self.edit(Document::delete_word_left),
             "delete-word-right" => self.edit(Document::delete_word_right),
             _ => self.message = self.config.language.render(Msg::UnknownCommand(command)),
@@ -254,6 +286,21 @@ impl App {
             self.edit(|d| d.type_text(&indent));
             self.redraw = true;
         }
+    }
+
+    /// Toggle the bookmark on `line` (keyboard Ctrl+F2 or a gutter click).
+    pub(super) fn toggle_bookmark(&mut self, line: usize) {
+        if self.tabs[self.active].review_source.is_some() {
+            self.message = "Review tab is read-only; return to source to edit or save".into();
+            return;
+        }
+        self.message = if self.document_mut().toggle_bookmark(line) {
+            "Bookmark set"
+        } else {
+            "Bookmark removed"
+        }
+        .into();
+        self.redraw = true;
     }
 
     /// Copy the selection, or the whole caret line when nothing is selected.

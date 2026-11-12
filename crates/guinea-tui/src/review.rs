@@ -411,6 +411,7 @@ fn code(writer: &mut Writer, text: &str, language: Language, theme: Theme) {
                 cell_start: 0,
                 theme,
                 highlights: &highlights.spans,
+                marks: &[],
             },
         );
         for span in line.spans {

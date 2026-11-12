@@ -53,11 +53,15 @@ chuyển, Ctrl+S lưu, Ctrl+W đóng, Ctrl+N tạo; Esc/Ctrl+P/F12 đóng danh s
 | Đưa dòng lên / xuống | Alt+↑ / Alt+↓ | |
 | Đầu / cuối tài liệu | Ctrl+Home / Ctrl+End | |
 | Đến dòng[:cột grapheme], 1-based | Ctrl+L | Ctrl+G (như Notepad++) |
+| Bật/tắt bookmark dòng hiện tại | **Ctrl+F2** | Nhấp vào số dòng |
+| Bookmark sau / trước | **Alt+F2** / **Shift+F2** | F2 `bookmark-next` / `bookmark-prev` |
 
 Công cụ dòng/chữ kiểu Notepad++ chạy từ **F2** (không gán phím để tránh xung
 đột): `sort-lines`, `sort-lines-desc`, `remove-duplicate-lines`,
 `remove-empty-lines`, `trim-trailing`, `upper-case`, `lower-case`, `title-case`,
-`toggle-comment`. Thao tác dòng áp dụng cho các dòng đã chọn, hoặc cả file khi
+`toggle-comment`; bookmark: `bookmark-copy`, `bookmark-remove-lines`,
+`bookmark-clear`. Notepad++ dùng F2 cho bookmark sau, nhưng F2 của Guinea Note là
+danh sách thao tác nên bookmark sau là Alt+F2. Thao tác dòng áp dụng cho các dòng đã chọn, hoặc cả file khi
 không chọn nhiều dòng; đổi hoa thường áp dụng cho vùng chọn hoặc dòng hiện tại.
 
 Enter giữ thụt lề của dòng hiện tại (không áp dụng khi đang dán). Gõ liên tục là
@@ -111,6 +115,7 @@ trên từng terminal.
 | --- | --- | --- |
 | F11 | Windows Terminal, GNOME Terminal: toàn màn hình; macOS: Show Desktop | **Shift+F11**, F2 `focus-mode` |
 | F10, F1 | GNOME Terminal: mở menu, Help | F2 `settings`, F2 `help` |
+| Alt+F2 | GNOME/KDE: hộp Run của desktop | F2 `bookmark-next` |
 | Ctrl+Tab / Ctrl+Shift+Tab | Windows Terminal và terminal có thẻ: đổi thẻ terminal | F6 / F7, Alt+← / Alt+→ |
 | Ctrl+PageUp / Ctrl+PageDown | GNOME Terminal, Konsole: đổi thẻ terminal | F6 / F7 |
 | Alt+← → ↑ ↓ | Windows Terminal khi có nhiều pane (chuyển pane); macOS Terminal gửi Option+←/→ thành Alt+B/F | F6 / F7; F2 `move-line-up/down`; Alt+B/F vẫn là di chuyển theo từ |

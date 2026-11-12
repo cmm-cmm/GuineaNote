@@ -630,6 +630,10 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         && !tab
             .syntax
             .prepare(document, language, tab.top + body.height as usize);
+    // Smart highlighting of the selected word and the caret's bracket pair,
+    // both limited to what is visible (no document-wide scan per frame).
+    let selected_word = document.selected_word();
+    let bracket = document.matching_bracket();
     let caret_window = if caret_pending {
         document.caret_window(width, tab_width).ok()
     } else {
@@ -666,7 +670,12 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         let start = window.char_start;
         let active_line = line_idx == cursor_line;
         if gutter > 0 {
-            let label = format!("{:>digits$} │ ", line_idx + 1, digits = gutter - 3);
+            let marker = if document.is_bookmarked(line_idx) {
+                "◆"
+            } else {
+                "│"
+            };
+            let label = format!("{:>digits$} {marker} ", line_idx + 1, digits = gutter - 3);
             frame.render_widget(
                 Paragraph::new(label).style(text_style(if active_line {
                     theme.accent
@@ -685,6 +694,25 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         } else {
             None
         };
+        let mut marks = Vec::new();
+        if let Some(word) = &selected_word {
+            let options = guinea_core::SearchOptions {
+                ignore_case: false,
+                whole_word: true,
+            };
+            for range in guinea_core::search::find_matches(text, word, options) {
+                let from = start + text[..range.start].chars().count();
+                let to = from + text[range].chars().count();
+                if document.selection().range().start != from {
+                    marks.push((from..to, crate::render::Mark::Occurrence));
+                }
+            }
+        }
+        if let Some((a, b)) = bracket {
+            for at in [a, b] {
+                marks.push((at..at + 1, crate::render::Mark::Bracket));
+            }
+        }
         let line = styled_line(
             text,
             start,
@@ -699,6 +727,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                     .as_ref()
                     .and_then(|h| h.for_revision(document.revision()))
                     .unwrap_or(&[]),
+                marks: &marks,
             },
         );
         frame.render_widget(
