@@ -175,74 +175,105 @@ fn tab_label(tab: &crate::app::Tab, welcome: bool, locale: Locale) -> String {
     )
 }
 
+/// One tab bar row: the tabs on the left (each with its own close `x`), the
+/// position count and tab controls on the right. The control labels shrink
+/// before the tabs lose their minimum space; hidden tabs stay reachable with
+/// F12/Ctrl+P, F6/F7 and the mouse wheel over the tabs.
 fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if area.is_empty() {
         return;
     }
+    let row = Rect::new(area.x, area.y, area.width, 1);
     frame.render_widget(
         Block::default().style(Style::default().bg(theme.panel)),
-        area,
-    );
-    let label_row = if area.height >= 4 { 2 } else { 1 };
-    app.hits.tab_strip = Rect::new(
-        area.x,
-        area.y + label_row,
-        area.width,
-        u16::from(area.height > label_row),
+        row,
     );
     let locale = app.config.language;
-    let count = if area.width < 40 {
-        format!("{}/{}", app.active + 1, app.tabs.len())
-    } else {
-        format!(
-            "{} {}/{}",
-            locale.tr("Tabs"),
-            app.active + 1,
-            app.tabs.len()
-        )
-    };
-    let count_width = Line::from(count.as_str()).width().min(area.width as usize) as u16;
-    frame.render_widget(
-        Paragraph::new(count).style(bold(theme.accent)),
-        Rect::new(area.x, area.y, count_width, 1),
-    );
-    let mut x = area.x + count_width + 1;
-    // Keys shown on the toolbar come from the keymap (primary key).
     let key = crate::commands::short_key;
-    let controls: Vec<(String, &str)> = if area.width >= 96 {
-        vec![
-            (format!(" + {} {} ", locale.tr("New"), key("new")), "new"),
-            (format!(" {} {} ", locale.tr("Save"), key("save")), "save"),
-            (
-                format!(" {} {} ", locale.tr("Close"), key("close")),
-                "close",
-            ),
-            (format!(" < {} ", key("prev")), "prev"),
-            (format!(" {} > ", key("next")), "next"),
-            (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
-        ]
-    } else if area.width >= 56 {
-        vec![
-            (format!(" + {} ", locale.tr("New")), "new"),
-            (format!(" {} ", locale.tr("Save")), "save"),
-            (format!(" {} ", locale.tr("Close")), "close"),
-            (" < ".into(), "prev"),
-            (" > ".into(), "next"),
-            (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
-        ]
-    } else {
-        vec![
-            (" + ".into(), "new"),
-            (" < ".into(), "prev"),
-            (" > ".into(), "next"),
-            (format!(" {} ", key("tabs")), "tabs"),
-        ]
+    let count = format!("{}/{}", app.active + 1, app.tabs.len());
+    let wide: Vec<(String, &str)> = vec![
+        (format!(" + {} {} ", locale.tr("New"), key("new")), "new"),
+        (format!(" {} {} ", locale.tr("Save"), key("save")), "save"),
+        (
+            format!(" {} {} ", locale.tr("Close"), key("close")),
+            "close",
+        ),
+        (format!(" < {} ", key("prev")), "prev"),
+        (format!(" {} > ", key("next")), "next"),
+        (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
+    ];
+    let medium: Vec<(String, &str)> = vec![
+        (format!(" + {} ", locale.tr("New")), "new"),
+        (format!(" {} ", locale.tr("Save")), "save"),
+        (format!(" {} ", locale.tr("Close")), "close"),
+        (" < ".into(), "prev"),
+        (" > ".into(), "next"),
+        (format!(" {} {} ", locale.tr("All"), key("tabs")), "tabs"),
+    ];
+    let narrow: Vec<(String, &str)> = vec![
+        (" + ".into(), "new"),
+        (" < ".into(), "prev"),
+        (" > ".into(), "next"),
+        (format!(" {} ", key("tabs")), "tabs"),
+    ];
+    let labelled = format!(" {} {count}", locale.tr("Tabs"));
+    let bare = format!(" {count}");
+    let width_of = |count: &str, controls: &[(String, &str)]| {
+        Line::from(count).width()
+            + controls
+                .iter()
+                .map(|(label, _)| Line::from(label.as_str()).width() + 1)
+                .sum::<usize>()
     };
+    let welcome = app.welcome();
+    // " 3 main.rs ●" — number, name and dirty dot, then the close button.
+    let label = |index: usize| {
+        let label = tab_label(&app.tabs[index], welcome, locale);
+        let label = label.trim_end();
+        let (ai, name) = label
+            .trim_start()
+            .strip_prefix("AI · ")
+            .map_or(("", label.trim_start()), |name| ("AI · ", name));
+        format!(" {ai}{} {name}", index + 1)
+    };
+    // Each tab is its label plus a 3-cell close button; the close button's
+    // padding separates neighbours. One cell on each side is reserved for
+    // the ‹ / › markers that show tabs scrolled out of the strip.
+    let span = |index: usize| Line::from(label(index)).width() + 3;
+    // Like Notepad++, tabs come first: use the longest control labels that
+    // still show every tab; when none does, keep half the row (up to 56 cells).
+    let all_tabs = (0..app.tabs.len()).map(span).sum::<usize>() + 3;
+    let room = (area.width as usize).saturating_sub((area.width as usize / 2).min(56));
+    let variants = [(&labelled, wide), (&labelled, medium), (&bare, narrow)];
+    let choice = variants
+        .iter()
+        .position(|(count, controls)| width_of(count, controls) + all_tabs <= area.width as usize)
+        .or_else(|| {
+            variants
+                .iter()
+                .position(|(count, controls)| width_of(count, controls) <= room)
+        })
+        .unwrap_or(2);
+    let [first_variant, second_variant, third_variant] = variants;
+    let (count, controls) = match choice {
+        0 => first_variant,
+        1 => second_variant,
+        _ => third_variant,
+    };
+    let cluster = (width_of(count, &controls) as u16).min(area.width);
+    let mut x = area.right() - cluster;
+    let count_width = Line::from(count.as_str()).width() as u16;
+    frame.render_widget(
+        Paragraph::new(count.clone()).style(bold(theme.accent)),
+        Rect::new(x, area.y, count_width.min(area.right() - x), 1),
+    );
+    x += count_width;
     for (label, action) in controls {
         let width = Line::from(label.as_str()).width() as u16;
-        if x + width > area.right() {
+        if x + 1 + width > area.right() {
             break;
         }
+        x += 1;
         let rect = Rect::new(x, area.y, width, 1);
         frame.render_widget(
             Paragraph::new(label).style(Style::default().bg(theme.raised).fg(if action == "new" {
@@ -256,8 +287,113 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             rect,
         );
         app.hits.actions.push((rect, action));
-        x += width + 1;
+        x += width;
     }
+    let strip_width = area.width.saturating_sub(cluster + 1);
+    app.hits.tab_strip = Rect::new(area.x, area.y, strip_width, 1);
+    if strip_width < 8 {
+        return;
+    }
+    let fits = strip_width.saturating_sub(2) as usize;
+    let mut first = app.active;
+    let mut used = span(first);
+    while first > 0 && used + span(first - 1) <= fits {
+        first -= 1;
+        used += span(first);
+    }
+    let right = area.x + strip_width - 1;
+    let mut x = area.x + 1;
+    if first > 0 {
+        frame.render_widget(
+            Paragraph::new("‹").style(Style::default().bg(theme.panel).fg(theme.warm)),
+            Rect::new(area.x, area.y, 1, 1),
+        );
+    }
+    for index in first..app.tabs.len() {
+        let label = label(index);
+        let width = ((Line::from(label.as_str()).width() + 3) as u16).min(right - x);
+        if width < 6 {
+            break;
+        }
+        let selected = index == app.active;
+        let background = if selected { theme.raised } else { theme.panel };
+        let rect = Rect::new(x, area.y, width, 1);
+        let name_style =
+            Style::default()
+                .bg(background)
+                .fg(if app.tabs[index].ai_action.is_some() {
+                    theme.accent
+                } else if selected {
+                    theme.text
+                } else {
+                    theme.muted
+                });
+        frame.render_widget(
+            Paragraph::new(clipped(&label, width.saturating_sub(3) as usize)).style(if selected {
+                name_style.add_modifier(Modifier::BOLD)
+            } else {
+                name_style
+            }),
+            rect,
+        );
+        if selected && app.tabs[index].ai_action.is_none() {
+            // The active tab's number is the accent marker (no extra row).
+            let digits = (index + 1).to_string().len() as u16;
+            frame.render_widget(
+                Paragraph::new((index + 1).to_string()).style(
+                    Style::default()
+                        .bg(background)
+                        .fg(theme.accent)
+                        .add_modifier(Modifier::BOLD),
+                ),
+                Rect::new(x + 1, area.y, digits.min(width.saturating_sub(4)), 1),
+            );
+        }
+        app.hits.tabs.push((rect, index));
+        let locked = app.tabs[index].ai_action.is_some();
+        let close = Rect::new(rect.right() - 3, rect.y, 3, 1);
+        frame.render_widget(
+            Paragraph::new(if locked { " · " } else { " x " }).style(
+                Style::default()
+                    .bg(background)
+                    .fg(if locked { theme.faint } else { theme.warm }),
+            ),
+            close,
+        );
+        if !locked {
+            app.hits.tab_closes.push((close, index));
+        }
+        x += width;
+        let last = index + 1 == app.tabs.len();
+        if !last && (x >= right || x + 6 > right || x + span(index + 1) as u16 > right) {
+            frame.render_widget(
+                Paragraph::new("›").style(Style::default().bg(theme.panel).fg(theme.warm)),
+                Rect::new(right, area.y, 1, 1),
+            );
+            break;
+        }
+    }
+}
+
+/// File path and context drawn into the top border of the editor or review
+/// panel (after its title), instead of a separate row above it.
+fn border_info(frame: &mut Frame<'_>, app: &App, area: Rect, title: &str, theme: Theme) {
+    if area.width < 20 || app.welcome() {
+        return;
+    }
+    let locale = app.config.language;
+    let tab = &app.tabs[app.active];
+    let path = tab
+        .document
+        .path
+        .as_ref()
+        .map(|path| {
+            path.strip_prefix(&app.root)
+                .unwrap_or(path)
+                .to_string_lossy()
+                .into_owned()
+        })
+        .unwrap_or_else(|| tab.title(locale));
     let (dirty, ai) = app.tabs.iter().filter(|t| t.review_source.is_none()).fold(
         (0usize, 0usize),
         |(dirty, ai), tab| {
@@ -267,92 +403,69 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             )
         },
     );
-    if (dirty > 0 || ai > 0) && area.right().saturating_sub(x) > 8 {
-        let hint = if ai > 0 {
-            format!("AI {ai} · ● {dirty} {}", locale.tr("unsaved"))
-        } else {
-            format!("● {dirty} {}", locale.tr("unsaved"))
+    let context = if let Some(action) = &tab.ai_action {
+        format!(" AI · {} ", locale.ai_action(action))
+    } else {
+        let mode = match tab.review.mode {
+            ViewMode::Source => "SOURCE",
+            ViewMode::Split => "SPLIT",
+            ViewMode::Review => "REVIEW",
         };
-        frame.render_widget(
-            Paragraph::new(clipped(&hint, (area.right() - x) as usize))
-                .style(text_style(theme.warm)),
-            Rect::new(x, area.y, area.right() - x, 1),
-        );
-    }
-    if area.height < 2 {
-        return;
-    }
-    if label_row == 2 {
-        frame.render_widget(
-            Block::default().style(Style::default().bg(theme.canvas)),
-            Rect::new(area.x, area.y + 1, area.width, 1),
-        );
-    }
-    let welcome = app.welcome();
-    let label = |index: usize| {
         format!(
-            "{}{}",
-            index + 1,
-            tab_label(&app.tabs[index], welcome, locale)
+            " {} · {} · {} ",
+            locale.tr(mode),
+            crate::app::document_language(&tab.document).label(),
+            crate::file_info::bytes(tab.document.buffer().len_bytes())
         )
     };
-    let mut first = app.active;
-    let mut used = Line::from(label(first)).width() + 3;
-    while first > 0 && used + Line::from(label(first - 1)).width() + 3 <= area.width as usize {
-        first -= 1;
-        used += Line::from(label(first)).width() + 3;
+    let unsaved = match (dirty, ai) {
+        (0, 0) => String::new(),
+        (dirty, 0) => format!(" ● {dirty} {} ", locale.tr("unsaved")),
+        (dirty, ai) => format!(" AI {ai} · ● {dirty} {} ", locale.tr("unsaved")),
+    };
+    // Corner + " TITLE " + "─" on the left, "─" + corner on the right.
+    let start = area.x + 2 + Line::from(format!(" {title} ").as_str()).width() as u16;
+    let end = area.right().saturating_sub(2);
+    let available = end.saturating_sub(start) as usize;
+    let context_width = Line::from(context.as_str()).width();
+    let unsaved_width = Line::from(unsaved.as_str()).width();
+    let (show_context, show_unsaved) = if available >= context_width + unsaved_width + 12 {
+        (true, unsaved_width > 0)
+    } else if available >= context_width + 12 {
+        (true, false)
+    } else {
+        (false, false)
+    };
+    let right_width =
+        if show_context { context_width } else { 0 } + if show_unsaved { unsaved_width } else { 0 };
+    let path_width = available.saturating_sub(right_width + 2);
+    if path_width >= 4 {
+        let shown = format!(" {} ", input_tail(&path, path_width - 2));
+        let width = Line::from(shown.as_str()).width() as u16;
+        frame.render_widget(
+            Paragraph::new(shown).style(Style::default().bg(theme.panel).fg(theme.muted)),
+            Rect::new(start, area.y, width, 1),
+        );
     }
-    let mut x = area.x;
-    for index in first..app.tabs.len() {
-        let label = label(index);
-        let width = ((Line::from(label.as_str()).width() + 3) as u16).min(area.right() - x);
-        if width < 5 {
-            break;
-        }
-        let selected = index == app.active;
-        let rect = Rect::new(x, area.y + label_row, width, 1);
+    let mut x = end - right_width as u16;
+    if show_unsaved {
         frame.render_widget(
-            Paragraph::new(clipped(&label, width.saturating_sub(3) as usize)).style(
-                Style::default()
-                    .bg(if selected { theme.raised } else { theme.panel })
-                    .fg(if app.tabs[index].ai_action.is_some() {
-                        theme.accent
-                    } else if selected {
-                        theme.text
-                    } else {
-                        theme.muted
-                    }),
-            ),
-            rect,
+            Paragraph::new(unsaved).style(Style::default().bg(theme.panel).fg(theme.warm)),
+            Rect::new(x, area.y, unsaved_width as u16, 1),
         );
-        app.hits.tabs.push((rect, index));
-        let locked = app.tabs[index].ai_action.is_some();
-        let close = Rect::new(rect.right() - 3, rect.y, 3, 1);
+        x += unsaved_width as u16;
+    }
+    if show_context {
         frame.render_widget(
-            Paragraph::new(if locked { " · " } else { " x " }).style(
-                Style::default()
-                    .bg(if selected { theme.raised } else { theme.panel })
-                    .fg(if locked { theme.faint } else { theme.warm }),
-            ),
-            close,
-        );
-        if !locked {
-            app.hits.tab_closes.push((close, index));
-        }
-        if area.height > label_row + 1 {
-            frame.render_widget(
-                Paragraph::new("─".repeat(width as usize)).style(text_style(if selected {
-                    theme.accent
+            Paragraph::new(context).style(Style::default().bg(theme.raised).fg(
+                if tab.ai_action.is_some() {
+                    theme.warm
                 } else {
-                    theme.line
-                })),
-                Rect::new(x, area.y + label_row + 1, width, 1),
-            );
-        }
-        x += width;
-        if x >= area.right() {
-            break;
-        }
+                    theme.secondary
+                },
+            )),
+            Rect::new(x, area.y, context_width as u16, 1),
+        );
     }
 }
 
@@ -456,13 +569,8 @@ fn welcome(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
 
 fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     let locale = app.config.language;
-    let compact = area.height < 10 || app.focus_mode;
-    let regions = Layout::vertical([
-        Constraint::Length(if compact { 1 } else { 4 }),
-        Constraint::Length(if compact { 0 } else { 1 }),
-        Constraint::Min(1),
-    ])
-    .split(area);
+    // One tab bar row; path and file context live in the panel border.
+    let regions = Layout::vertical([Constraint::Length(1), Constraint::Min(1)]).split(area);
     if app.focus_mode {
         let label = format!(
             " {} · {}/{} · F11 {}",
@@ -482,77 +590,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     } else {
         tabs(frame, app, regions[0], theme);
     }
-    let path = app
-        .document()
-        .path
-        .as_ref()
-        .map(|path| {
-            path.strip_prefix(&app.root)
-                .unwrap_or(path)
-                .to_string_lossy()
-                .into_owned()
-        })
-        .unwrap_or_else(|| {
-            if app.welcome() {
-                locale
-                    .tr("Welcome / your next idea starts here")
-                    .into_owned()
-            } else {
-                app.tabs[app.active].title(locale)
-            }
-        });
-    let tab = &app.tabs[app.active];
-    let context = if let Some(action) = &tab.ai_action {
-        format!(" AI · {} ", locale.ai_action(action))
-    } else {
-        let mode = match tab.review.mode {
-            ViewMode::Source => "SOURCE",
-            ViewMode::Split => "SPLIT",
-            ViewMode::Review => "REVIEW",
-        };
-        format!(
-            " {} · {} · {} ",
-            locale.tr(mode),
-            crate::app::document_language(&tab.document).label(),
-            crate::file_info::bytes(tab.document.buffer().len_bytes())
-        )
-    };
-    let context_width = if regions[1].width >= 60 && !app.welcome() {
-        (Line::from(context.as_str()).width() as u16).min(regions[1].width / 2)
-    } else {
-        0
-    };
-    frame.render_widget(
-        Paragraph::new(format!(
-            "  {}",
-            input_tail(
-                &path,
-                regions[1].width.saturating_sub(context_width + 3) as usize
-            )
-        ))
-        .style(text_style(theme.muted)),
-        regions[1],
-    );
-    if context_width > 0 {
-        frame.render_widget(
-            Paragraph::new(clipped(&context, context_width as usize)).style(
-                Style::default()
-                    .bg(theme.raised)
-                    .fg(if tab.ai_action.is_some() {
-                        theme.warm
-                    } else {
-                        theme.secondary
-                    }),
-            ),
-            Rect::new(
-                regions[1].right() - context_width,
-                regions[1].y,
-                context_width,
-                regions[1].height,
-            ),
-        );
-    }
-    let mut editor_area = regions[2];
+    let mut editor_area = regions[1];
     let mode = app.tabs[app.active].review.mode;
     if mode != ViewMode::Source && !app.welcome() {
         if mode == ViewMode::Split && editor_area.width >= 76 {
@@ -566,17 +604,15 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             return;
         }
     }
-    let block = panel(
-        &locale.tr(if app.welcome() {
-            "START HERE"
-        } else {
-            "EDITOR"
-        }),
-        theme,
-        true,
-    );
+    let title = locale.tr(if app.welcome() {
+        "START HERE"
+    } else {
+        "EDITOR"
+    });
+    let block = panel(&title, theme, true);
     let body = block.inner(editor_area);
     frame.render_widget(block, editor_area);
+    border_info(frame, app, editor_area, &title, theme);
     app.hits.editor = body;
     app.page_height = body.height.max(1) as usize;
     if body.width < 2 || body.height == 0 {
@@ -771,9 +807,14 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     let locale = app.config.language;
     let is_markdown = crate::app::document_language(app.document()) == Language::Markdown;
     let linked = app.tabs[app.active].review_source.is_some();
-    let block = panel(&locale.tr("REVIEW · F8"), theme, true);
+    let title = locale.tr("REVIEW · F8");
+    let block = panel(&title, theme, true);
     let body = block.inner(area);
     frame.render_widget(block, area);
+    // Full review has no editor panel: its border carries the file context.
+    if app.tabs[app.active].review.mode == ViewMode::Review {
+        border_info(frame, app, area, &title, theme);
+    }
     if body.width < 4 || body.height < 3 {
         return;
     }

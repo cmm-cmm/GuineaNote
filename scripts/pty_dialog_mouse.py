@@ -31,7 +31,8 @@ def click(ui,label,condition=None,button=0):
 def close_x(ui,title):
     ui.wait_until(lambda lines:any(title in line and " x " in line for line in lines))
     row,line=next((i,line) for i,line in enumerate(ui.screen.display) if title in line)
-    return pointer(line.rindex(" x ")+1,row)
+    # Tabs share one row: take the close button that follows this title.
+    return pointer(line.index(" x ",line.index(title))+1,row)
 
 
 def main():
@@ -50,7 +51,9 @@ def main():
             ui.wait("alpha first line")
             nav=next(i for i,line in enumerate(ui.screen.display) if "Tabs 1/2" in line)
             tab=locate(ui,"alpha.txt"," x ")[1]
-            assert tab>=nav+2,"No gap between navigation and tab labels"
+            # One tab bar row below the rule that separates it from the menu.
+            assert tab==nav,"Tabs and tab controls share one row"
+            assert set(ui.screen.display[nav-1].strip())=={"─"},"Menu/tab-bar separator"
             footer=next(line for line in ui.screen.display if "Ln 1, Col" in line)
             assert footer.index("UTF-8")>ui.screen.columns//2
             x,y=locate(ui,"alpha first line")

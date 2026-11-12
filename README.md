@@ -42,8 +42,8 @@ Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
 show the welcome screen. A folder argument is rejected with a message before the
 terminal starts; use Ctrl+O to pick a file.
 
-The window has a tab strip, breadcrumbs, syntax colors, current-line
-highlighting and a status/shortcut bar. Click tabs or toolbar actions, or place
+The window has a one-row tab bar, the file path and context in the editor
+border, syntax colors, current-line highlighting and a status/shortcut bar. Click tabs or toolbar actions, or place
 the editor caret, when mouse support is enabled. Every key label on buttons,
 the tab toolbar and the footer is generated from the keymap, so labels always
 match the active bindings. Recommended size: 100×28 or larger.
@@ -113,8 +113,11 @@ navigation wraps through all matches. Scanning/replacement runs in cancellable
 workers; closing the panel cancels uncommitted work. See the
 [search guide](docs/SEARCH_REPLACE.md) for details and limits.
 
-The tab toolbar shows the active position and total open count, with New,
-Save, Close, previous/next and All tabs buttons. Click a numbered tab to switch
+The tab bar is one row below the menu rule: numbered tabs on the left, then
+the active position and total count with New, Save, Close, previous/next and
+All tabs buttons on the right. Like Notepad++, tabs take priority: the button
+labels shorten (down to `+ < > F12`) when that lets every tab show, and `‹` /
+`›` mark tabs scrolled out of view. Click a numbered tab to switch
 or its `x` to close. Blank tabs have stable numbered names; `●` marks unsaved
 changes and review tabs have a distinct label. Closing an inactive tab preserves
 the current tab. Closing a linked review returns to its source; closing the last
@@ -130,14 +133,14 @@ and content. The theme uses true color on Windows and terminals reporting true
 color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
 No Nerd Font is required. Use a tall terminal for the complete F1 guide.
 
-The file context strip shows source/split/review mode, format and buffer size;
-long paths keep the filename visible. During AI work it shows the current
+The editor (or full review) border shows the file path after its title and,
+on the right, the unsaved-tab count plus source/split/review mode, format and
+buffer size; long paths keep the filename visible. During AI work it shows the current
 operation in Vietnamese or English. Locked tabs have a muted close indicator,
 and navigation/copy/other-tab shortcuts remain visible. Ctrl+P includes cached
 file format, size, line count and AI activity. Wide status bars show selection
 size (Unicode scalars) and caret progress without hiding save status. Format,
-encoding and newline information is aligned to the right. A spacer separates
-the tab toolbar from the tab labels at normal terminal sizes.
+encoding and newline information is aligned to the right.
 
 Local Agent access is opt-in: `cargo build --workspace`, then
 `cargo run -- --agent --agent-write .` during development. Separate native

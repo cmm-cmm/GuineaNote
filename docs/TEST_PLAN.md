@@ -149,6 +149,16 @@ replace the record; a vanished file is skipped and reported; `session = false`
 neither restores nor rewrites the record. Rust tests cover damaged/absent
 records, duplicate entries, positions past a changed file and atomic rewrite.
 
+## Tab bar redesign — 2026-11-12
+
+The tab area is one row (tabs left, count and controls right) under the menu
+rule, and the path/context moved into the editor border, so the editor gains
+four rows. Render tests check that tabs share the controls' row left of every
+control at every size and locale, that the menu rule stays, and that overflowing
+tabs keep the count, active tab and close regions. `pty_dialog_mouse.py` now
+asserts the shared row and the rule above it, and picks the close `x` after the
+named tab instead of the last one in the row.
+
 ## Mark — 2026-11-12
 
 `python -X utf8 scripts/pty_mark.py` (after a release build): F2 `mark-all`

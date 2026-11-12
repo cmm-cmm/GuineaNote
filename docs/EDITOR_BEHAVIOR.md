@@ -17,10 +17,12 @@ valid boundary. Shift extends selection, Ctrl+A selects all, and typing replaces
 the selection. Up/Down preserve the preferred grapheme column, not a cell or
 UTF-16 column. Status line/column numbers are 1-based line/grapheme positions.
 
-The tab strip shows neighboring tabs when they fit and scrolls enough to keep
-the active tab visible. A spacer separates its toolbar from the labels at normal
-window sizes. Position/save state is on the left of the status; format, encoding
-and newline policy are right-aligned. Paths appear in the breadcrumb instead.
+The tab bar is a single row: tabs on the left, count and tab controls on the
+right. It shows neighboring tabs when they fit and scrolls enough to keep the
+active tab visible, with `‹` / `›` marking hidden tabs; control labels shorten
+first when that shows every tab. Position/save state is on the left of the
+status; format, encoding and newline policy are right-aligned. The path, the
+unsaved-tab count and the mode/format/size context are in the editor border.
 Viewport scrolling uses terminal cells. Tabs advance to configurable tab stops;
 wide clusters are clipped as a unit with blank padding at the edges. Standalone
 zero-width clusters receive a dotted-circle fallback. Controls are displayed as

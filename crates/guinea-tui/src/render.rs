@@ -569,7 +569,13 @@ mod tests {
             .find(|(_, a)| *a == "tabs")
             .unwrap()
             .0;
-        assert!(app.hits.tabs.iter().all(|(r, _)| r.y > nav.bottom()));
+        // One tab bar row: tabs on the left, controls on the right.
+        assert!(
+            app.hits
+                .tabs
+                .iter()
+                .all(|(r, _)| r.y == nav.y && r.right() < nav.x)
+        );
         let status = terminal.backend().buffer();
         let row = (0..status.area.height)
             .find(|&y| {
@@ -799,8 +805,10 @@ mod tests {
                             "─"
                         );
                     }
+                    // Tabs share the tab bar row, left of every control.
                     for (r, _) in &app.hits.tabs {
-                        assert!(r.y > controls.y);
+                        assert_eq!(r.y, controls.y);
+                        assert!(r.right() <= controls.x, "{width}x{height}");
                     }
                     assert!(!menu.intersects(controls));
                 }
