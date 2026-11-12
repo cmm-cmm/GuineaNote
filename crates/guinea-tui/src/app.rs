@@ -246,6 +246,8 @@ pub struct App {
     next_untitled: usize,
     pub clipboard: crate::clipboard::Clipboard,
     paste_target: Option<u64>,
+    input_batch: bool,
+    pending_indent: Option<(u64, u64, String)>,
     search: String,
     replacement: String,
     search_options: guinea_core::SearchOptions,
@@ -317,6 +319,8 @@ impl App {
             quit_after_settings: false,
             clipboard,
             paste_target: None,
+            input_batch: false,
+            pending_indent: None,
             search: String::new(),
             replacement: String::new(),
             search_options: guinea_core::SearchOptions::default(),
@@ -763,6 +767,7 @@ impl App {
         );
         match event {
             Event::Paste(text) => {
+                self.pending_indent = None;
                 self.redraw = true;
                 if let Some(Modal::Input { value, .. }) = self.modal.as_mut() {
                     if value.len().saturating_add(text.len()) <= 4096 {
@@ -788,6 +793,8 @@ impl App {
                 }
             }
             Event::Key(key) if key.kind != KeyEventKind::Release => {
+                // More input in the same burst after Enter means a paste.
+                self.pending_indent = None;
                 self.last_modal_click = None;
                 if self.modal.is_none()
                     && self.focus == Focus::Editor
@@ -825,7 +832,7 @@ impl App {
                 let tab_context = self.modal.is_none()
                     || matches!(&self.modal, Some(Modal::Project(_)))
                     || matches!(&self.modal, Some(Modal::Search(search)) if !search.replacing());
-                if tab_context && let Some(command) = crate::keyboard::tab_command(key) {
+                if tab_context && let Some(command) = crate::commands::tab_command(key) {
                     self.modal = None;
                     self.command(command);
                     return;
@@ -1146,14 +1153,6 @@ impl App {
     }
 
     fn editor_key(&mut self, key: KeyEvent) {
-        if key.modifiers == KeyModifiers::ALT && matches!(key.code, KeyCode::Char('s' | 'S')) {
-            self.command("save-as");
-            return;
-        }
-        if key.code == KeyCode::F(11) {
-            self.command("focus-mode");
-            return;
-        }
         if matches!(
             key.code,
             KeyCode::Left
@@ -1167,25 +1166,10 @@ impl App {
         ) {
             self.tabs[self.active].follow_cursor = true;
         }
-        if key.modifiers == KeyModifiers::ALT && matches!(key.code, KeyCode::Char('m' | 'M')) {
-            let review = &mut self.tabs[self.active].review;
-            review.outline_visible = !review.outline_visible;
-            review.outline_focus = false;
-            return;
-        }
-        if key.code == KeyCode::F(9) {
-            self.command("info");
-            return;
-        }
-        if key.code == KeyCode::F(10) {
-            self.command("settings");
-            return;
-        }
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
-        if ctrl
-            && self.tabs[self.active].review.mode == ViewMode::Review
-            && matches!(key.code, KeyCode::Home | KeyCode::End)
-        {
+        let shift = key.modifiers.contains(KeyModifiers::SHIFT);
+        let review = self.tabs[self.active].review.mode == ViewMode::Review;
+        if ctrl && review && matches!(key.code, KeyCode::Home | KeyCode::End) {
             if key.code == KeyCode::Home {
                 self.tabs[self.active].review.top = 0;
             } else {
@@ -1194,61 +1178,17 @@ impl App {
             }
             return;
         }
-        let shift = key.modifiers.contains(KeyModifiers::SHIFT);
-        if ctrl {
-            match key.code {
-                KeyCode::Char('s' | 'S') if shift => self.command("save-as"),
-                KeyCode::Char('s') => self.command("save"),
-                KeyCode::Char('o') => self.command("open"),
-                KeyCode::Char('n' | 't') => self.command("new"),
-                KeyCode::Char('p') => self.command("tabs"),
-                KeyCode::PageUp => self.command("prev"),
-                KeyCode::PageDown => self.command("next"),
-                KeyCode::Char('b') => self.command("explorer"),
-                KeyCode::Char('k') => self.command("open-folder"),
-                KeyCode::Char('w') => self.command("close"),
-                KeyCode::Char('q') => self.command("quit"),
-                KeyCode::Char('e') => self.command("files"),
-                KeyCode::Char('g') => self.command("project-search"),
-                KeyCode::Char('l') => self.command("goto"),
-                KeyCode::Char('f') => self.command("find"),
-                KeyCode::Char('h') => self.command("replace"),
-                KeyCode::Char('z') => self.command("undo"),
-                KeyCode::Char('y') => self.command("redo"),
-                KeyCode::Char('a') => self.command("select-all"),
-                KeyCode::Char('c') => self.command("copy"),
-                KeyCode::Char('x') => self.command("cut"),
-                KeyCode::Char('v') => self.command("paste"),
-                KeyCode::Tab | KeyCode::BackTab => {
-                    self.command(if shift { "prev" } else { "next" })
-                }
-                KeyCode::Home => self.document_mut().move_cursor(Movement::Start, shift),
-                KeyCode::End => self.document_mut().move_cursor(Movement::Finish, shift),
-                _ => {}
-            }
+        // Keymap v1 (commands.rs) owns every shortcut; the rest is context input.
+        let editor = self.focus == Focus::Editor && !review;
+        if let Some(command) = crate::commands::lookup(key, editor, false) {
+            self.command(command);
             return;
         }
-        match key.code {
-            KeyCode::F(8) => {
-                self.command("preview");
-                return;
-            }
-            KeyCode::F(4) => {
-                self.command("focus");
-                return;
-            }
-            KeyCode::F(5) => {
-                self.command("refresh");
-                return;
-            }
-            KeyCode::F(1) | KeyCode::F(2) | KeyCode::F(3) | KeyCode::F(7) => {}
-            _ if self.focus == Focus::Explorer => {
-                self.tree_key(key);
-                return;
-            }
-            _ => {}
+        if self.focus == Focus::Explorer {
+            self.tree_key(key);
+            return;
         }
-        if self.tabs[self.active].review.mode == ViewMode::Review {
+        if review {
             let height = self.page_height;
             let table = matches!(
                 document_language(self.document()),
@@ -1296,9 +1236,14 @@ impl App {
                 KeyCode::Home => review.top = 0,
                 KeyCode::End => review.scroll(isize::MAX, height),
                 KeyCode::Esc => self.command("source"),
-                KeyCode::F(1) => self.command("help"),
-                KeyCode::F(2) => self.prompt(InputKind::Command),
-                KeyCode::F(3) => self.command("find-next"),
+                _ => {}
+            }
+            return;
+        }
+        if ctrl {
+            match key.code {
+                KeyCode::Home => self.document_mut().move_cursor(Movement::Start, shift),
+                KeyCode::End => self.document_mut().move_cursor(Movement::Finish, shift),
                 _ => {}
             }
             return;
@@ -1313,13 +1258,12 @@ impl App {
             _ => None,
         };
         if let Some(movement) = movement {
-            self.document_mut().move_cursor(movement, shift);
+            if !key.modifiers.contains(KeyModifiers::ALT) {
+                self.document_mut().move_cursor(movement, shift);
+            }
             return;
         }
         match key.code {
-            KeyCode::F(1) => self.command("help"),
-            KeyCode::F(2) => self.prompt(InputKind::Command),
-            KeyCode::F(3) => self.command("find-next"),
             KeyCode::PageUp | KeyCode::PageDown => {
                 let movement = if key.code == KeyCode::PageUp {
                     Movement::Up
@@ -1330,20 +1274,68 @@ impl App {
                     self.document_mut().move_cursor(movement, shift);
                 }
             }
-            KeyCode::Backspace => self.edit(Document::backspace),
-            KeyCode::Delete => self.edit(Document::delete_forward),
-            KeyCode::Enter => self.edit(Document::newline),
-            KeyCode::Tab => self.edit(|d| d.insert("\t")),
+            KeyCode::Backspace => self.edit(Document::type_backspace),
+            KeyCode::Delete => self.edit(Document::type_delete),
+            KeyCode::Enter => self.newline(),
             KeyCode::Char(ch) if !key.modifiers.contains(KeyModifiers::ALT) => {
-                self.edit(|d| d.insert(&ch.to_string()))
+                self.edit(|d| d.type_text(&ch.to_string()))
             }
             _ => {}
         }
     }
 
+    /// Enter keeps the caret line's indentation. A newline followed by more
+    /// input in the same burst is a paste delivered as key events (ConPTY);
+    /// its own indentation arrives with it, so auto-indent is cancelled then.
+    fn newline(&mut self) {
+        let indent = self.document().caret_indentation();
+        let newline = self.document().line_ending().newline();
+        let revision = self.document().revision();
+        self.edit(|d| d.type_text(newline));
+        if indent.is_empty() || self.document().revision() == revision {
+            return;
+        }
+        let pending = (self.document().id, self.document().revision(), indent);
+        if self.input_batch {
+            self.pending_indent = Some(pending);
+        } else {
+            self.pending_indent = Some(pending);
+            self.end_input(true);
+        }
+    }
+
+    /// Called by the event loop before handling a burst of input events.
+    pub fn begin_input(&mut self) {
+        self.input_batch = true;
+    }
+
+    /// Called after a burst. `drained` is true when no further input was queued.
+    pub fn end_input(&mut self, drained: bool) {
+        self.input_batch = false;
+        if !drained {
+            return;
+        }
+        if let Some((id, revision, indent)) = self.pending_indent.take()
+            && self.document().id == id
+            && self.document().revision() == revision
+        {
+            self.edit(|d| d.type_text(&indent));
+            self.redraw = true;
+        }
+    }
+
+    /// Copy the selection, or the whole caret line when nothing is selected.
     fn copy_selection(&mut self) {
+        let text = if self.document().selection().is_empty() {
+            self.document().current_line_text()
+        } else {
+            self.document().selected_text()
+        };
+        self.copy_text(text);
+    }
+
+    fn copy_text(&mut self, text: String) {
         use crate::clipboard::Copied;
-        let text = self.document().selected_text();
         self.message = match self.clipboard.copy(text) {
             Copied::System => "Copied to clipboard",
             Copied::Osc52 => "Copied through the terminal (OSC 52)",
@@ -2038,62 +2030,93 @@ impl App {
         }
     }
 
-    pub fn command(&mut self, command: &str) {
+    /// Why an action cannot run now, shared by the dispatcher and F2.
+    pub fn unavailable(&self, command: &str) -> Option<&'static str> {
+        const CHANGES: &[&str] = &[
+            "save",
+            "save-as",
+            "close",
+            "reload",
+            "undo",
+            "redo",
+            "cut",
+            "paste",
+            "replace",
+            "find",
+            "find-next",
+            "duplicate",
+            "move-line-up",
+            "move-line-down",
+            "indent",
+            "outdent",
+            "delete-word-left",
+            "delete-word-right",
+        ];
+        const REVIEW_BLOCKED: &[&str] = &[
+            "save",
+            "save-as",
+            "reload",
+            "find",
+            "find-next",
+            "replace",
+            "undo",
+            "redo",
+            "cut",
+            "paste",
+            "duplicate",
+            "move-line-up",
+            "move-line-down",
+            "indent",
+            "outdent",
+            "delete-word-left",
+            "delete-word-right",
+        ];
+        const BUSY_BLOCKED: &[&str] = &[
+            "save",
+            "save-as",
+            "open",
+            "reload",
+            "close",
+            "quit",
+            "find",
+            "find-next",
+            "replace",
+        ];
+        const EDITS: &[&str] = &[
+            "undo",
+            "redo",
+            "cut",
+            "paste",
+            "duplicate",
+            "move-line-up",
+            "move-line-down",
+            "indent",
+            "outdent",
+            "delete-word-left",
+            "delete-word-right",
+        ];
+        let tab = &self.tabs[self.active];
         if (command == "quit" && !self.agent_leases.is_empty())
-            || (self.tabs[self.active].ai_action.is_some()
-                && matches!(
-                    command,
-                    "save"
-                        | "save-as"
-                        | "close"
-                        | "reload"
-                        | "undo"
-                        | "redo"
-                        | "cut"
-                        | "paste"
-                        | "replace"
-                        | "find"
-                        | "find-next"
-                ))
+            || (tab.ai_action.is_some() && CHANGES.contains(&command))
         {
-            self.message = "AI is working in this tab; read-only until it finishes".into();
-            self.redraw = true;
-            return;
+            return Some("AI is working in this tab; read-only until it finishes");
         }
-        if self.tabs[self.active].review_source.is_some()
-            && matches!(
-                command,
-                "save"
-                    | "save-as"
-                    | "reload"
-                    | "find"
-                    | "find-next"
-                    | "replace"
-                    | "undo"
-                    | "redo"
-                    | "cut"
-                    | "paste"
-            )
-        {
-            self.message = "Review tab is read-only; return to source to edit or save".into();
-            self.redraw = true;
-            return;
+        if tab.review_source.is_some() && REVIEW_BLOCKED.contains(&command) {
+            return Some("Review tab is read-only; return to source to edit or save");
         }
-        if self.busy()
-            && matches!(
-                command,
-                "save"
-                    | "save-as"
-                    | "open"
-                    | "reload"
-                    | "close"
-                    | "quit"
-                    | "find"
-                    | "find-next"
-                    | "replace"
-            )
-        {
-            self.message = "Background operation in progress; retry when complete".into();
+        if self.busy() && BUSY_BLOCKED.contains(&command) {
+            return Some("Background operation in progress; retry when complete");
+        }
+        if tab.document.readonly && EDITS.contains(&command) {
+            return Some("Document is read-only");
+        }
+        None
+    }
+
+    pub fn command(&mut self, command: &str) {
+        let command = crate::commands::canonical(command);
+        if let Some(reason) = self.unavailable(command) {
+            self.message = reason.into();
             self.redraw = true;
             return;
         }
@@ -2145,13 +2168,38 @@ impl App {
             "redo" => self.edit(|d| d.redo().map(|_| ())),
             "select-all" => self.document_mut().select_all(),
             "copy" => self.copy_selection(),
-            "cut" => {
-                if self.document().readonly { self.message = "Document is read-only".into(); }
-                else if !self.document().selection().is_empty() {
-                    self.copy_selection(); self.edit(|d| d.insert(""));
+            "cut" if self.document().selection().is_empty() => {
+                let mut text = None;
+                self.edit(|d| d.cut_line().map(|cut| text = Some(cut)));
+                if let Some(text) = text { self.copy_text(text); }
+            }
+            "cut" => { self.copy_selection(); self.edit(|d| d.insert("")); }
+            "paste" => self.paste(),
+            "commands" => self.prompt(InputKind::Command),
+            "outline" => {
+                let review = &mut self.tabs[self.active].review;
+                review.outline_visible = !review.outline_visible;
+                review.outline_focus = false;
+            }
+            "duplicate" => self.edit(Document::duplicate),
+            "move-line-up" => self.edit(|d| d.move_lines(false)),
+            "move-line-down" => self.edit(|d| d.move_lines(true)),
+            "indent" | "outdent" => {
+                let tab = self.config.tab_width;
+                let unit = self.document().indent_unit(tab);
+                if command == "indent" && !self.document().selection_spans_lines() {
+                    self.edit(|d| d.type_text(&unit));
+                } else {
+                    self.edit(|d| d.indent_lines(&unit, tab, command == "outdent"));
                 }
             }
-            "paste" => self.paste(),
+            "word-left" | "word-right" | "select-word-left" | "select-word-right" => {
+                let movement = if command.ends_with("left") { Movement::WordLeft } else { Movement::WordRight };
+                self.document_mut().move_cursor(movement, command.starts_with("select"));
+                self.tabs[self.active].follow_cursor = true;
+            }
+            "delete-word-left" => self.edit(Document::delete_word_left),
+            "delete-word-right" => self.edit(Document::delete_word_right),
             _ => self.message = format!("Unknown command: {command}. F1 lists commands."),
         }
         self.redraw = true;
@@ -2502,6 +2550,81 @@ mod tests {
     fn key(code: KeyCode) -> Event {
         Event::Key(KeyEvent::new(code, KeyModifiers::NONE))
     }
+    fn keym(code: KeyCode, modifiers: KeyModifiers) -> Event {
+        Event::Key(KeyEvent::new(code, modifiers))
+    }
+
+    #[test]
+    fn keymap_v1_editing_commands_are_single_undo_steps() {
+        let mut a = app();
+        a.handle(Event::Paste("    alpha beta\r\ngamma".into()));
+        a.command("undo");
+        a.handle(Event::Paste("    alpha beta\r\ngamma".into()));
+        let _ = a.document_mut().select(14, 14);
+        // Enter keeps indentation; newline + indent are one Undo step. A new
+        // buffer inserts LF; pasted CRLF bytes stay as they are.
+        a.handle(key(KeyCode::Enter));
+        assert_eq!(a.document().text(), "    alpha beta\n    \r\ngamma");
+        a.command("undo");
+        assert_eq!(a.document().text(), "    alpha beta\r\ngamma");
+        // A newline followed by more keys in one burst is a paste: no indent.
+        let _ = a.document_mut().select(14, 14);
+        a.begin_input();
+        a.handle(key(KeyCode::Enter));
+        for c in "  z".chars() {
+            a.handle(key(KeyCode::Char(c)));
+        }
+        a.end_input(true);
+        assert_eq!(a.document().text(), "    alpha beta\n  z\r\ngamma");
+        a.command("undo");
+        assert_eq!(
+            a.document().text(),
+            "    alpha beta\r\ngamma",
+            "burst is one step"
+        );
+        // Word motion and word deletion.
+        let _ = a.document_mut().select(14, 14);
+        a.handle(keym(KeyCode::Left, KeyModifiers::CONTROL));
+        assert_eq!(a.document().cursor(), 10);
+        a.handle(keym(KeyCode::Backspace, KeyModifiers::ALT));
+        assert_eq!(a.document().text(), "    beta\r\ngamma");
+        a.command("undo");
+        // Ctrl+X without a selection cuts the line; Ctrl+V restores it.
+        let end = a.document().buffer().len_chars();
+        let _ = a.document_mut().select(end, end);
+        a.handle(keym(KeyCode::Char('x'), KeyModifiers::CONTROL));
+        assert_eq!(a.document().text(), "    alpha beta");
+        a.handle(keym(KeyCode::Char('v'), KeyModifiers::CONTROL));
+        assert_eq!(a.document().text(), "    alpha betagamma\n");
+        a.command("undo");
+        a.command("undo");
+        assert_eq!(a.document().text(), "    alpha beta\r\ngamma");
+        // Duplicate, move and block indent.
+        let _ = a.document_mut().select(0, 0);
+        a.handle(keym(KeyCode::Char('d'), KeyModifiers::CONTROL));
+        assert_eq!(
+            a.document().text(),
+            "    alpha beta\n    alpha beta\r\ngamma"
+        );
+        a.command("undo");
+        let end = a.document().buffer().len_chars();
+        let _ = a.document_mut().select(end, end);
+        a.handle(keym(KeyCode::Up, KeyModifiers::ALT));
+        assert_eq!(a.document().text(), "gamma\r\n    alpha beta");
+        a.command("undo");
+        a.command("select-all");
+        a.handle(key(KeyCode::BackTab));
+        assert_eq!(a.document().text(), "alpha beta\r\ngamma");
+        a.handle(key(KeyCode::Tab));
+        // No indented line remains to detect spaces from, so Tab uses \t.
+        assert_eq!(a.document().text(), "\talpha beta\r\n\tgamma");
+        assert!(a.unavailable("duplicate").is_none());
+        a.tabs[a.active].document.readonly = true;
+        assert_eq!(a.unavailable("duplicate"), Some("Document is read-only"));
+        a.handle(keym(KeyCode::Char('d'), KeyModifiers::CONTROL));
+        assert_eq!(a.message, "Document is read-only");
+    }
+
     fn app() -> App {
         App::new(vec![], false, Config::default())
     }

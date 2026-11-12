@@ -1,30 +1,13 @@
 //! Portable tab navigation and a keyboard guide readable at every supported size.
-use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
+use crossterm::event::KeyEvent;
+#[cfg(test)]
+use crossterm::event::{KeyCode, KeyModifiers};
 use ratatui::text::Line;
 use unicode_segmentation::UnicodeSegmentation;
 
+/// Tab switching keys, valid in tab-safe dialogs; defined by the keymap.
 pub fn tab_command(key: KeyEvent) -> Option<&'static str> {
-    let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
-    let alt = key.modifiers.contains(KeyModifiers::ALT);
-    let shift = key.modifiers.contains(KeyModifiers::SHIFT);
-    match key.code {
-        KeyCode::Char('p') if ctrl && !alt => Some("tabs"),
-        KeyCode::F(12) if !ctrl && !alt => Some("tabs"),
-        KeyCode::F(6) if !ctrl && !alt => Some("prev"),
-        KeyCode::F(7) if !ctrl && !alt => Some("next"),
-        KeyCode::Tab | KeyCode::BackTab if ctrl && !alt => {
-            Some(if shift || key.code == KeyCode::BackTab {
-                "prev"
-            } else {
-                "next"
-            })
-        }
-        KeyCode::PageUp if ctrl && !alt => Some("prev"),
-        KeyCode::PageDown if ctrl && !alt => Some("next"),
-        KeyCode::Left if alt && !ctrl => Some("prev"),
-        KeyCode::Right if alt && !ctrl => Some("next"),
-        _ => None,
-    }
+    crate::commands::tab_command(key)
 }
 
 pub const GUIDE_EN: &str = "Guinea Note — keyboard guide
@@ -62,13 +45,25 @@ Ctrl+C / Ctrl+X / Ctrl+V copy / cut / paste (system clipboard)
 Arrows move · Shift selects · Ctrl+Home/End start/end
 Ctrl+Q quit; dirty tabs require confirmation
 
+EDITING
+Ctrl+Left / Ctrl+Right previous / next word (also Alt+B / Alt+F)
+Ctrl+Shift+Left / Ctrl+Shift+Right select by word
+Ctrl+Backspace / Alt+Backspace delete previous word
+Ctrl+Delete / Alt+D delete next word
+Tab / Shift+Tab indent / outdent selected lines
+Enter keeps the line's indentation
+Ctrl+D duplicate line or selection
+Alt+Up / Alt+Down move line(s) up / down
+Ctrl+C / Ctrl+X without a selection: whole line
+Typing is one Undo step until a pause or caret move
+
 WORKSPACE
 Ctrl+B explorer · F4 switch pane · F5 refresh
 Tree: arrows navigate · Enter open · Tab/Esc editor
 Ctrl+E project files · Ctrl+G project text search
 Project: arrows choose · Tab mode · Enter open
 File picker: arrows choose · Tab complete · Alt+Up parent
-F11 focus mode · F10 settings · F9 file details
+F11 / Shift+F11 focus mode · F10 settings · F9 file details
 F8 split/review chooser: arrows or Tab, Enter apply
 Review: arrows / PgUp/PgDn / Home/End · Esc source
 Alt+M Markdown contents · Tab focus outline
@@ -79,6 +74,13 @@ Confirm: Tab / arrows choose · Enter act · Esc cancel
 Y confirms discard · N cancels; cancel is the default
 Input: Ctrl+U clear · Enter submit · Esc cancel
 Help: arrows / PgUp/PgDn scroll · Home/End jump
+
+WHEN THE TERMINAL KEEPS A KEY
+F2 runs every action by name
+Windows Terminal F11 fullscreen: use Shift+F11
+Ctrl+Tab / Ctrl+PgUp switch terminal tabs: use F6 / F7
+tmux prefix Ctrl+B: F2 explorer · screen prefix Ctrl+A: F2 select-all
+Ctrl+Backspace sent as Ctrl+H on Unix: use Alt+Backspace
 
 UTF-8 only · resident memory · periodic draft recovery";
 
@@ -117,13 +119,25 @@ Ctrl+C / Ctrl+X / Ctrl+V sao chép / cắt / dán (bộ nhớ tạm hệ thống
 Mũi tên di chuyển · Shift chọn · Ctrl+Home/End đầu/cuối
 Ctrl+Q thoát; thay đổi chưa lưu cần xác nhận
 
+SOẠN THẢO
+Ctrl+Left / Ctrl+Right từ trước / sau (hoặc Alt+B / Alt+F)
+Ctrl+Shift+Left / Ctrl+Shift+Right chọn theo từ
+Ctrl+Backspace / Alt+Backspace xóa từ phía trước
+Ctrl+Delete / Alt+D xóa từ phía sau
+Tab / Shift+Tab thụt / lùi lề các dòng đã chọn
+Enter giữ thụt lề của dòng
+Ctrl+D nhân đôi dòng hoặc vùng chọn
+Alt+Up / Alt+Down đưa dòng lên / xuống
+Ctrl+C / Ctrl+X khi không chọn: cả dòng
+Gõ liên tục là một bước hoàn tác tới khi dừng hoặc di chuyển
+
 KHÔNG GIAN LÀM VIỆC
 Ctrl+B cây thư mục · F4 chuyển khung · F5 đọc lại
 Cây: mũi tên duyệt · Enter mở · Tab/Esc về editor
 Ctrl+E tìm file · Ctrl+G tìm nội dung project
 Project: mũi tên chọn · Tab chế độ · Enter mở
 Chọn file: mũi tên chọn · Tab điền · Alt+Up thư mục cha
-F11 tập trung · F10 thiết lập · F9 thông tin file
+F11 / Shift+F11 tập trung · F10 thiết lập · F9 thông tin file
 F8 chọn xem: mũi tên hoặc Tab, Enter áp dụng
 Xem trước: mũi tên / PgUp/PgDn / Home/End · Esc nguồn
 Alt+M mục lục Markdown · Tab chuyển vùng mục lục
@@ -134,6 +148,13 @@ Xác nhận: Tab / mũi tên chọn · Enter chạy · Esc hủy
 Y xác nhận bỏ · N hủy; mặc định luôn là hủy
 Ô nhập: Ctrl+U xóa · Enter gửi · Esc hủy
 Trợ giúp: mũi tên / PgUp/PgDn cuộn · Home/End đầu/cuối
+
+KHI TERMINAL GIỮ PHÍM
+F2 chạy mọi thao tác theo tên
+Windows Terminal dùng F11 toàn màn hình: dùng Shift+F11
+Ctrl+Tab / Ctrl+PgUp đổi thẻ terminal: dùng F6 / F7
+tmux dùng Ctrl+B: F2 explorer · screen dùng Ctrl+A: F2 select-all
+Unix gửi Ctrl+Backspace thành Ctrl+H: dùng Alt+Backspace
 
 Chỉ UTF-8 · dữ liệu trong RAM · khôi phục bản nháp";
 

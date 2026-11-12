@@ -146,6 +146,11 @@ fn decision(
 pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> bool {
     let locale = app.config.language;
     let active = app.active;
+    // F2 shows why an action is unavailable; computed before borrowing hits.
+    let unavailable: Vec<(&'static str, &'static str)> = crate::commands::COMMANDS
+        .iter()
+        .filter_map(|c| app.unavailable(c.id).map(|reason| (c.id, reason)))
+        .collect();
     let hits = &mut app.hits;
     match app.modal.as_mut() {
         Some(Modal::Project(project)) => {
@@ -839,10 +844,15 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                 let top = app.palette_index.saturating_sub(height.saturating_sub(1));
                 for (index, command) in suggestions.iter().enumerate().skip(top).take(height) {
                     let rect = row(body, 5 + (index - top) as u16, 1);
+                    let reason = unavailable
+                        .iter()
+                        .find(|(id, _)| *id == command.id)
+                        .map(|(_, reason)| *reason);
                     let label = format!(
-                        "{:<16} {}",
+                        "{:<16} {}{}",
                         command.id,
-                        crate::commands::description(command, locale)
+                        crate::commands::description(command, locale),
+                        reason.map_or(String::new(), |r| format!(" — {}", locale.tr(r)))
                     );
                     text(
                         frame,

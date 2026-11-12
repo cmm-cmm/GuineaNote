@@ -161,6 +161,8 @@ pub fn run_with_agent(
                 event,
                 crossterm::event::Event::Resize(..) | crossterm::event::Event::Mouse(_)
             );
+            app.begin_input();
+            let mut drained = true;
             {
                 let receipt = trace::received(&app, &event);
                 let _span = trace::span("input_handle");
@@ -173,11 +175,14 @@ pub fn run_with_agent(
             if !geometry_change {
                 for _ in 0..127 {
                     if app.exit || started.elapsed() >= Duration::from_millis(4) {
+                        drained = false;
                         break;
                     }
                     let Some(event) = input.read(Duration::ZERO)? else {
+                        drained = true;
                         break;
                     };
+                    drained = false;
                     let geometry_change = matches!(
                         event,
                         crossterm::event::Event::Resize(..) | crossterm::event::Event::Mouse(_)
@@ -193,6 +198,7 @@ pub fn run_with_agent(
                     }
                 }
             }
+            app.end_input(drained);
         }
     }
     {

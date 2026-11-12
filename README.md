@@ -63,6 +63,8 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | Ctrl+W / Ctrl+Q | Close tab / quit (dirty buffers require confirmation) |
 | Ctrl+Z / Ctrl+Y | Undo / redo |
 | Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste (system clipboard) |
+| Ctrl+Left / Ctrl+Right, Ctrl+Backspace / Ctrl+Delete | Move / delete by word (Alt+B/F, Alt+Backspace, Alt+D also work) |
+| Tab / Shift+Tab, Ctrl+D, Alt+Up / Alt+Down | Indent/outdent lines, duplicate line or selection, move lines |
 | Ctrl+F / Ctrl+H | One Find/Replace panel with both fields visible |
 | F3 | Next match; Shift+F3 goes back inside the search panel |
 | Ctrl+L | Go to line[:grapheme column], 1-based |
@@ -76,6 +78,10 @@ after the original MVP scope; see [redesign notes](docs/UI_REDESIGN.md).
 | F9 | File details: metadata, text statistics and last verified fingerprint |
 | Alt+M | Show/hide Markdown contents; Tab focuses the visible outline |
 | F1 / F2 | Scrollable keyboard guide / action list navigable with arrows and Enter |
+
+Keymap v1, terminal conflicts and alternatives: [shortcut reference](docs/KEYBOARD_SHORTCUTS.md).
+Typing coalesces into one Undo step until a pause or caret move; Enter keeps
+indentation; Ctrl+C/Ctrl+X without a selection copy/cut the whole line.
 
 Prompts use Enter or the Submit button; Esc or the top-right `x` cancels.
 Confirmations show the affected file and consequences, with Keep working
