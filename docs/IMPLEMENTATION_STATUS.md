@@ -1,5 +1,21 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (6) — regex Find/Replace (M9), tab bar
+
+| Change | Detail |
+| --- | --- |
+| One-row tab bar | Tabs left, count + controls right, path/context in the editor border; the editor gains four rows. Control labels shorten first so every tab shows; ‹ / › mark hidden tabs |
+| Background | A darker palette was tried and reverted at the owner's request; colours are unchanged |
+| Regex | Alt+R / `[ ] Regex` in Find/Replace: rust-lang `regex` (linear time), `^`/`$` per line with CRLF, Match case / Whole word still apply, empty and grapheme-splitting matches skipped, 4 MiB program cap, `$1`/`${name}` in replacements, invalid patterns reported as `Regex: …`; regex-mode size estimate fixed |
+
+Verification (Linux x86_64 cloud container, Python PTY + pyte; tests on Rust
+1.99.1, rustfmt/strict Clippy on 1.98.1): 194 Rust tests; `cargo deny check`
+advisories/bans/licenses/sources ok; new `pty_regex.py` plus search, smoke,
+keyboard, tabs, dialog/mouse, dialogs/reader, mark, session, recovery,
+terminal-matrix and agent probes pass. Interaction corpus: 1,540 PTY samples,
+max 8.5 ms; application max 4.6 ms; 0 samples above 50 ms, 0 dropped rows.
+Windows not re-run.
+
 ## Checkpoint 12/11/2026 (5) — Mark All (M8)
 
 | Change | Detail |
