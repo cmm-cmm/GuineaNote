@@ -1,5 +1,23 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (2) — folder removal, key/mouse sync, M7 tools
+
+| Commit | Change |
+| --- | --- |
+| 87fd3a3 | Folder features removed (explorer, Ctrl+K/B, F4/F5, Ctrl+E/G project search, `guinea <folder>`); key labels on header/toolbar/footer/welcome generated from the keymap; tests for every clickable region and for key names in guides/UI strings |
+| 29177fe | F2 line/case/comment tools (sort, dedupe, remove empty, trim trailing, UPPER/lower/Title, toggle comment); Ctrl+G joins Ctrl+L for go to line |
+| c6234bb | Go to line resolves the column from a bounded prefix; start-of-line queries on unindexed long lines skip the full-line copy |
+
+Verification on c6234bb (Windows x64 MSVC release, ConPTY): 177 Rust tests,
+rustfmt and strict Clippy; 13 native probes plus observer unit tests pass;
+general corpus 1,900 samples (project groups removed), application max 6.9 ms,
+PTY max 26.3 / 26.0 ms trace on/off, no sample above 50 ms. Navigation on 12, 2
+and 1 CPUs: PTY max 24.1 / 23.0 / 25.1 ms, goto 20.5–25.1 ms. Two startup
+resize frames on one pinned CPU (127/148 ms, pre-existing) were investigated:
+terminal flush while the open worker indexes with threads Windows cannot see are
+pinned; see [unprepared long lines](performance/UNPREPARED_LONG_LINES.md).
+
+
 ## Checkpoint 12/11/2026 — review follow-up, keymap v1 and editing (dev, local)
 
 Commits 7fa645a…1b533dc on `dev` (pushed with 455e484; GitHub Actions stay disabled):
