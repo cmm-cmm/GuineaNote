@@ -417,6 +417,9 @@ mod tests {
         // catalog entry would silently show English in Vietnamese mode.
         let sources = [
             include_str!("app.rs"),
+            include_str!("command_app.rs"),
+            include_str!("modal_app.rs"),
+            include_str!("mouse_app.rs"),
             include_str!("search_app.rs"),
             include_str!("project_app.rs"),
             include_str!("agent.rs"),
