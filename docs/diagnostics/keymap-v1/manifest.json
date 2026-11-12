@@ -1,0 +1,14 @@
+{
+  "created": "2026-11-12",
+  "source": "scripts/pty_keyboard.py and scripts/pty_search.py terminal-cell previews (Pillow), Windows ConPTY",
+  "binary_sha256": "8911b29d44e561acc7bae2a2e75c42aae51d66c04151d5192b6307a660057b73",
+  "git_head_plus": "1b533dc + search option toggle alignment fix",
+  "files": {
+    "find-replace-en.png": "71aae191433a4bf8873f5e0ed1cd6ccbf2365b1ec636df3649bd75458a4cd9d2",
+    "find-replace-vi.png": "64b84ed25232a9ffd745bc37ad44990906af09d4f06547fb0decbb280e74253c",
+    "keyboard-help-small-end.png": "14c30e4a8f23d418d317f5df0907ca5309034419610283f864ad50a08a14db9a",
+    "keyboard-help-vi-end.png": "0c289bdadf6456ec99c09b13e5b2133ae811226e5bd97a8e0cd7e6e82e297cc6",
+    "keyboard-search-small.png": "6a6adbfada2614ac9ef80f3678cf05191c3c8cbfc6b824d31c0ffbed2657c249",
+    "keyboard-search-unified.png": "fbe98d704cbf9c22415aa6e2f87ee7b650c70bc21aedfff717abee03a50b3b4d"
+  }
+}

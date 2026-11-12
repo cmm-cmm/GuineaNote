@@ -1,0 +1,164 @@
+{
+  "created": "2026-11-12",
+  "platform": "Windows x64 MSVC release, ConPTY via pywinpty, 12 logical CPUs",
+  "purpose": "First End on long lines without a complete display index: before/after background indexing (commit 6942b8b). final-* ran on HEAD 1b533dc.",
+  "notes": [
+    "before-all-cpus.json is the stdout copy of the same report: the on-disk report.json was zeroed by a D: drive fault on 2026-11-11 (raw PTY logs of that run survive in target/).",
+    "ab-* are interleaved runs of two binaries in the same session (baseline 7fa645a rebuilt in a separate worktree vs the fixed working tree).",
+    "first-end measures feedback; first_end_completion_ms (background_open_completion) is completion and is not an interaction sample."
+  ],
+  "binaries": {
+    "7166b18f": "7fa645a (before-*)",
+    "cc37825b": "7fa645a rebuilt in a worktree (ab-*-baseline)",
+    "b680d72b": "fixed working tree before commit (ab-*-fixed)",
+    "20c253ba": "HEAD 1b533dc (final-*)"
+  },
+  "files": {
+    "ab-round1-baseline-2cpu.json": {
+      "sha256": "1798a0764493f142d4eabbbd8ae399127cf92f458aeea95ed236e38c5efc41a2",
+      "bytes": 8202
+    },
+    "ab-round1-fixed-2cpu.json": {
+      "sha256": "73f830939ff3b81b9187b9f3c2d42703979a4c82fb5a8cde9454898a925300a2",
+      "bytes": 7038
+    },
+    "ab-round2-baseline-2cpu.json": {
+      "sha256": "3942b54f4e51d05d9a1a41637124301bffcc12d958318a21306a5fcbcda30a33",
+      "bytes": 8210
+    },
+    "ab-round2-fixed-2cpu.json": {
+      "sha256": "628bfac63911cac36a7c1235b8f983a074ab1c723037adcd8ea1d9fc361aa974",
+      "bytes": 7045
+    },
+    "ab-round3-baseline-2cpu.json": {
+      "sha256": "d7fcc980c5fb67d6355da72465201c94345584bfa734ac2a643c75f42e7d70d5",
+      "bytes": 8201
+    },
+    "ab-round3-fixed-2cpu.json": {
+      "sha256": "fbfecfccd71b49c9dfdf43db65edb92127029f567711044e0796f2a3402a6b3b",
+      "bytes": 7028
+    },
+    "before-1cpu.json": {
+      "sha256": "f0dbb2cce182c915ff42ab033641acd642c118eec262ab68bc998040d68cd414",
+      "bytes": 42619
+    },
+    "before-2cpu.json": {
+      "sha256": "27bd79a442b093d1f76ade2a2197767d930734f93518884138d4566071ef0830",
+      "bytes": 41732
+    },
+    "before-all-cpus.json": {
+      "sha256": "a39fa0fd9c2ef157ab1ededcfa9d4ab67e33b59f52f3ed888565293e2eb7b749",
+      "bytes": 31971
+    },
+    "final-1cpu.json": {
+      "sha256": "82b21928e7cb77ef3c54202c93df4b66747e1cee5ceb2bfcf3ac5c0835b76742",
+      "bytes": 34733
+    },
+    "final-2cpu.json": {
+      "sha256": "d3af7dd47d1a1520a8f4a10dbd4c43cd7e166494e956f23e1081d5f847ebb2e4",
+      "bytes": 34716
+    },
+    "final-all-fixtures.json": {
+      "sha256": "cb01964bdf2926870394856b3e72fec03ec36ee4241141bf9dd298432e7f7a0e",
+      "bytes": 62985
+    },
+    "final-general-latency-no-trace.json": {
+      "sha256": "eda404bfff608b442b2fdbe797e5f8ba332dc3be285e1f35f8a60a9f1f5e4bf2",
+      "bytes": 333445
+    },
+    "final-general-latency-trace.json": {
+      "sha256": "e6de9d40fe0267456ed48b1705ffbf14052ec7da02d797f5ff1775deb11f27af",
+      "bytes": 350544
+    },
+    "final-probes.txt": {
+      "sha256": "4acb45b849c4ee16dd79e63d68b2e929d7a188d7212f73aff14b3a376be9ab23",
+      "bytes": 514
+    }
+  },
+  "reports": {
+    "ab-round1-baseline-2cpu.json": {
+      "binary_sha256": "cc37825b9eacfc458c639b4cedc0d05e93129010903e265cda97ef58372e7a78",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "ab-round1-fixed-2cpu.json": {
+      "binary_sha256": "b680d72b342581cf1591aeaef25695ebbf469a36bcf596797aca540f720ac0cc",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "ab-round2-baseline-2cpu.json": {
+      "binary_sha256": "cc37825b9eacfc458c639b4cedc0d05e93129010903e265cda97ef58372e7a78",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "ab-round2-fixed-2cpu.json": {
+      "binary_sha256": "b680d72b342581cf1591aeaef25695ebbf469a36bcf596797aca540f720ac0cc",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "ab-round3-baseline-2cpu.json": {
+      "binary_sha256": "cc37825b9eacfc458c639b4cedc0d05e93129010903e265cda97ef58372e7a78",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "ab-round3-fixed-2cpu.json": {
+      "binary_sha256": "b680d72b342581cf1591aeaef25695ebbf469a36bcf596797aca540f720ac0cc",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "before-1cpu.json": {
+      "binary_sha256": "7166b18febf451ed52151ce9a60cf6fbd7a8bc1cdc92cb8d26c99fb8b4d63d7e",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0",
+      "trace_enabled": true
+    },
+    "before-2cpu.json": {
+      "binary_sha256": "7166b18febf451ed52151ce9a60cf6fbd7a8bc1cdc92cb8d26c99fb8b4d63d7e",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "before-all-cpus.json": {
+      "binary_sha256": "7166b18febf451ed52151ce9a60cf6fbd7a8bc1cdc92cb8d26c99fb8b4d63d7e",
+      "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+      "affinity": null,
+      "trace_enabled": true
+    },
+    "final-1cpu.json": {
+      "binary_sha256": "20c253baa134d930809be1d4afb813a54209d067aa7dd7cb7a5aaf1e94b89430",
+      "git_head": "1b533dc4050905ea3baa29ff5007eb919739dda3",
+      "affinity": "0",
+      "trace_enabled": true
+    },
+    "final-2cpu.json": {
+      "binary_sha256": "20c253baa134d930809be1d4afb813a54209d067aa7dd7cb7a5aaf1e94b89430",
+      "git_head": "1b533dc4050905ea3baa29ff5007eb919739dda3",
+      "affinity": "0,1",
+      "trace_enabled": true
+    },
+    "final-all-fixtures.json": {
+      "binary_sha256": "20c253baa134d930809be1d4afb813a54209d067aa7dd7cb7a5aaf1e94b89430",
+      "git_head": "1b533dc4050905ea3baa29ff5007eb919739dda3",
+      "affinity": null,
+      "trace_enabled": true
+    },
+    "final-general-latency-no-trace.json": {
+      "binary_sha256": "20c253baa134d930809be1d4afb813a54209d067aa7dd7cb7a5aaf1e94b89430",
+      "git_head": "1b533dc4050905ea3baa29ff5007eb919739dda3",
+      "affinity": null,
+      "trace_enabled": false
+    },
+    "final-general-latency-trace.json": {
+      "binary_sha256": "20c253baa134d930809be1d4afb813a54209d067aa7dd7cb7a5aaf1e94b89430",
+      "git_head": "1b533dc4050905ea3baa29ff5007eb919739dda3",
+      "affinity": null,
+      "trace_enabled": true
+    }
+  }
+}

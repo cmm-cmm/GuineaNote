@@ -342,12 +342,14 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                         "search-word",
                     ),
                 ];
-                let mut x = body.x;
+                // Same left margin as the other panel rows.
+                let line = row(body, 0, 1);
+                let mut x = line.x;
                 for (on, label, action) in toggles {
                     let label = format!("{} {label}", if on { "[x]" } else { "[ ]" });
                     let width = (Line::from(label.as_str()).width() as u16)
-                        .min(body.right().saturating_sub(x));
-                    let rect = Rect::new(x, body.y, width, 1);
+                        .min(line.right().saturating_sub(x));
+                    let rect = Rect::new(x, line.y, width, 1);
                     text(
                         frame,
                         rect,
@@ -359,7 +361,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                         },
                     );
                     hits.modal_actions.push((rect, action));
-                    x = x.saturating_add(width + 3).min(body.right());
+                    x = x.saturating_add(width + 3).min(line.right());
                 }
                 text(
                     frame,

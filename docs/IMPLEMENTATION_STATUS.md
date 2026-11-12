@@ -1,5 +1,33 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 — review follow-up, keymap v1 and editing (dev, local)
+
+Commits 7fa645a…1b533dc on `dev` (not pushed; GitHub Actions stay disabled):
+
+| Commit | Change |
+| --- | --- |
+| 7fa645a | MCP returns protocol errors instead of panicking on malformed editor replies; go-to-line error translated |
+| 6942b8b | Long lines without a complete display index are indexed on a worker; caret-anchored window and `Col …` meanwhile ([report](performance/UNPREPARED_LONG_LINES.md)) |
+| 6693d04 | Find/Replace: Alt+C case-insensitive, Alt+W whole word (simple one-to-one folding) |
+| e2ce2bb | System clipboard (Windows API; pbcopy/wl-copy/xclip/xsel unverified), OSC 52 opt-in, internal fallback |
+| 8047451 | Core: typing Undo groups, word motion/deletion, block indent, duplicate, move lines, whole-line cut/copy |
+| 4519a98 | Keymap v1 (`commands.rs`) as the single source; terminal-safe primary keys; F2 shows keys and unavailable reasons |
+| 5dcbd4e | Parameterized status messages localized when set; catalog coverage test |
+| 87d2641 | Multi-line lexer state (block comments, triple strings, templates, markup comments) |
+| 1b533dc | app.rs split into command_app/modal_app/mouse_app |
+
+Verification on HEAD 1b533dc (Windows x64 MSVC release, ConPTY): 176 Rust tests,
+rustfmt and strict Clippy pass; 13 native probes plus the observer unit tests
+pass; general interaction corpus 2,050 samples, application max 5.2 ms, PTY max
+28.1 / 25.7 ms (trace on/off), no sample above 50 ms, zero dropped rows. Navigation
+including unprepared fixtures on 12, 2 and 1 CPUs: no sample above 50 ms (max
+41.4 ms). Evidence: `docs/diagnostics/unprepared-lines/`.
+
+Open: Linux/macOS/SSH runtime, the historical cold End 916.326 ms sample (a
+plausible mechanism is documented, not proven), synchronous goto/Up-Down on
+unindexed multi-MiB lines (34–41 ms), Notepad++ M7 line/case/comment operations.
+
+
 ## Initial audit
 
 Only the two supplied Markdown documents existed. No Git repository was

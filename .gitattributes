@@ -15,3 +15,7 @@ docs/diagnostics/ascii-layout/** -text -whitespace
 docs/diagnostics/search-observer/** -text -whitespace
 docs/diagnostics/keyboard/** -text -whitespace
 docs/diagnostics/function-keys/** -text -whitespace
+# First-End long-line before/after evidence; keep report bytes reproducible.
+docs/diagnostics/unprepared-lines/** -text -whitespace
+# Keymap v1 screenshots and their manifest.
+docs/diagnostics/keymap-v1/** -text -whitespace

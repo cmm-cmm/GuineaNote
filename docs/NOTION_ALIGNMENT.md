@@ -1,5 +1,16 @@
 # Đối chiếu quyết định Notion — 10/11/2026
 
+## Cập nhật 12/11/2026
+
+- Notion: dự án chỉ còn **một** dòng "Guinea Note" trong Projects; workstream độ
+  trễ được chuyển thành trang con, nội dung giữ nguyên. Docs liên kết: tổng quan,
+  bảng phím v1, thao tác soạn thảo (M6), báo cáo dòng dài chưa lập chỉ mục.
+- Chính sách xung đột phím đã chốt: giữ phím hiện có, thao tác mới theo Notepad++
+  khi terminal truyền được, mỗi thao tác có phím chính portable và luôn chạy được
+  qua F2 ([bảng phím](KEYBOARD_SHORTCUTS.md)).
+- M6 (soạn thảo cốt lõi) và phần tùy chọn tìm kiếm Match case/Whole word, OSC 52 của
+  M8 đã triển khai; M7 vẫn mở. Chi tiết commit: [trạng thái](IMPLEMENTATION_STATUS.md).
+
 Nguồn chuẩn hiện hành:
 
 - [Project Guinea Note](https://app.notion.com/p/41127da1dc088160b076e368c4858aad), cập nhật 06:17 UTC.

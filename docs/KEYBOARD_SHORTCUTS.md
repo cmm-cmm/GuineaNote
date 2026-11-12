@@ -125,5 +125,8 @@ Ctrl+S, Ctrl+Q, Ctrl+Z và Ctrl+Y không bị hiểu thành XON/XOFF/tạm dừn
 Note bật raw mode. Trên Windows, adapter đọc mã phím ảo nên phân biệt được
 Ctrl+Backspace với Ctrl+H và Ctrl+Shift+chữ với Ctrl+chữ.
 
+Ảnh bảng phím v1 (EN/VI, 30×9): [docs/diagnostics/keymap-v1](diagnostics/keymap-v1/manifest.json).
+Ảnh trong `diagnostics/keyboard/` là bằng chứng lịch sử trước khi đổi F7/F8/F10.
+
 Kiểm chứng Windows/ConPTY với `mouse = false`: `python -X utf8 scripts/pty_keyboard.py`.
 Runtime Linux/macOS/SSH vẫn được ghi riêng theo phạm vi dự án.

@@ -1,5 +1,30 @@
 # Test plan and reproduction
 
+## Unprepared long lines, keymap v1 and editing — 12/11/2026
+
+After `cargo build --workspace --release`, run sequentially:
+
+```powershell
+python -X utf8 scripts/pty_navigation.py --trace --record-only
+python -X utf8 scripts/pty_navigation.py --trace --record-only --fixtures unprepared-12mib,unprepared-line-101,unprepared-after-newline --affinity 0,1
+python -X utf8 scripts/pty_navigation.py --trace --record-only --fixtures unprepared-12mib,unprepared-line-101,unprepared-after-newline --affinity 0
+```
+
+The unprepared fixtures cover lines the open worker does not pre-index: a 12 MiB
+line (opened through the large-file prompt), a 5 MiB line at line 101 and a 10 MiB
+line after a newline edit. `--affinity` pins the editor (via `GUINEANOTE_PROBE_AFFINITY`
+in `pty_smoke.probe_child`) to model one/two-CPU or contended machines.
+`first-end` measures **feedback** (exact column or the pending caret window with
+`Col …`); `first_end_completion_ms` records when the exact column appears and is
+background completion, not an interaction sample. `GUINEANOTE_BINARY` selects
+another build for interleaved A/B runs. See
+[unprepared long lines](performance/UNPREPARED_LONG_LINES.md).
+
+Every probe now sets `GUINEANOTE_CLIPBOARD=internal` so runs never replace the
+developer's system clipboard. Keymap v1 is covered by Rust tests (unique
+bindings, portable primary keys, guide coverage, editing commands through the real
+dispatcher) and by `pty_keyboard.py`.
+
 ## Keyboard-only TUI audit — 2026-11-11
 
 After `cargo build --workspace --release`, run

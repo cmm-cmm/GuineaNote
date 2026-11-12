@@ -1,0 +1,314 @@
+{
+  "platform": "Windows-11-10.0.26300-SP0",
+  "input_bytes_max": 12582891,
+  "cold_sessions": 2,
+  "traces": [
+    {
+      "fixture": "unprepared-12mib",
+      "session": 0,
+      "file": "target\\navigation-traces-1794444977232774900\\unprepared-12mib-0.csv",
+      "dropped_samples": 0,
+      "stage_max_ms": {
+        "poll_jobs": 0.055,
+        "frame_build": 128.058,
+        "terminal_write": 0.817,
+        "terminal_flush": 0.107,
+        "draw_total": 128.356,
+        "input_handle": 0.76,
+        "recovery_load": 2.784,
+        "input_to_flush": 128.315,
+        "recovery_checkpoint": 1.251,
+        "cursor_layout": 127.649,
+        "line_layout_paint": 0.071,
+        "recovery_discard": 0.005,
+        "recovery_finish": 0.655,
+        "app_drop": 2.619,
+        "mouse_restore": 0.044,
+        "screen_restore": 0.077,
+        "raw_restore": 0.049,
+        "terminal_restore": 0.179
+      }
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "session": 1,
+      "file": "target\\navigation-traces-1794444977232774900\\unprepared-12mib-1.csv",
+      "dropped_samples": 0,
+      "stage_max_ms": {
+        "poll_jobs": 0.059,
+        "frame_build": 136.649,
+        "terminal_write": 0.911,
+        "terminal_flush": 0.259,
+        "draw_total": 136.904,
+        "input_handle": 0.692,
+        "recovery_load": 3.748,
+        "input_to_flush": 136.921,
+        "recovery_checkpoint": 0.494,
+        "cursor_layout": 136.211,
+        "line_layout_paint": 0.07,
+        "recovery_discard": 0.021,
+        "recovery_finish": 0.576,
+        "app_drop": 3.149,
+        "mouse_restore": 0.058,
+        "screen_restore": 0.085,
+        "raw_restore": 0.052,
+        "terminal_restore": 0.204
+      }
+    }
+  ],
+  "samples": [
+    {
+      "action": "unprepared-12mib:type-start",
+      "ms": 6.998,
+      "send_ms": 0.017,
+      "wait_observe_ms": 6.989,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 916
+    },
+    {
+      "action": "unprepared-12mib:first-end",
+      "ms": 129.133,
+      "send_ms": 0.02,
+      "wait_observe_ms": 129.12,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 508
+    },
+    {
+      "action": "unprepared-12mib:cached-left",
+      "ms": 4.092,
+      "send_ms": 0.015,
+      "wait_observe_ms": 4.082,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 118
+    },
+    {
+      "action": "unprepared-12mib:cached-right",
+      "ms": 2.938,
+      "send_ms": 0.01,
+      "wait_observe_ms": 2.932,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 118
+    },
+    {
+      "action": "unprepared-12mib:type-start",
+      "ms": 10.209,
+      "send_ms": 0.018,
+      "wait_observe_ms": 10.209,
+      "observer_cpu_ms": 15.625,
+      "output_bytes": 1700
+    },
+    {
+      "action": "unprepared-12mib:first-end",
+      "ms": 149.004,
+      "send_ms": 0.01,
+      "wait_observe_ms": 149.0,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 515
+    },
+    {
+      "action": "unprepared-12mib:cached-left",
+      "ms": 1.552,
+      "send_ms": 0.016,
+      "wait_observe_ms": 1.541,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 111
+    },
+    {
+      "action": "unprepared-12mib:cached-right",
+      "ms": 2.807,
+      "send_ms": 0.01,
+      "wait_observe_ms": 2.801,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 118
+    }
+  ],
+  "sample_count": 8,
+  "background_open_completion": [
+    {
+      "fixture": "unprepared-12mib",
+      "process_start_to_opened_ms": 199.485
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "first_end_completion_ms": 129.439
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "process_start_to_opened_ms": 196.105
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "first_end_completion_ms": 149.308
+    }
+  ],
+  "max_ms": 149.004,
+  "failures": [
+    {
+      "action": "unprepared-12mib:first-end",
+      "ms": 129.133,
+      "send_ms": 0.02,
+      "wait_observe_ms": 129.12,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 508
+    },
+    {
+      "action": "unprepared-12mib:first-end",
+      "ms": 149.004,
+      "send_ms": 0.01,
+      "wait_observe_ms": 149.0,
+      "observer_cpu_ms": 0.0,
+      "output_bytes": 515
+    }
+  ],
+  "investigation_threshold_ms": 50,
+  "application_investigations": [
+    {
+      "fixture": "unprepared-12mib",
+      "run": 0,
+      "stage": "input_to_flush",
+      "microseconds": "128315",
+      "since_start_microseconds": "238170",
+      "operation": "long_line_end",
+      "phase": "cold",
+      "file_bytes": "12582901",
+      "viewport_width": "92",
+      "viewport_height": "16",
+      "batch_events": "1",
+      "agent_active": "false"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "run": 1,
+      "stage": "input_to_flush",
+      "microseconds": "136921",
+      "since_start_microseconds": "250428",
+      "operation": "long_line_end",
+      "phase": "cold",
+      "file_bytes": "12582901",
+      "viewport_width": "92",
+      "viewport_height": "16",
+      "batch_events": "1",
+      "agent_active": "false"
+    }
+  ],
+  "application_groups": [
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "caret",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 0.668,
+      "p95_ms": 0.682,
+      "p99_ms": 0.682,
+      "max_ms": 0.682,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "caret",
+      "phase": "warm",
+      "n": 2,
+      "p50_ms": 0.678,
+      "p95_ms": 0.874,
+      "p99_ms": 0.874,
+      "max_ms": 0.874,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "commands",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 1.172,
+      "p95_ms": 1.253,
+      "p99_ms": 1.253,
+      "max_ms": 1.253,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "dialog_input",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 0.982,
+      "p95_ms": 1.136,
+      "p99_ms": 1.136,
+      "max_ms": 1.136,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "long_line_end",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 128.315,
+      "p95_ms": 136.921,
+      "p99_ms": 136.921,
+      "max_ms": 136.921,
+      "over_50ms": 2,
+      "over_100ms": 2,
+      "status": "needs_investigation"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "resize",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 1.126,
+      "p95_ms": 1.648,
+      "p99_ms": 1.648,
+      "max_ms": 1.648,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "typing",
+      "phase": "cold",
+      "n": 2,
+      "p50_ms": 5.639,
+      "p95_ms": 5.733,
+      "p99_ms": 5.733,
+      "max_ms": 5.733,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    },
+    {
+      "fixture": "unprepared-12mib",
+      "operation": "typing",
+      "phase": "warm",
+      "n": 18,
+      "p50_ms": 2.693,
+      "p95_ms": 4.967,
+      "p99_ms": 4.967,
+      "max_ms": 4.967,
+      "over_50ms": 0,
+      "over_100ms": 0,
+      "status": "insufficient_samples"
+    }
+  ],
+  "binary_sha256": "cc37825b9eacfc458c639b4cedc0d05e93129010903e265cda97ef58372e7a78",
+  "source_sha256": "6c918824a74b6c6a7c86fca063a8d340b9fc8440358a69369326c058f88437d8",
+  "git_head": "7fa645abd90c245d0bced62b0e71fb4cc1edad73",
+  "profile": "release",
+  "trace_enabled": true,
+  "affinity": "0,1",
+  "fixtures": [
+    "unprepared-12mib"
+  ],
+  "limits": [
+    "First process/category is not cold OS disk cache",
+    "Main-loop receipt after decode, not adapter queue or pixels",
+    "Finite samples; no universal SLA"
+  ]
+}
