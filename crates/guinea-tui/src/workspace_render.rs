@@ -226,7 +226,7 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 .sum::<usize>()
     };
     let welcome = app.welcome();
-    // " 3 main.rs ●" — number, name and dirty dot, then the close button.
+    // " 3 main.rs ●" (" 3 AI · main.rs" while AI works), then the close button.
     let label = |index: usize| {
         let label = tab_label(&app.tabs[index], welcome, locale);
         let label = label.trim_end();
@@ -234,7 +234,7 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             .trim_start()
             .strip_prefix("AI · ")
             .map_or(("", label.trim_start()), |name| ("AI · ", name));
-        format!(" {ai}{} {name}", index + 1)
+        format!(" {} {ai}{name}", index + 1)
     };
     // Each tab is its label plus a 3-cell close button; the close button's
     // padding separates neighbours. One cell on each side is reserved for
@@ -244,8 +244,14 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     // still show every tab; when none does, keep half the row (up to 56 cells).
     let all_tabs = (0..app.tabs.len()).map(span).sum::<usize>() + 3;
     let room = (area.width as usize).saturating_sub((area.width as usize / 2).min(56));
-    let variants = [(&labelled, wide), (&labelled, medium), (&bare, narrow)];
-    let choice = variants
+    // The "Tabs n/m" label stays unless even the shortest buttons need its room.
+    let variants = [
+        (&labelled, wide),
+        (&labelled, medium),
+        (&labelled, narrow.clone()),
+        (&bare, narrow),
+    ];
+    let choice = variants[..3]
         .iter()
         .position(|(count, controls)| width_of(count, controls) + all_tabs <= area.width as usize)
         .or_else(|| {
@@ -253,13 +259,8 @@ fn tabs(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
                 .iter()
                 .position(|(count, controls)| width_of(count, controls) <= room)
         })
-        .unwrap_or(2);
-    let [first_variant, second_variant, third_variant] = variants;
-    let (count, controls) = match choice {
-        0 => first_variant,
-        1 => second_variant,
-        _ => third_variant,
-    };
+        .unwrap_or(3);
+    let (count, controls) = variants.into_iter().nth(choice).expect("four variants");
     let cluster = (width_of(count, &controls) as u16).min(area.width);
     let mut x = area.right() - cluster;
     let count_width = Line::from(count.as_str()).width() as u16;
