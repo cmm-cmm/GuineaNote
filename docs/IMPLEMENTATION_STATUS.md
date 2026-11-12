@@ -1,5 +1,19 @@
 # Implementation status
 
+## Checkpoint 12/11/2026 (7) — edit responsiveness and research 09
+
+| Change | Detail |
+| --- | --- |
+| Block edits | Indent/comment rewrite the block in one pass (433 → 30 ms, 328 → 17 ms on 10 MiB); line tools use borrowed slices (sort 111 → 54 ms); line tools, case and comment above 1 Mi scalars run on the compute worker |
+| Up/Down | Goal column from a bounded prefix or cached index (133 → 0.01 ms into a 10 MiB Unicode line); queued while the caret line's index is built, never overtaking later input |
+| Research | [09 — responsiveness and editing proposals](research/09_RESPONSIVENESS_AND_EDITING_PROPOSALS.md): input dropped during background jobs (P1), app-wide job pause (P2), Undo charged twice (P3) |
+
+Verification on 82d46f5 (Linux x86_64 cloud container, Python PTY + pyte):
+196 Rust tests, rustfmt/strict Clippy (1.98.1); 12 functional probes pass;
+interaction corpus 1,540 PTY samples, max 9.4 ms, application max 4.6 ms;
+unindexed long-line navigation corpus max 6.1 ms; 0 samples above 50 ms.
+Windows not re-run.
+
 ## Checkpoint 12/11/2026 (6) — regex Find/Replace (M9), tab bar
 
 | Change | Detail |
