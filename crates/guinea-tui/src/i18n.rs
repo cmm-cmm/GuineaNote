@@ -77,6 +77,13 @@ impl Locale {
             }
             "Tabs" => "Thẻ",
             "Replacing" => "Đang thay thế",
+            "Sorting lines" => "Đang sắp xếp dòng",
+            "Updating lines" => "Đang cập nhật dòng",
+            "Changing case" => "Đang đổi hoa/thường",
+            "Done" => "Xong",
+            "Indexing the long line… the caret follows" => {
+                "Đang lập chỉ mục dòng dài… con trỏ sẽ di chuyển sau"
+            }
             "Finding" => "Đang tìm",
             "Open file" => "Mở file",
             "Open" => "Mở",

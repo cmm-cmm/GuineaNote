@@ -264,6 +264,11 @@ pub struct App {
     queued: VecDeque<PathBuf>,
     /// Positions and active tab still to apply from the previous session.
     pub session: Option<crate::session::Restore>,
+    /// Up/Down presses waiting for the caret line's display index: without
+    /// it the goal column of a caret deep in a multi-MiB line would be
+    /// counted on the input thread. Applied in order once the index lands,
+    /// or before any other input so nothing is reordered.
+    queued_moves: Vec<(Movement, bool)>,
 }
 
 impl App {
@@ -320,6 +325,7 @@ impl App {
             worker: None,
             queued: files.into(),
             session: None,
+            queued_moves: Vec::new(),
         }
     }
 
@@ -500,6 +506,9 @@ impl App {
         self.poll_search();
         if self.layout.poll(&self.tabs) {
             self.redraw = true;
+            if !self.queued_moves.is_empty() && !self.caret_layout_pending() {
+                self.flush_moves();
+            }
         }
         if self.syntax_pending {
             self.redraw = true;
@@ -750,6 +759,39 @@ impl App {
         }
     }
 
+    /// Move the caret `count` lines up or down. When the caret line's display
+    /// index is still being built (or moves are already waiting for it), the
+    /// moves are queued instead of counting a multi-MiB prefix right now.
+    fn move_vertical(&mut self, movement: Movement, extend: bool, count: usize) {
+        if self.queued_moves.is_empty() && self.caret_layout_pending() {
+            let document = &self.tabs[self.active].document;
+            self.layout
+                .request(document, document.cursor_line(), self.config.tab_width);
+        }
+        if (self.queued_moves.is_empty() && !self.caret_layout_pending()) || !self.layout.busy() {
+            self.flush_moves();
+            for _ in 0..count {
+                self.document_mut().move_cursor(movement, extend);
+            }
+            return;
+        }
+        // Bounded: holding a key down cannot grow this without limit.
+        let room = 4096usize.saturating_sub(self.queued_moves.len());
+        self.queued_moves
+            .extend(std::iter::repeat_n((movement, extend), count.min(room)));
+        self.message = "Indexing the long line… the caret follows".into();
+    }
+
+    /// Apply queued Up/Down moves in order (exact, possibly slow if the index
+    /// is still missing: only when other input must not overtake them).
+    fn flush_moves(&mut self) {
+        for (movement, extend) in std::mem::take(&mut self.queued_moves) {
+            self.document_mut().move_cursor(movement, extend);
+        }
+        self.tabs[self.active].follow_cursor = true;
+        self.redraw = true;
+    }
+
     /// One queued session file finished opening (`Some(tab index)`) or did not
     /// (counted as skipped unless already deferred). Restores its caret; after
     /// the last one, reselects the previously active tab and reports the
@@ -812,6 +854,16 @@ impl App {
                 self.redraw = true;
             }
             return;
+        }
+        // Queued Up/Down apply before any other input, keeping the order.
+        let vertical = matches!(
+            &event,
+            Event::Key(key) if self.modal.is_none()
+                && !key.modifiers.intersects(KeyModifiers::CONTROL | KeyModifiers::ALT)
+                && matches!(key.code, KeyCode::Up | KeyCode::Down | KeyCode::PageUp | KeyCode::PageDown)
+        );
+        if !vertical && !self.queued_moves.is_empty() {
+            self.flush_moves();
         }
         let before = (
             self.document().id,
@@ -1009,7 +1061,10 @@ impl App {
             _ => None,
         };
         if let Some(movement) = movement {
-            if !key.modifiers.contains(KeyModifiers::ALT) {
+            let alt = key.modifiers.contains(KeyModifiers::ALT);
+            if !alt && matches!(movement, Movement::Up | Movement::Down) {
+                self.move_vertical(movement, shift, 1);
+            } else if !alt {
                 self.document_mut().move_cursor(movement, shift);
             }
             return;
@@ -1021,9 +1076,7 @@ impl App {
                 } else {
                     Movement::Down
                 };
-                for _ in 0..self.page_height.max(1) {
-                    self.document_mut().move_cursor(movement, shift);
-                }
+                self.move_vertical(movement, shift, self.page_height.max(1));
             }
             KeyCode::Backspace => self.edit(Document::type_backspace),
             KeyCode::Delete => self.edit(Document::type_delete),
@@ -1671,6 +1724,43 @@ mod tests {
             assert!(std::time::Instant::now() < deadline, "worker timed out");
             thread::sleep(std::time::Duration::from_millis(2));
         }
+    }
+
+    #[test]
+    fn large_block_edits_run_on_the_worker_and_undo_as_one_step() {
+        let mut a = app();
+        // More than OFFLOAD_SCALARS scalars of CRLF lines, unsorted.
+        let lines: Vec<String> = (0..120_000).rev().map(|n| format!("line {n:06}")).collect();
+        let text = lines.join("\r\n");
+        assert!(text.chars().count() > command_ui::OFFLOAD_SCALARS);
+        a.handle(Event::Paste(text.clone()));
+        a.document_mut().select(0, 0).unwrap();
+        let revision = a.document().revision();
+        a.command("sort-lines");
+        assert!(a.busy(), "sorting a large document must not block input");
+        assert_eq!(a.document().revision(), revision);
+        drain_jobs(&mut a);
+        let sorted = a.document().text();
+        assert!(sorted.starts_with("line 000000\r\nline 000001\r\n"));
+        assert_eq!(sorted.len(), text.len());
+        assert_eq!(a.message, "Done");
+        a.command("sort-lines");
+        drain_jobs(&mut a);
+        assert_eq!(a.message, "Nothing to change");
+        a.document_mut().select_all();
+        a.command("upper-case");
+        assert!(a.busy());
+        drain_jobs(&mut a);
+        assert!(a.document().text().starts_with("LINE 000000\r\n"));
+        assert!(a.document_mut().undo().unwrap());
+        assert_eq!(a.document().text(), sorted);
+        assert!(a.document_mut().undo().unwrap());
+        assert_eq!(a.document().text(), text);
+        // Small scopes still apply immediately.
+        a.document_mut().select(0, 0).unwrap();
+        a.command("upper-case");
+        assert!(!a.busy());
+        assert!(a.document().text().starts_with("LINE 119999\r\n"));
     }
 
     #[test]

@@ -2,6 +2,10 @@
 //! typing helpers shared by key handling and the F2 action list.
 use super::*;
 
+/// Block edits touching more scalars than this run on the compute worker
+/// (about 1 MiB of text: a few milliseconds at most on the input thread).
+pub(super) const OFFLOAD_SCALARS: usize = 1 << 20;
+
 impl App {
     /// Why an action cannot run now, shared by the dispatcher and F2.
     pub fn unavailable(&self, command: &str) -> Option<&'static str> {
@@ -194,11 +198,18 @@ impl App {
                     "remove-empty-lines" => Op::RemoveEmpty,
                     _ => Op::TrimTrailing,
                 };
-                let mut changed = None;
-                self.edit(|d| d.apply_line_operation(operation).map(|c| changed = Some(c)));
-                if changed == Some(false) {
-                    self.message = "Nothing to change".into();
-                }
+                let document = self.document();
+                let scope = if document.selection_spans_lines() {
+                    document.selection().range().len()
+                } else {
+                    document.buffer().len_chars()
+                };
+                let label = if matches!(operation, Op::SortAscending | Op::SortDescending) {
+                    "Sorting lines"
+                } else {
+                    "Updating lines"
+                };
+                self.edit_scoped(label, scope, move |d| d.apply_line_operation(operation));
             }
             "upper-case" | "lower-case" | "title-case" => {
                 use guinea_core::CaseConversion as Case;
@@ -207,10 +218,16 @@ impl App {
                     "lower-case" => Case::Lower,
                     _ => Case::Title,
                 };
-                self.edit(|d| d.convert_case(conversion).map(|_| ()));
+                let scope = self.caret_line_or_selection_scope();
+                self.edit_scoped("Changing case", scope, move |d| d.convert_case(conversion));
             }
             "toggle-comment" => match document_language(self.document()).line_comment() {
-                Some(prefix) => self.edit(|d| d.toggle_line_comment(prefix).map(|_| ())),
+                Some(prefix) => {
+                    let scope = self.caret_line_or_selection_scope();
+                    self.edit_scoped("Updating lines", scope, move |d| {
+                        d.toggle_line_comment(prefix)
+                    });
+                }
                 None => self.message = "This file type has no line comment".into(),
             },
             "bookmark-toggle" => {
@@ -330,6 +347,51 @@ impl App {
             self.edit(|d| d.type_text(&indent));
             self.redraw = true;
         }
+    }
+
+    /// Scalars a selection-or-caret-line command touches.
+    fn caret_line_or_selection_scope(&self) -> usize {
+        let document = self.document();
+        let selection = document.selection().range();
+        if selection.is_empty() {
+            document
+                .line_bounds(document.cursor_line())
+                .map_or(0, |line| line.len())
+        } else {
+            selection.len()
+        }
+    }
+
+    /// Run a whole-block edit (line tools, case, comment) that returns whether
+    /// it changed anything. Up to [`OFFLOAD_SCALARS`] it runs here; larger
+    /// scopes run on the compute worker so the UI keeps drawing, with edits
+    /// paused and the result committed as one Undo step when it is ready.
+    fn edit_scoped(
+        &mut self,
+        label: &'static str,
+        scope: usize,
+        op: impl FnOnce(&mut Document) -> Result<bool, guinea_core::EditError> + Send + 'static,
+    ) {
+        if scope < OFFLOAD_SCALARS {
+            let mut changed = None;
+            self.edit(|d| op(d).map(|c| changed = Some(c)));
+            if changed == Some(false) {
+                self.message = "Nothing to change".into();
+            }
+            return;
+        }
+        // The guards `edit` applies before touching the document.
+        if self.tabs[self.active].ai_action.is_some() {
+            self.message = "AI is working in this tab; read-only until it finishes".into();
+            return;
+        }
+        if self.tabs[self.active].review.mode == ViewMode::Review {
+            self.message = "Review is read-only; F8 or Esc returns to source".into();
+            return;
+        }
+        self.start_compute(label, move |d| {
+            op(d).map(|changed| if changed { "Done" } else { "Nothing to change" }.into())
+        });
     }
 
     /// Toggle the bookmark on `line` (keyboard Ctrl+F2 or a gutter click).

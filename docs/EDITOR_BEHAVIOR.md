@@ -87,6 +87,15 @@ merged into one Undo step by typing coalescing.
   visible text. **Bracket matching:** the `()[]{}` at or before the caret and its
   partner are highlighted, searching at most 64 Ki scalars and not skipping
   strings or comments.
+- **Large block edits:** line tools, case conversion and toggle comment whose
+  scope (multi-line selection, else the whole document or caret line) exceeds
+  1,048,576 scalars run on the compute worker: drawing continues, edits pause
+  with a status label, and the result commits as one Undo step. Indent and
+  comment rewrite the selected block in one pass. Up/Down find the goal
+  column from a bounded prefix or the cached display index; while the caret
+  line's index is still being built they are queued (up to 4,096) and applied
+  when it lands, or before any other input. See
+  [edit responsiveness](performance/EDIT_RESPONSIVENESS.md).
 - **Line and text tools (F2):** sort ascending/descending, remove duplicate
   lines, remove empty (blank) lines and trim trailing spaces/tabs apply to the
   selected lines or the whole document; existing newline sequences are reused

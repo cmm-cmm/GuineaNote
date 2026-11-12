@@ -200,63 +200,61 @@ impl Document {
     pub fn indent_lines(&mut self, unit: &str, tab: usize, outdent: bool) -> Result<(), EditError> {
         let lines = self.selected_lines();
         let reversed = self.selection().head < self.selection().anchor;
-        let mut edits = Vec::new();
+        let (span, text) = self.line_block(lines.clone())?;
+        let single = lines.len() == 1;
+        let unit_chars = unit.chars().count() as isize;
+        let mut output = String::with_capacity(text.len() + unit.len() * lines.len());
         let mut delta = 0isize;
-        let mut first_delta = 0isize;
-        for line in lines.clone() {
-            let bounds = self.line_bounds(line)?;
-            if outdent {
-                let head = self
-                    .buffer()
-                    .slice(bounds.start..(bounds.start + tab.max(1)).min(bounds.end))?;
+        let mut first_delta = None;
+        for (line, separator) in split_lines(&text) {
+            let change = if outdent {
+                let head: String = line.chars().take(tab.max(1)).collect();
                 let remove = if head.starts_with('\t') {
                     1
                 } else {
                     head.chars().take_while(|c| *c == ' ').count()
                 };
-                if remove > 0 {
-                    edits.push(crate::TextEdit {
-                        start: bounds.start,
-                        end: bounds.start + remove,
-                        text: String::new(),
-                    });
-                    delta -= remove as isize;
-                    if line == lines.start {
-                        first_delta = -(remove as isize);
-                    }
-                }
-            } else if !bounds.is_empty() || lines.len() == 1 {
-                edits.push(crate::TextEdit {
-                    start: bounds.start,
-                    end: bounds.start,
-                    text: unit.into(),
-                });
-                let count = unit.chars().count() as isize;
-                delta += count;
-                if line == lines.start {
-                    first_delta = count;
-                }
-            }
+                // Spaces and tabs are one byte each.
+                output.push_str(&line[remove..]);
+                -(remove as isize)
+            } else if !line.is_empty() || single {
+                output.push_str(unit);
+                output.push_str(line);
+                unit_chars
+            } else {
+                0
+            };
+            output.push_str(separator);
+            first_delta.get_or_insert(change);
+            delta += change;
         }
-        let start = self.buffer().line_to_char(lines.start)?;
-        let last_end = self.line_bounds(lines.end - 1)?.end;
         let was_empty = self.selection().is_empty();
         let caret = self.cursor();
-        self.apply_edits(&edits)?;
+        if output != text {
+            self.replace_block(span.clone(), &output)?;
+        }
         if was_empty {
             let moved = caret
-                .saturating_add_signed(first_delta)
-                .max(start)
+                .saturating_add_signed(first_delta.unwrap_or(0))
+                .max(span.start)
                 .min(self.buffer().len_chars());
             let moved = self.boundary_at_or_after(moved);
             return self.select(moved, moved);
         }
-        let end = last_end.saturating_add_signed(delta);
+        let end = span.end.saturating_add_signed(delta);
         if reversed {
-            self.select(end, start)
+            self.select(end, span.start)
         } else {
-            self.select(start, end)
+            self.select(span.start, end)
         }
+    }
+
+    /// The text of `lines` (without the last line's newline) and its scalar
+    /// span, read with a few rope queries instead of one per line.
+    fn line_block(&self, lines: Range<usize>) -> Result<(Range<usize>, String), EditError> {
+        let start = self.buffer().line_to_char(lines.start)?;
+        let end = self.line_bounds(lines.end - 1)?.end;
+        Ok((start..end, self.buffer().slice(start..end)?))
     }
 
     /// Duplicate the selection after itself, or the caret line below it.
@@ -520,7 +518,8 @@ impl Document {
     pub fn apply_line_operation(&mut self, operation: LineOperation) -> Result<bool, EditError> {
         let range = self.operation_lines()?;
         let text = self.buffer().slice(range.clone())?;
-        let mut lines = Vec::new();
+        // Borrowed line slices: no per-line allocation for 100k+ lines.
+        let mut lines: Vec<&str> = Vec::new();
         let mut separators = Vec::new();
         let mut rest = text.as_str();
         while let Some(at) = rest.find('\n') {
@@ -529,22 +528,22 @@ impl Document {
             } else {
                 (&rest[..at], "\n")
             };
-            lines.push(line.to_string());
+            lines.push(line);
             separators.push(separator);
             rest = &rest[at + 1..];
         }
-        lines.push(rest.to_string());
+        lines.push(rest);
         match operation {
-            LineOperation::SortAscending => lines.sort(),
-            LineOperation::SortDescending => lines.sort_by(|a, b| b.cmp(a)),
+            LineOperation::SortAscending => lines.sort_unstable(),
+            LineOperation::SortDescending => lines.sort_unstable_by(|a, b| b.cmp(a)),
             LineOperation::RemoveDuplicates => {
-                let mut seen = std::collections::HashSet::new();
-                lines.retain(|line| seen.insert(line.clone()));
+                let mut seen = std::collections::HashSet::with_capacity(lines.len());
+                lines.retain(|line| seen.insert(*line));
             }
             LineOperation::RemoveEmpty => lines.retain(|line| !line.trim().is_empty()),
             LineOperation::TrimTrailing => {
                 for line in &mut lines {
-                    line.truncate(line.trim_end_matches([' ', '\t']).len());
+                    *line = line.trim_end_matches([' ', '\t']);
                 }
             }
         }
@@ -604,51 +603,45 @@ impl Document {
     /// added after the indentation of each non-empty line.
     pub fn toggle_line_comment(&mut self, prefix: &str) -> Result<bool, EditError> {
         let lines = self.selected_lines();
-        let mut targets = Vec::new();
-        for line in lines.clone() {
-            let bounds = self.line_bounds(line)?;
-            let text = self.buffer().slice(bounds.clone())?;
-            if text.trim().is_empty() {
-                continue;
+        let (span, text) = self.line_block(lines.clone())?;
+        let split = split_lines(&text);
+        // (indentation, body) of every non-blank line; blank lines are kept.
+
+        let mut any = false;
+        let mut commented = true;
+        for (line, _) in &split {
+            if !line.trim().is_empty() {
+                any = true;
+                commented &= body(line).1.starts_with(prefix);
             }
-            let indent = text.chars().take_while(|c| *c == ' ' || *c == '\t').count();
-            let body: String = text.chars().skip(indent).collect();
-            targets.push((bounds.start + indent, body));
         }
-        if targets.is_empty() {
+        if !any {
             return Ok(false);
         }
-        let commented = targets.iter().all(|(_, body)| body.starts_with(prefix));
-        let edits: Vec<crate::TextEdit> = targets
-            .iter()
-            .map(|(at, body)| {
+        let mut output = String::with_capacity(text.len() + (prefix.len() + 1) * split.len());
+        for (line, separator) in &split {
+            if line.trim().is_empty() {
+                output.push_str(line);
+            } else {
+                let (indent, rest) = body(line);
+                output.push_str(indent);
                 if commented {
-                    let mut remove = prefix.chars().count();
-                    if body[prefix.len()..].starts_with(' ') {
-                        remove += 1;
-                    }
-                    crate::TextEdit {
-                        start: *at,
-                        end: at + remove,
-                        text: String::new(),
-                    }
+                    let rest = &rest[prefix.len()..];
+                    output.push_str(rest.strip_prefix(' ').unwrap_or(rest));
                 } else {
-                    crate::TextEdit {
-                        start: *at,
-                        end: *at,
-                        text: format!("{prefix} "),
-                    }
+                    output.push_str(prefix);
+                    output.push(' ');
+                    output.push_str(rest);
                 }
-            })
-            .collect();
-        let start = self.buffer().line_to_char(lines.start)?;
+            }
+            output.push_str(separator);
+        }
         let had_selection = !self.selection().is_empty();
         let caret_line = self.line_of(self.cursor());
         let caret_column = self.cursor() - self.buffer().line_to_char(caret_line)?;
-        self.apply_edits(&edits)?;
+        self.replace_block(span.clone(), &output)?;
         if had_selection {
-            let end = self.line_bounds(lines.end - 1)?.end;
-            self.select(start, end)?;
+            self.select(span.start, span.start + output.chars().count())?;
         } else {
             let line_start = self.buffer().line_to_char(caret_line)?;
             let end = self.line_bounds(caret_line)?.end;
@@ -657,6 +650,28 @@ impl Document {
         }
         Ok(true)
     }
+}
+
+/// A line's leading spaces/tabs and the rest.
+fn body(line: &str) -> (&str, &str) {
+    let indent = line.len() - line.trim_start_matches([' ', '\t']).len();
+    (&line[..indent], &line[indent..])
+}
+
+/// Lines of a block as (content, newline) pairs; the last newline is "".
+fn split_lines(text: &str) -> Vec<(&str, &str)> {
+    let mut lines = Vec::new();
+    let mut rest = text;
+    while let Some(at) = rest.find('\n') {
+        if rest[..at].ends_with('\r') {
+            lines.push((&rest[..at - 1], "\r\n"));
+        } else {
+            lines.push((&rest[..at], "\n"));
+        }
+        rest = &rest[at + 1..];
+    }
+    lines.push((rest, ""));
+    lines
 }
 
 #[cfg(test)]

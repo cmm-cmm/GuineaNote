@@ -906,6 +906,62 @@ mod tests {
     }
 
     #[test]
+    fn up_down_wait_for_the_long_line_index_and_keep_input_order() {
+        use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+        let unit = "Việt e\u{301} 界 👩‍💻 ";
+        let long = unit.repeat(2 * 1024 * 1024 / unit.len());
+        let text = format!("{long}\nshort\nlast");
+        let key = |code| Event::Key(KeyEvent::new(code, KeyModifiers::NONE));
+        let mut app = App::new(
+            vec![],
+            false,
+            Config {
+                mouse: false,
+                ..Config::default()
+            },
+        );
+        app.tabs[0].document = guinea_core::Document::from_text(&text);
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        app.handle(key(KeyCode::End));
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert!(app.caret_layout_pending() && app.layout.busy());
+        let end = app.document().cursor();
+        // Down waits for the index instead of counting the line now.
+        app.handle(key(KeyCode::Down));
+        app.handle(key(KeyCode::Down));
+        assert_eq!(app.document().cursor(), end, "queued, not applied yet");
+        assert_eq!(app.message, "Indexing the long line… the caret follows");
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+        while app.document().cursor() == end {
+            assert!(
+                std::time::Instant::now() < deadline,
+                "queued moves never applied"
+            );
+            std::thread::sleep(std::time::Duration::from_millis(5));
+            app.poll_jobs();
+        }
+        assert_eq!(app.document().position(), (2, 4), "two lines down, clamped");
+        // Another key before the index lands applies queued moves first.
+        app.handle(key(KeyCode::Up));
+        app.handle(key(KeyCode::Up));
+        assert_eq!(app.document().cursor_line(), 0);
+        let mut app2 = App::new(vec![], false, Config::default());
+        app2.tabs[0].document = guinea_core::Document::from_text(&text);
+        terminal.draw(|frame| draw(frame, &mut app2)).unwrap();
+        app2.handle(key(KeyCode::End));
+        terminal.draw(|frame| draw(frame, &mut app2)).unwrap();
+        app2.handle(key(KeyCode::Down));
+        app2.handle(Event::Paste("X".into()));
+        assert_eq!(
+            app2.document().cursor_line(),
+            1,
+            "Down applied before the paste"
+        );
+        assert!(app2.document().text().ends_with("\nshortX\nlast"));
+    }
+
+    #[test]
     fn first_end_on_unindexed_long_line_renders_without_blocking_then_settles() {
         use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
         let unit = "Việt e\u{301} 界 👩‍💻 ";

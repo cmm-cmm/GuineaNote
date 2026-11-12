@@ -690,10 +690,65 @@ impl Document {
             return Ok(());
         }
         let mut prepared = self.review_snapshot();
-        for edit in ordered.into_iter().rev() {
-            prepared.buffer.remove(edit.start..edit.end)?;
-            prepared.buffer.insert(edit.start, &edit.text)?;
+        if ordered.len() <= 32 {
+            for edit in ordered.into_iter().rev() {
+                prepared.buffer.remove(edit.start..edit.end)?;
+                prepared.buffer.insert(edit.start, &edit.text)?;
+            }
+        } else {
+            // Many edits (indent/comment a whole file, remove marked lines):
+            // compose the edited span in one pass and splice it once, instead
+            // of one rope insert/remove per line.
+            let span = ordered[0].start..ordered[ordered.len() - 1].end;
+            let original = prepared.buffer.slice(span.clone())?;
+            let mut output = String::with_capacity(
+                original.len() + ordered.iter().map(|e| e.text.len()).sum::<usize>(),
+            );
+            let mut chars = original.char_indices();
+            let (mut position, mut byte) = (span.start, 0);
+            let mut advance = |target: usize| {
+                while position < target {
+                    let (at, c) = chars.next().expect("validated edit bounds");
+                    byte = at + c.len_utf8();
+                    position += 1;
+                }
+                byte
+            };
+            let mut copied = 0;
+            for edit in &ordered {
+                let start = advance(edit.start);
+                output.push_str(&original[copied..start]);
+                output.push_str(&edit.text);
+                copied = advance(edit.end);
+            }
+            output.push_str(&original[copied..]);
+            prepared.buffer.remove(span.clone())?;
+            prepared.buffer.insert(span.start, &output)?;
         }
+        prepared.view.selection = Selection::default();
+        self.accept_prepared(&prepared, self.revision)
+    }
+
+    /// Replace `span` with `text` as one Undo step, keeping bookmarks on their
+    /// line numbers. For whole-block rewrites that keep the line count (indent,
+    /// comment): two rope edits instead of one per line.
+    pub(crate) fn replace_block(
+        &mut self,
+        span: Range<usize>,
+        text: &str,
+    ) -> Result<(), EditError> {
+        if self.readonly {
+            return Err(EditError::ReadOnly);
+        }
+        if span.end > self.buffer.len_chars() || span.start > span.end {
+            return Err(EditError::OutOfBounds);
+        }
+        if !self.is_grapheme_boundary(span.start) || !self.is_grapheme_boundary(span.end) {
+            return Err(EditError::GraphemeBoundary);
+        }
+        let mut prepared = self.review_snapshot();
+        prepared.buffer.remove(span.clone())?;
+        prepared.buffer.insert(span.start, text)?;
         prepared.view.selection = Selection::default();
         self.accept_prepared(&prepared, self.revision)
     }
@@ -837,23 +892,8 @@ impl Document {
                 } else {
                     (line + 1).min(self.buffer.len_lines() - 1)
                 };
-                let start = self.buffer.line_to_char(target).expect("valid line");
-                let end = self.line_end(target);
-                let bytes = self.buffer.char_to_byte(CharIndex(end)).unwrap().0
-                    - self.buffer.char_to_byte(CharIndex(start)).unwrap().0;
-                if bytes == end - start {
-                    start + goal.min(end - start)
-                } else {
-                    start
-                        + self
-                            .buffer
-                            .slice(start..end)
-                            .unwrap()
-                            .graphemes(true)
-                            .take(goal)
-                            .map(|g| g.chars().count())
-                            .sum::<usize>()
-                }
+                self.grapheme_column_to_char(target, goal)
+                    .expect("valid line")
             }
         };
         self.typing_group = None;

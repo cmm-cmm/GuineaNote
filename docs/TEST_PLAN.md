@@ -149,6 +149,15 @@ replace the record; a vanished file is skipped and reported; `session = false`
 neither restores nor rewrites the record. Rust tests cover damaged/absent
 records, duplicate entries, positions past a changed file and atomic rewrite.
 
+## Edit responsiveness — 2026-11-12
+
+`cargo run --release -p guinea-core --example edit_profile` prints core
+timings of whole-document edit commands and long-line Up/Down on a 10 MiB
+corpus (see `docs/performance/EDIT_RESPONSIVENESS.md`). Rust tests check that a
+block edit above 1 Mi scalars runs on the worker without blocking input and
+undoes as one step, that small scopes still apply immediately, and that
+Up/Down wait for a pending long-line index and never overtake later input.
+
 ## Regex search — 2026-11-12
 
 `python -X utf8 scripts/pty_regex.py` (after a release build): a capture-group

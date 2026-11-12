@@ -291,6 +291,28 @@ impl LineLayout<'_> {
     pub(crate) fn tab_width(&self) -> usize {
         self.tab
     }
+    /// Scalar index of 0-based grapheme `column` (the line end when it equals
+    /// the line's grapheme count), or None when the index does not reach it.
+    pub(crate) fn char_at_grapheme(&self, column: usize) -> Option<usize> {
+        let complete = self.scanned.byte >= self.text.len();
+        if self.scanned.graphemes < column && !complete {
+            return None;
+        }
+        let checkpoint = &self.checkpoints[self
+            .checkpoints
+            .partition_point(|p| p.graphemes <= column)
+            .saturating_sub(1)];
+        let mut chars = checkpoint.chars;
+        let mut graphemes = checkpoint.graphemes;
+        for g in self.text[checkpoint.byte..].graphemes(true) {
+            if graphemes == column {
+                return Some(self.start + chars);
+            }
+            chars += g.chars().count();
+            graphemes += 1;
+        }
+        (graphemes == column).then_some(self.start + chars)
+    }
     pub(crate) fn position(&self, cursor: usize) -> (usize, usize) {
         let target = cursor - self.start;
         let checkpoint = &self.checkpoints[self
@@ -693,6 +715,69 @@ impl Document {
         }
         Some(layout.clone())
     }
+    /// A display index already built for `line` at this revision (any tab
+    /// width: grapheme positions do not depend on it). Never builds one.
+    fn cached_layout(&self, line: usize) -> Option<Arc<LineLayout<'static>>> {
+        let fits = |c: &Arc<LineLayout<'static>>| c.line == line && c.revision == self.revision();
+        if let Some(layout) = self.view.layout_cache.borrow().as_ref().filter(|c| fits(c)) {
+            return Some(layout.clone());
+        }
+        self.view
+            .layout_others
+            .borrow()
+            .iter()
+            .find(|c| fits(c))
+            .cloned()
+    }
+
+    /// Scalar index of 0-based grapheme `column` on `line`, clamped to the
+    /// line end. Never copies or segments a whole long line on the caller's
+    /// thread: it uses a cached display index when one covers the column,
+    /// otherwise segments a prefix that doubles until it reaches the column.
+    pub fn grapheme_column_to_char(&self, line: usize, column: usize) -> Result<usize, EditError> {
+        let bounds = self.line_bounds(line)?;
+        // A line never has more graphemes than scalars.
+        if column >= bounds.len() {
+            return Ok(bounds.end);
+        }
+        let bytes = self.buffer().char_to_byte(CharIndex(bounds.end))?.0
+            - self.buffer().char_to_byte(CharIndex(bounds.start))?.0;
+        // ASCII: every scalar is one cluster (CR LF cannot occur in a line).
+        if bytes == bounds.len() {
+            return Ok(bounds.start + column);
+        }
+        if let Some(at) = self
+            .cached_layout(line)
+            .and_then(|layout| layout.char_at_grapheme(column))
+        {
+            return Ok(at.min(bounds.end));
+        }
+        let mut length = column.saturating_mul(4).saturating_add(64);
+        loop {
+            let end = bounds.start.saturating_add(length).min(bounds.end);
+            let text = self.buffer().slice(bounds.start..end)?;
+            let complete = end == bounds.end;
+            let mut seen = 0;
+            let mut chars = 0;
+            let mut iter = text.graphemes(true).peekable();
+            while let Some(g) = iter.next() {
+                // The prefix's last cluster may continue past it.
+                if !complete && iter.peek().is_none() {
+                    break;
+                }
+                if seen == column {
+                    return Ok(bounds.start + chars);
+                }
+                chars += g.chars().count();
+                seen += 1;
+            }
+            if complete {
+                return Ok(bounds.start + chars);
+            }
+            length = length.saturating_mul(2);
+        }
+    }
+
     /// Zero-based caret line without consulting any display index.
     pub fn cursor_line(&self) -> usize {
         self.buffer()
