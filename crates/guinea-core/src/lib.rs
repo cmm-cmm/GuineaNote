@@ -10,4 +10,4 @@ pub use buffer::{ContentSnapshot, EditError, RopeyBuffer, TextBuffer, TextChunk}
 pub use document::{
     Document, Fingerprint, HistoryLimits, HistoryStatus, LineEnding, Movement, Selection, TextEdit,
 };
-pub use view::LineWindow;
+pub use view::{CaretWindow, LayoutJob, LayoutReady, LineWindow};

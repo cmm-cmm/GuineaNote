@@ -8,6 +8,7 @@ mod file_picker;
 mod i18n;
 mod input;
 mod keyboard;
+mod layout_worker;
 mod preferences;
 mod project;
 mod recovery;
@@ -140,6 +141,7 @@ pub fn run_with_agent(
             interactions.flushed();
             write_times.frame();
             app.redraw = false;
+            app.layout.start();
         }
         // At most four idle wakeups/sec, no redraw without state changes.
         if let Some(event) = input.read(Duration::from_millis(if app.background_work() {

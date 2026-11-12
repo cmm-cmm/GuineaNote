@@ -1,5 +1,5 @@
 use crate::{
-    Document, EditError, TextBuffer,
+    Document, EditError, RopeyBuffer, TextBuffer,
     coordinates::{CharIndex, cell_column, display_grapheme},
 };
 use std::{borrow::Cow, sync::Arc};
@@ -84,7 +84,52 @@ fn cells(g: &str, cell: usize, tab: usize) -> usize {
     }
 }
 
+/// Lines at least this many UTF-8 bytes are indexed in parallel.
+const LONG_LINE_BYTES: usize = 1024 * 1024;
+/// Scalars a synchronous layout query may scan on a long line before
+/// interactive callers should defer the work to a [`LayoutJob`] instead.
+const DEFER_SCALARS: usize = 128 * 1024;
+
+impl LineLayout<'static> {
+    fn fresh(line: usize, revision: u64, tab: usize, start: usize, text: String) -> Self {
+        let zero = Checkpoint {
+            chars: 0,
+            byte: 0,
+            cells: 0,
+            graphemes: 0,
+        };
+        Self {
+            line,
+            revision,
+            tab,
+            start,
+            text: Cow::<str>::Owned(text).into(),
+            checkpoints: vec![zero.clone()],
+            first_tab: None,
+            scanned: zero,
+        }
+    }
+}
+
 impl LineLayout<'_> {
+    fn complete(&self) -> bool {
+        self.scanned.byte >= self.text.len()
+    }
+    /// Index the remaining text; long lines use scoped parallel workers.
+    /// One core is left for the input thread, which keeps drawing meanwhile.
+    fn index_all(&mut self) {
+        if self.complete() {
+            return;
+        }
+        if self.text.len() >= LONG_LINE_BYTES && self.scanned.byte == 0 {
+            let workers = std::thread::available_parallelism()
+                .map_or(1, |n| n.get().saturating_sub(1))
+                .clamp(1, 8);
+            self.parallel_index_with(workers);
+        } else {
+            self.scan_to(usize::MAX, usize::MAX);
+        }
+    }
     fn scan_to(&mut self, through_char: usize, through_cell: usize) {
         while self.scanned.byte < self.text.len()
             && (self.scanned.chars < through_char || self.scanned.cells < through_cell)
@@ -146,6 +191,10 @@ impl LineLayout<'_> {
     }
     fn parallel_index(&mut self) {
         let workers = std::thread::available_parallelism().map_or(2, |n| n.get().min(8));
+        self.parallel_index_with(workers);
+    }
+    fn parallel_index_with(&mut self, workers: usize) {
+        let workers = workers.max(1);
         let mut boundaries = vec![0];
         for worker in 1..workers {
             let mut byte = self.text.len() * worker / workers;
@@ -305,6 +354,63 @@ pub struct LineWindow {
     pub text: String,
     pub char_start: usize,
     pub cell_start: usize,
+}
+
+/// Caret-anchored approximation used while a long line is being indexed.
+pub struct CaretWindow {
+    /// `cell_start` is zero: cells are relative to the window start.
+    pub window: LineWindow,
+    pub caret_cell: usize,
+}
+
+/// Inputs for building a complete long-line index off the input thread.
+pub struct LayoutJob {
+    buffer: RopeyBuffer,
+    range: std::ops::Range<usize>,
+    line: usize,
+    revision: u64,
+    tab: usize,
+}
+
+/// A complete index produced by [`LayoutJob::run`]; see [`Document::accept_layout`].
+pub struct LayoutReady {
+    layout: LineLayout<'static>,
+}
+
+impl LayoutJob {
+    pub fn line(&self) -> usize {
+        self.line
+    }
+    pub fn revision(&self) -> u64 {
+        self.revision
+    }
+    pub fn tab(&self) -> usize {
+        self.tab
+    }
+    /// Copy the line and index it completely. Intended for a worker thread.
+    pub fn run(self) -> Result<LayoutReady, EditError> {
+        let text = self.buffer.slice(self.range.clone())?;
+        drop(self.buffer);
+        let mut layout =
+            LineLayout::fresh(self.line, self.revision, self.tab, self.range.start, text);
+        layout.index_all();
+        Ok(LayoutReady { layout })
+    }
+}
+
+fn enforce_layout_budget(
+    others: &mut std::collections::VecDeque<Arc<LineLayout<'static>>>,
+    active: Option<&Arc<LineLayout<'static>>>,
+) {
+    while others.len() > 63
+        || others.iter().map(|c| c.text.storage.len()).sum::<usize>()
+            + active.map_or(0, |c| c.text.storage.len())
+            > 16 * 1024 * 1024
+    {
+        if others.pop_front().is_none() {
+            break;
+        }
+    }
 }
 pub(crate) struct LayoutEdit {
     bytes: Option<std::ops::Range<usize>>,
@@ -549,45 +655,24 @@ impl Document {
                 if let Some(old) = cache.take() {
                     others.push_back(old);
                 }
-                *cache = Some(Arc::new(LineLayout {
+                *cache = Some(Arc::new(LineLayout::fresh(
                     line,
-                    revision: self.revision(),
+                    self.revision(),
                     tab,
-                    start: range.start,
-                    text: Cow::<str>::Owned(self.buffer().slice(range).ok()?).into(),
-                    checkpoints: vec![Checkpoint {
-                        chars: 0,
-                        byte: 0,
-                        cells: 0,
-                        graphemes: 0,
-                    }],
-                    first_tab: None,
-                    scanned: Checkpoint {
-                        chars: 0,
-                        byte: 0,
-                        cells: 0,
-                        graphemes: 0,
-                    },
-                }));
+                    range.start,
+                    self.buffer().slice(range).ok()?,
+                )));
             }
-            while others.len() > 63
-                || others.iter().map(|c| c.text.storage.len()).sum::<usize>()
-                    + cache.as_ref().map_or(0, |c| c.text.storage.len())
-                    > 16 * 1024 * 1024
-            {
-                if others.pop_front().is_none() {
-                    break;
-                }
-            }
+            enforce_layout_budget(&mut others, cache.as_ref());
         }
         let layout = cache.as_mut().unwrap();
         if (layout.scanned.chars < through_char || layout.scanned.cells < through_cell)
             && layout.scanned.byte < layout.text.len()
         {
             let layout = Arc::make_mut(layout);
-            if layout.text.len() >= 1024 * 1024
-                && (through_char.saturating_sub(layout.scanned.chars) > 128 * 1024
-                    || through_cell.saturating_sub(layout.scanned.cells) > 128 * 1024)
+            if layout.text.len() >= LONG_LINE_BYTES
+                && (through_char.saturating_sub(layout.scanned.chars) > DEFER_SCALARS
+                    || through_cell.saturating_sub(layout.scanned.cells) > DEFER_SCALARS)
             {
                 layout.parallel_index();
             } else {
@@ -596,6 +681,161 @@ impl Document {
         }
         Some(layout.clone())
     }
+    /// Zero-based caret line without consulting any display index.
+    pub fn cursor_line(&self) -> usize {
+        self.buffer()
+            .char_to_line(self.cursor())
+            .expect("valid cursor")
+    }
+
+    /// Cheap check, without scanning: whether an exact layout query through
+    /// `through_char` scalars / `through_cell` cells of `line` would need a
+    /// long synchronous scan of a line of at least 1 MiB. Interactive callers
+    /// should then run [`Document::layout_job`] on a worker and render a
+    /// bounded approximation such as [`Document::caret_window`].
+    pub fn layout_pending(
+        &self,
+        line: usize,
+        tab: usize,
+        through_char: usize,
+        through_cell: usize,
+    ) -> bool {
+        if through_char.max(through_cell) <= DEFER_SCALARS {
+            return false;
+        }
+        let matches = |c: &Arc<LineLayout<'static>>| {
+            c.line == line && c.revision == self.revision() && c.tab == tab
+        };
+        let active = self
+            .view
+            .layout_cache
+            .borrow()
+            .as_ref()
+            .filter(|c| matches(c))
+            .cloned();
+        let cached = active.or_else(|| {
+            self.view
+                .layout_others
+                .borrow()
+                .iter()
+                .find(|c| matches(c))
+                .cloned()
+        });
+        if let Some(layout) = cached {
+            return layout.text.len() >= LONG_LINE_BYTES
+                && !layout.complete()
+                && (through_char.saturating_sub(layout.scanned.chars) > DEFER_SCALARS
+                    || through_cell.saturating_sub(layout.scanned.cells) > DEFER_SCALARS);
+        }
+        let Ok(range) = self.line_bounds(line) else {
+            return false;
+        };
+        let (Ok(start), Ok(end)) = (
+            self.buffer().char_to_byte(CharIndex(range.start)),
+            self.buffer().char_to_byte(CharIndex(range.end)),
+        ) else {
+            return false;
+        };
+        let bytes = end.0 - start.0;
+        // Oversized ASCII lines keep their direct byte path (no cache copy).
+        let oversized_ascii = range.len() > 16 * 1024 * 1024 && bytes == range.len();
+        bytes >= LONG_LINE_BYTES && !oversized_ascii
+    }
+
+    /// Snapshot the inputs needed to build a complete index of `line` on a
+    /// worker. The rope clone is O(1); the line copy happens in [`LayoutJob::run`].
+    pub fn layout_job(&self, line: usize, tab: usize) -> Option<LayoutJob> {
+        let range = self.line_bounds(line).ok()?;
+        Some(LayoutJob {
+            buffer: self.rope_buffer().clone(),
+            range,
+            line,
+            revision: self.revision(),
+            tab,
+        })
+    }
+
+    /// Install a worker-built index if the document has not changed since the
+    /// job was captured. Stale results are dropped; callers may request again.
+    pub fn accept_layout(&self, ready: LayoutReady) -> bool {
+        let layout = ready.layout;
+        if layout.revision != self.revision()
+            || self.line_bounds(layout.line).map(|r| r.start).ok() != Some(layout.start)
+        {
+            return false;
+        }
+        let mut cache = self.view.layout_cache.borrow_mut();
+        let mut others = self.view.layout_others.borrow_mut();
+        others.retain(|c| {
+            !(c.line == layout.line && c.revision == layout.revision && c.tab == layout.tab)
+        });
+        if let Some(old) = cache.take()
+            && !(old.line == layout.line
+                && old.revision == layout.revision
+                && old.tab == layout.tab)
+        {
+            others.push_back(old);
+        }
+        *cache = Some(Arc::new(layout));
+        enforce_layout_budget(&mut others, cache.as_ref());
+        true
+    }
+
+    /// A bounded window around the caret for a line whose exact index is
+    /// pending. Up to about three quarters of `width` cells precede the caret;
+    /// `caret_cell` is the caret offset inside the window. Tab stops are
+    /// relative to the window start, so this is a transient display
+    /// approximation only, never a coordinate used for edits.
+    pub fn caret_window(&self, width: usize, tab: usize) -> Result<CaretWindow, EditError> {
+        let width = width.max(1);
+        let cursor = self.cursor();
+        let range = self.line_bounds(self.buffer().char_to_line(cursor)?)?;
+        let slack = width.saturating_mul(2).saturating_add(64);
+        let back_start = cursor.saturating_sub(slack).max(range.start);
+        let mut before = self.buffer().slice(back_start..cursor)?;
+        if back_start > range.start {
+            // The first cluster may have started before the slice.
+            let first = before.graphemes(true).next().map_or(0, str::len);
+            before.drain(..first);
+        }
+        let budget = (width * 3 / 4).max(1);
+        let mut taken = 0;
+        let mut cells = 0;
+        for g in before.graphemes(true).rev() {
+            let count = display_grapheme(g, 0, tab).1;
+            if cells + count > budget {
+                break;
+            }
+            cells += count;
+            taken += g.len();
+        }
+        let prefix = &before[before.len() - taken..];
+        let char_start = cursor - prefix.chars().count();
+        let forward_end = cursor.saturating_add(slack).min(range.end);
+        let after = self.buffer().slice(cursor..forward_end)?;
+        let mut text = String::from(prefix);
+        let mut cell = 0;
+        for g in prefix.graphemes(true) {
+            cell += display_grapheme(g, cell, tab).1;
+        }
+        let caret_cell = cell;
+        for g in after.graphemes(true) {
+            if cell >= width {
+                break;
+            }
+            cell += display_grapheme(g, cell, tab).1;
+            text.push_str(g);
+        }
+        Ok(CaretWindow {
+            window: LineWindow {
+                text,
+                char_start,
+                cell_start: 0,
+            },
+            caret_cell,
+        })
+    }
+
     pub fn line_bounds(&self, line: usize) -> Result<std::ops::Range<usize>, EditError> {
         let start = self.buffer().line_to_char(line)?;
         let mut end = if line + 1 < self.buffer().len_lines() {
@@ -1197,5 +1437,78 @@ mod tests {
                 }
             }
         }
+    }
+
+    fn long_unicode_line(bytes: usize) -> String {
+        let unit = "a e\u{301} 界 👩‍💻\t";
+        format!("marker {}", unit.repeat(bytes / unit.len()))
+    }
+
+    #[test]
+    fn worker_index_matches_synchronous_layout_and_clears_pending() {
+        let text = long_unicode_line(2 * 1024 * 1024);
+        let mut worker = Document::from_text(&text);
+        let fresh = Document::from_text(&text);
+        worker.move_cursor(crate::Movement::End, false);
+        let through = worker.cursor();
+        assert!(worker.layout_pending(0, 4, through, 0));
+        assert!(!worker.layout_pending(0, 4, 0, 200));
+        let job = worker.layout_job(0, 4).unwrap();
+        assert_eq!((job.line(), job.tab()), (0, 4));
+        assert!(worker.accept_layout(job.run().unwrap()));
+        assert!(!worker.layout_pending(0, 4, through, usize::MAX));
+        let mut sync = Document::from_text(&text);
+        sync.move_cursor(crate::Movement::End, false);
+        assert_eq!(worker.position(), sync.position());
+        assert_eq!(worker.cursor_cell(4), sync.cursor_cell(4));
+        let left = worker.cursor_cell(4).saturating_sub(37);
+        let a = worker.line_window(0, left, 40, 4).unwrap();
+        let b = fresh.line_window(0, left, 40, 4).unwrap();
+        assert_eq!(
+            (a.text, a.char_start, a.cell_start),
+            (b.text, b.char_start, b.cell_start)
+        );
+    }
+
+    #[test]
+    fn stale_worker_index_is_rejected_after_an_edit() {
+        let text = long_unicode_line(2 * 1024 * 1024);
+        let mut document = Document::from_text(&text);
+        let job = document.layout_job(0, 4).unwrap();
+        document.insert("x").unwrap();
+        assert_ne!(job.revision(), document.revision());
+        assert!(!document.accept_layout(job.run().unwrap()));
+        document.move_cursor(crate::Movement::End, false);
+        assert!(document.layout_pending(0, 4, document.cursor(), 0));
+    }
+
+    #[test]
+    fn caret_window_is_bounded_and_keeps_clusters_whole() {
+        let text = long_unicode_line(2 * 1024 * 1024);
+        let mut document = Document::from_text(&text);
+        document.move_cursor(crate::Movement::End, false);
+        for width in [1, 7, 40, 120] {
+            let caret = document.caret_window(width, 4).unwrap();
+            assert!(caret.caret_cell <= width.max(1));
+            assert_eq!(caret.window.cell_start, 0);
+            let end = caret.window.char_start + caret.window.text.chars().count();
+            assert_eq!(end, document.cursor());
+            assert!(caret.window.text.len() < 4 * width + 512);
+            // The window begins on a grapheme boundary of the full line.
+            let prefix = document.buffer().slice(0..caret.window.char_start).unwrap();
+            let rest = document
+                .buffer()
+                .slice(caret.window.char_start..document.cursor())
+                .unwrap();
+            let joined = format!("{prefix}{rest}");
+            assert_eq!(
+                joined.graphemes(true).count(),
+                prefix.graphemes(true).count() + rest.graphemes(true).count()
+            );
+        }
+        document.move_cursor(crate::Movement::Home, false);
+        let start = document.caret_window(20, 4).unwrap();
+        assert_eq!((start.window.char_start, start.caret_cell), (0, 0));
+        assert!(!start.window.text.is_empty());
     }
 }

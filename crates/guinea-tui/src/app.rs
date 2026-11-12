@@ -236,6 +236,7 @@ pub struct App {
     pub help_height: usize,
     pub help_rows: usize,
     pub focus_mode: bool,
+    pub layout: crate::layout_worker::LayoutWorker,
     project_jump: Option<crate::project::Found>,
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
@@ -303,6 +304,7 @@ impl App {
             help_height: 1,
             help_rows: 0,
             focus_mode: false,
+            layout: crate::layout_worker::LayoutWorker::default(),
             project_jump: None,
             mouse_selecting: None,
             last_modal_click: None,
@@ -321,6 +323,7 @@ impl App {
 
     pub fn background_work(&self) -> bool {
         !self.agent_leases.is_empty()
+            || self.layout.busy()
             || (cfg!(not(windows)) && self.agent.is_some())
             || self.busy()
             || self.preferences.busy()
@@ -341,6 +344,19 @@ impl App {
     }
     pub fn document(&self) -> &Document {
         &self.tabs[self.active].document
+    }
+    /// Whether the caret line's exact layout is being (or must be) built on
+    /// the layout worker; render and mouse code then avoid exact queries.
+    pub fn caret_layout_pending(&self) -> bool {
+        let document = self.document();
+        let line = document.cursor_line();
+        let start = document.buffer().line_to_char(line).unwrap_or(0);
+        document.layout_pending(
+            line,
+            self.config.tab_width,
+            document.cursor().saturating_sub(start),
+            0,
+        )
     }
     pub fn welcome(&self) -> bool {
         self.tabs.len() == 1
@@ -466,6 +482,9 @@ impl App {
         self.poll_recovery();
         self.poll_agent();
         self.poll_search();
+        if self.layout.poll(&self.tabs) {
+            self.redraw = true;
+        }
         if let Some(Modal::Project(project)) = &mut self.modal {
             self.redraw |= project.poll();
         }
@@ -1740,8 +1759,22 @@ impl App {
         if rect.height == 0 || row < rect.y || row >= rect.bottom() {
             return;
         }
+        if self.caret_layout_pending() {
+            // The visible caret line is an approximation until indexed.
+            self.message = "Indexing long line… click again when it finishes".into();
+            return;
+        }
         let tab = &self.tabs[self.active];
         let line = tab.top + (row - rect.y) as usize;
+        if tab.document.layout_pending(
+            line,
+            self.config.tab_width,
+            0,
+            tab.left.saturating_add(rect.width as usize),
+        ) {
+            self.message = "Indexing long line… click again when it finishes".into();
+            return;
+        }
         let Ok(window) =
             tab.document
                 .line_window(line, tab.left, rect.width as usize, self.config.tab_width)

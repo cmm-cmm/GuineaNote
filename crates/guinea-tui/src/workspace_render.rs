@@ -723,15 +723,22 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         return;
     }
     let busy = app.busy();
+    let tab_width = app.config.tab_width;
+    let caret_pending = app.caret_layout_pending();
     let tab = &mut app.tabs[app.active];
     let document = &tab.document;
     let language = crate::app::document_language(document);
-    let (cursor_line, cursor_cell) = {
+    let cursor_line = document.cursor_line();
+    if caret_pending {
+        // Never scan a multi-MiB line on the input thread: index it on the
+        // layout worker and show a caret-anchored window meanwhile.
+        app.layout.request(document, cursor_line, tab_width);
+    }
+    let cursor_cell = if caret_pending {
+        None
+    } else {
         let _span = crate::trace::span("cursor_layout");
-        (
-            document.position().0,
-            document.cursor_cell(app.config.tab_width),
-        )
+        Some(document.cursor_cell(tab_width))
     };
     let gutter = if body.width > 14 {
         document.buffer().len_lines().to_string().len().min(6) + 3
@@ -746,18 +753,45 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
     if tab.follow_cursor && cursor_line >= tab.top + body.height as usize {
         tab.top = cursor_line + 1 - body.height as usize;
     }
-    if tab.follow_cursor && cursor_cell < tab.left {
-        tab.left = cursor_cell;
+    if let Some(cursor_cell) = cursor_cell {
+        if tab.follow_cursor && cursor_cell < tab.left {
+            tab.left = cursor_cell;
+        }
+        if tab.follow_cursor && cursor_cell >= tab.left + width {
+            tab.left = cursor_cell + 1 - width;
+        }
     }
-    if tab.follow_cursor && cursor_cell >= tab.left + width {
-        tab.left = cursor_cell + 1 - width;
-    }
+    let caret_window = if caret_pending {
+        document.caret_window(width, tab_width).ok()
+    } else {
+        None
+    };
     for offset in 0..body.height {
         let line_idx = tab.top + offset as usize;
         let _line_span = crate::trace::span("line_layout_paint");
-        let Ok(window) = document.line_window(line_idx, tab.left, width, app.config.tab_width)
-        else {
+        if line_idx >= document.buffer().len_lines() {
             break;
+        }
+        let anchored = caret_window.as_ref().filter(|_| line_idx == cursor_line);
+        let left = if anchored.is_some() { 0 } else { tab.left };
+        let window = if let Some(caret) = anchored {
+            guinea_core::LineWindow {
+                text: caret.window.text.clone(),
+                char_start: caret.window.char_start,
+                cell_start: 0,
+            }
+        } else if document.layout_pending(line_idx, tab_width, 0, tab.left.saturating_add(width)) {
+            // Another long unindexed line: keep the frame bounded.
+            guinea_core::LineWindow {
+                text: "…".into(),
+                char_start: document.buffer().line_to_char(line_idx).unwrap_or(0),
+                cell_start: tab.left,
+            }
+        } else {
+            let Ok(window) = document.line_window(line_idx, tab.left, width, tab_width) else {
+                break;
+            };
+            window
         };
         let text = window.text.as_str();
         let start = window.char_start;
@@ -782,9 +816,9 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
             text,
             start,
             document.selection().range(),
-            tab.left,
+            left,
             width,
-            app.config.tab_width,
+            tab_width,
             LinePaint {
                 cell_start: window.cell_start,
                 theme,
@@ -807,12 +841,20 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         && app.modal.is_none()
         && !busy
         && (tab.top..tab.top + body.height as usize).contains(&cursor_line)
-        && (tab.left..tab.left + width).contains(&cursor_cell)
     {
-        frame.set_cursor_position((
-            body.x + gutter as u16 + (cursor_cell - tab.left) as u16,
-            body.y + (cursor_line - tab.top) as u16,
-        ));
+        let column = match (cursor_cell, &caret_window) {
+            (Some(cell), _) => (tab.left..tab.left + width)
+                .contains(&cell)
+                .then(|| cell - tab.left),
+            (None, Some(caret)) => Some(caret.caret_cell.min(width.saturating_sub(1))),
+            (None, None) => None,
+        };
+        if let Some(column) = column {
+            frame.set_cursor_position((
+                body.x + gutter as u16 + column as u16,
+                body.y + (cursor_line - tab.top) as u16,
+            ));
+        }
     }
 }
 
@@ -990,6 +1032,8 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
             || app.explorer.status.contains("limit reached"))
     {
         app.explorer.status.as_str()
+    } else if app.layout.busy() && app.caret_layout_pending() {
+        "Indexing long line… keep typing or moving"
     } else {
         app.message.as_str()
     };
@@ -1016,8 +1060,15 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         ])),
         areas[0],
     );
+    let caret_pending = app.caret_layout_pending();
     let document = app.document();
-    let (line, column) = document.position();
+    let (line, column) = if caret_pending {
+        (document.cursor_line(), None)
+    } else {
+        let (line, column) = document.position();
+        (line, Some(column + 1))
+    };
+    let column = column.map_or_else(|| "…".to_string(), |c| c.to_string());
     let mode = if app.tabs[app.active].ai_action.is_some() {
         " AI · READ ONLY "
     } else if app.tabs[app.active].review_source.is_some() {
@@ -1047,9 +1098,9 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         badge,
         Span::styled(
             if locale == Locale::Vi {
-                format!("  Dòng {}, Cột {} ", line + 1, column + 1)
+                format!("  Dòng {}, Cột {column} ", line + 1)
             } else {
-                format!("  Ln {}, Col {} ", line + 1, column + 1)
+                format!("  Ln {}, Col {column} ", line + 1)
             },
             text_style(theme.text),
         ),

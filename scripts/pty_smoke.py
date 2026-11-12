@@ -40,6 +40,13 @@ def terminal_state():
 
 
 def probe_child(arguments):
+    # Optional CPU pinning for reproducible low-core/contended measurements.
+    # Set by harnesses (e.g. pty_navigation.py --affinity 0,1); the editor
+    # inherits the mask because it is applied before the child is spawned.
+    affinity = os.environ.get("GUINEANOTE_PROBE_AFFINITY")
+    if affinity:
+        import psutil
+        psutil.Process().cpu_affinity([int(cpu) for cpu in affinity.split(",")])
     before = terminal_state()
     result = subprocess.run(arguments, check=False)
     after = terminal_state()

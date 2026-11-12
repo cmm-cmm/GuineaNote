@@ -843,4 +843,60 @@ mod tests {
         terminal.autoresize().unwrap();
         terminal.draw(|f| draw(f, &mut app)).unwrap();
     }
+
+    #[test]
+    fn first_end_on_unindexed_long_line_renders_without_blocking_then_settles() {
+        use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+        let unit = "Việt e\u{301} 界 👩‍💻 ";
+        let text = unit.repeat(2 * 1024 * 1024 / unit.len());
+        for locale in [crate::i18n::Locale::En, crate::i18n::Locale::Vi] {
+            let mut app = App::new(
+                vec![],
+                false,
+                Config {
+                    language: locale,
+                    mouse: false,
+                    ..Config::default()
+                },
+            );
+            app.tabs[0].document = guinea_core::Document::from_text(&text);
+            let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            app.handle(Event::Key(KeyEvent::new(KeyCode::End, KeyModifiers::NONE)));
+            assert!(app.caret_layout_pending());
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            assert!(app.layout.busy(), "End must index on the layout worker");
+            let screen = |terminal: &Terminal<TestBackend>| {
+                terminal
+                    .backend()
+                    .buffer()
+                    .content()
+                    .iter()
+                    .map(|cell| cell.symbol())
+                    .collect::<String>()
+            };
+            let pending = screen(&terminal);
+            assert!(pending.contains(if locale == crate::i18n::Locale::En {
+                "Col …"
+            } else {
+                "Cột …"
+            }));
+            assert!(pending.contains("界"), "caret window shows nearby text");
+            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
+            while app.layout.busy() {
+                assert!(std::time::Instant::now() < deadline);
+                std::thread::sleep(std::time::Duration::from_millis(5));
+                app.poll_jobs();
+            }
+            assert!(!app.caret_layout_pending());
+            terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+            let expected = app.document().position().1 + 1;
+            assert_eq!(expected, text.graphemes(true).count() + 1);
+            let settled = screen(&terminal);
+            assert!(
+                settled.contains(&format!("{expected} ")),
+                "exact column after indexing"
+            );
+        }
+    }
 }

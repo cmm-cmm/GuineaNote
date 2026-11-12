@@ -212,6 +212,10 @@ impl Document {
     pub fn buffer(&self) -> &impl TextBuffer {
         &self.buffer
     }
+    /// Concrete storage for crate-internal O(1) snapshots (layout workers).
+    pub(crate) fn rope_buffer(&self) -> &RopeyBuffer {
+        &self.buffer
+    }
     pub fn text(&self) -> String {
         self.buffer.text()
     }

@@ -36,6 +36,12 @@ impl Locale {
             " Project ^G " => " Project ^G ",
             "Go to line[:column] (1-based)" => "Đến dòng[:cột] (bắt đầu từ 1)",
             "Invalid line or column" => "Dòng hoặc cột không hợp lệ",
+            "Indexing long line… keep typing or moving" => {
+                "Đang lập chỉ mục dòng dài… vẫn có thể gõ hoặc di chuyển"
+            }
+            "Indexing long line… click again when it finishes" => {
+                "Đang lập chỉ mục dòng dài… hãy nhấp lại khi hoàn tất"
+            }
             "Search result changed; current buffer retained. Find again in this tab." => {
                 "Kết quả tìm đã thay đổi; giữ nội dung hiện tại. Hãy tìm lại trong thẻ này."
             }
