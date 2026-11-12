@@ -27,15 +27,10 @@ impl App {
             secrets,
         )?;
         let bridge = guinea_service::ipc::Bridge::start(policy, wake)?;
-        self.message = format!(
-            "Agent session: {} · {}",
-            bridge.session,
-            if write && !self.readonly {
-                "write"
-            } else {
-                "read-only"
-            }
-        );
+        self.message = self.config.language.render(crate::i18n::Msg::AgentSession {
+            session: &bridge.session.to_string(),
+            write: write && !self.readonly,
+        });
         self.agent = Some(bridge);
         self.redraw = true;
         Ok(())

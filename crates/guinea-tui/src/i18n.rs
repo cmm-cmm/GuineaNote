@@ -296,59 +296,96 @@ impl Locale {
         Cow::Borrowed(translated)
     }
 
+    /// Static status text is keyed by its English literal (see `tr`).
+    /// Parameterized messages are built with [`Locale::render`] when they are
+    /// set, so nothing is reverse-parsed here. The only remaining prefix rule
+    /// covers OS read errors reported by components that do not know the
+    /// locale (file picker and explorer statuses).
     pub fn message(self, text: &str) -> String {
         let translated = self.tr(text);
         if translated != text || self == Self::En {
             return translated.into_owned();
         }
-        if let Some(tail) = text
-            .strip_prefix("Replaced ")
-            .and_then(|s| s.strip_suffix(" occurrence(s); Ctrl+Z undoes the transaction"))
-        {
-            return format!("Đã thay {tail} kết quả; Ctrl+Z hoàn tác toàn bộ");
-        }
         if let Some(tail) = text.strip_prefix("Cannot read ") {
             return format!("Không đọc được {tail}");
         }
-        if let Some(tail) =
-            text.strip_suffix(". Resident RAM may be much larger. Y open / N cancel")
-            && let Some((size, limit)) = tail.split_once(" bytes exceeds warning ")
-        {
-            return format!(
-                "{size} byte vượt ngưỡng cảnh báo {limit}. RAM sử dụng có thể lớn hơn. Y mở / N hủy"
-            );
-        }
-        for (prefix, vi) in [
-            (
-                "Settings apply to this session; save failed: ",
-                "Đã áp dụng cho phiên này; lưu thiết lập thất bại: ",
-            ),
-            ("Opening ", "Đang mở "),
-            (
-                "System clipboard unavailable; copied internally: ",
-                "Không dùng được bộ nhớ tạm hệ thống; đã sao chép nội bộ: ",
-            ),
-            (
-                "System clipboard unavailable; pasted internal clipboard: ",
-                "Không dùng được bộ nhớ tạm hệ thống; đã dán bộ nhớ nội bộ: ",
-            ),
-            ("Saving ", "Đang lưu "),
-            ("Unknown command: ", "Lệnh không tồn tại: "),
-        ] {
-            if let Some(tail) = text.strip_prefix(prefix) {
-                let tail = tail
-                    .strip_suffix("… edits paused")
-                    .map(|s| format!("{s}… tạm dừng sửa"))
-                    .or_else(|| {
-                        tail.strip_suffix("… you can keep editing")
-                            .map(|s| format!("{s}… bạn có thể tiếp tục sửa"))
-                    })
-                    .unwrap_or_else(|| tail.to_string());
-                return format!("{vi}{tail}");
-            }
-        }
         text.to_string()
     }
+
+    /// Localized parameterized status messages.
+    pub fn render(self, message: Msg<'_>) -> String {
+        let vi = self == Self::Vi;
+        match message {
+            Msg::Opening(path) if vi => format!("Đang mở {}… tạm dừng sửa", path.display()),
+            Msg::Opening(path) => format!("Opening {}… edits paused", path.display()),
+            Msg::Saving(path) if vi => {
+                format!("Đang lưu {}… bạn có thể tiếp tục sửa", path.display())
+            }
+            Msg::Saving(path) => format!("Saving {}… you can keep editing", path.display()),
+            Msg::Working(label) if vi => format!("{}… tạm dừng sửa", self.tr(label)),
+            Msg::Working(label) => format!("{label}… edits paused"),
+            Msg::SettingsSaveFailed(error) if vi => {
+                format!("Đã áp dụng cho phiên này; lưu thiết lập thất bại: {error}")
+            }
+            Msg::SettingsSaveFailed(error) => {
+                format!("Settings apply to this session; save failed: {error}")
+            }
+            Msg::UnknownCommand(command) if vi => {
+                format!("Lệnh không tồn tại: {command}. F1 liệt kê các lệnh.")
+            }
+            Msg::UnknownCommand(command) => {
+                format!("Unknown command: {command}. F1 lists commands.")
+            }
+            Msg::LargeFile { size, limit } if vi => format!(
+                "{size} byte vượt ngưỡng cảnh báo {limit}. RAM sử dụng có thể lớn hơn. Y mở / N hủy"
+            ),
+            Msg::LargeFile { size, limit } => format!(
+                "{size} bytes exceeds warning {limit}. Resident RAM may be much larger. Y open / N cancel"
+            ),
+            Msg::CopyFailed(error) if vi => {
+                format!("Không dùng được bộ nhớ tạm hệ thống; đã sao chép nội bộ: {error}")
+            }
+            Msg::CopyFailed(error) => {
+                format!("System clipboard unavailable; copied internally: {error}")
+            }
+            Msg::PasteFallback(error) if vi => {
+                format!("Không dùng được bộ nhớ tạm hệ thống; đã dán bộ nhớ nội bộ: {error}")
+            }
+            Msg::PasteFallback(error) => {
+                format!("System clipboard unavailable; pasted internal clipboard: {error}")
+            }
+            Msg::AgentSession { session, write } => format!(
+                "{}: {session} · {}",
+                if vi { "Phiên Agent" } else { "Agent session" },
+                match (vi, write) {
+                    (true, true) => "được ghi",
+                    (true, false) => "chỉ đọc",
+                    (false, true) => "write",
+                    (false, false) => "read-only",
+                }
+            ),
+        }
+    }
+}
+
+/// Status messages with parameters; see [`Locale::render`].
+pub enum Msg<'a> {
+    Opening(&'a std::path::Path),
+    Saving(&'a std::path::Path),
+    /// A background computation; the label is a static English key.
+    Working(&'a str),
+    SettingsSaveFailed(&'a str),
+    UnknownCommand(&'a str),
+    LargeFile {
+        size: u64,
+        limit: u64,
+    },
+    CopyFailed(&'a str),
+    PasteFallback(&'a str),
+    AgentSession {
+        session: &'a str,
+        write: bool,
+    },
 }
 
 pub const HELP_VI: &str = crate::keyboard::GUIDE_VI;
@@ -361,7 +398,7 @@ mod tests {
         assert_eq!(Locale::Vi.tr("EDITOR"), "SOẠN THẢO");
         assert_eq!(Locale::En.tr("EDITOR"), "EDITOR");
         assert_eq!(
-            Locale::Vi.message("Saving D:/Saved/EDITOR.md… you can keep editing"),
+            Locale::Vi.render(Msg::Saving(std::path::Path::new("D:/Saved/EDITOR.md"))),
             "Đang lưu D:/Saved/EDITOR.md… bạn có thể tiếp tục sửa"
         );
         assert!(toml::from_str::<crate::config::Config>("language = 'fr'").is_err());
@@ -371,5 +408,40 @@ mod tests {
                 .language,
             Locale::Vi
         );
+    }
+
+    #[test]
+    fn every_status_literal_has_a_vietnamese_translation() {
+        // Status text is keyed by its English literal. A literal set as a
+        // status (or returned as an unavailable-action reason) without a
+        // catalog entry would silently show English in Vietnamese mode.
+        let sources = [
+            include_str!("app.rs"),
+            include_str!("search_app.rs"),
+            include_str!("project_app.rs"),
+            include_str!("agent.rs"),
+            include_str!("workspace_render.rs"),
+        ];
+        let mut missing = Vec::new();
+        for source in sources {
+            let code = source.split("#[cfg(test)]").next().unwrap_or(source);
+            for line in code.lines() {
+                if !(line.contains("message = ")
+                    || line.contains("Some(\"")
+                    || line.contains("Copied::"))
+                {
+                    continue;
+                }
+                for (index, part) in line.split('"').enumerate() {
+                    let literal = index % 2 == 1
+                        && part.chars().next().is_some_and(char::is_uppercase)
+                        && part.contains(' ');
+                    if literal && Locale::Vi.tr(part) == part {
+                        missing.push(part.to_string());
+                    }
+                }
+            }
+        }
+        assert!(missing.is_empty(), "untranslated status text: {missing:#?}");
     }
 }

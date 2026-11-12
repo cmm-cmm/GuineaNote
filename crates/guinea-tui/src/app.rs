@@ -23,7 +23,7 @@ mod search_ui;
 use crate::{
     file_info::FileInfo,
     file_picker::{Action as PickerAction, FilePicker},
-    i18n::Locale,
+    i18n::{Locale, Msg},
     preferences::Preferences,
     tab_manager::TabManager,
 };
@@ -415,7 +415,7 @@ impl App {
         };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
-        self.message = format!("Opening {}… edits paused", path.display());
+        self.message = self.config.language.render(Msg::Opening(&path));
         let tab_width = self.config.tab_width;
         self.worker = Some(thread::spawn(move || {
             let result = guinea_io::open(&path, readonly, limit)
@@ -441,7 +441,7 @@ impl App {
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
         self.saving = true;
-        self.message = format!("Saving {}… you can keep editing", path.display());
+        self.message = self.config.language.render(Msg::Saving(&path));
         self.worker = Some(thread::spawn(move || {
             let report = guinea_io::save(&mut document, &path);
             let (result, warning) = match report {
@@ -465,7 +465,7 @@ impl App {
         let job = Job::Compute { id: document.id };
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
-        self.message = format!("{label}… edits paused");
+        self.message = self.config.language.render(Msg::Working(label));
         self.worker = Some(thread::spawn(move || {
             let (result, warning) = match task(&mut document) {
                 Ok(message) => (Ok(document), Some(message)),
@@ -504,7 +504,10 @@ impl App {
             self.redraw = true;
             self.message = match result {
                 Ok(()) => "Settings saved".into(),
-                Err(error) => format!("Settings apply to this session; save failed: {error}"),
+                Err(error) => self
+                    .config
+                    .language
+                    .render(Msg::SettingsSaveFailed(&error.to_string())),
             };
         }
         let opened = match &mut self.modal {
@@ -653,9 +656,7 @@ impl App {
                     self.modal = Some(Modal::Confirm {
                         selected: false,
                         action: Action::OpenLarge { path, replace },
-                        message: format!(
-                            "{size} bytes exceeds warning {limit}. Resident RAM may be much larger. Y open / N cancel"
-                        ),
+                        message: self.config.language.render(Msg::LargeFile { size, limit }),
                     });
                 }
             }
@@ -1362,8 +1363,7 @@ impl App {
             self.redraw = true;
             let (text, fallback) = match event {
                 crate::clipboard::Event::CopyFailed(error) => {
-                    self.message =
-                        format!("System clipboard unavailable; copied internally: {error}");
+                    self.message = self.config.language.render(Msg::CopyFailed(&error));
                     continue;
                 }
                 crate::clipboard::Event::Pasted(text) => (text, None),
@@ -1378,8 +1378,7 @@ impl App {
                 self.edit(|d| d.insert(&text));
                 self.tabs[self.active].follow_cursor = true;
                 if let Some(error) = fallback {
-                    self.message =
-                        format!("System clipboard unavailable; pasted internal clipboard: {error}");
+                    self.message = self.config.language.render(Msg::PasteFallback(&error));
                 }
             }
         }
@@ -2200,7 +2199,7 @@ impl App {
             }
             "delete-word-left" => self.edit(Document::delete_word_left),
             "delete-word-right" => self.edit(Document::delete_word_right),
-            _ => self.message = format!("Unknown command: {command}. F1 lists commands."),
+            _ => self.message = self.config.language.render(Msg::UnknownCommand(command)),
         }
         self.redraw = true;
     }
