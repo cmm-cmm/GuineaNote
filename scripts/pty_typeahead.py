@@ -24,6 +24,9 @@ def saved(ui, path, expected):
             data = path.read_bytes()
             raise AssertionError(f"saved {len(data)} bytes, head {data[:80]!r}")
         ui.read(.05)
+    # The disk commit precedes the editor's save receipt; Quit is accepted
+    # only once the editor owns it (as in pty_recovery.py).
+    ui.wait("● Saved")
 
 
 def quit(ui):

@@ -4,6 +4,7 @@ Run --debug for functionality; release is used for final latency evidence.
 import json
 import os
 from pathlib import Path
+import select
 import subprocess
 import tempfile
 import threading
@@ -32,7 +33,7 @@ def _read(self, duration=0.15, until=None):
             if not ready:
                 break
             try:
-                chunk = os.read(self.fd, 65536)
+                chunk = self.fd.recv(65536) if os.name == "nt" else os.read(self.fd, 65536)
             except OSError:
                 break
             if not chunk:
@@ -72,11 +73,12 @@ def _wait(self, text, timeout=10):
         raise AssertionError(f"Timeout waiting for {text!r}; tail={self.output[-2000:]!r}") from None
 
 
-if os.name != "nt":
-    import select
-    Session.read = _read
-    Session.wait_until = _wait_until
-    Session.wait = _wait
+# On every OS: unlocked concurrent reads race on Windows too, where both
+# threads can see the pywinpty socket readable and the loser then blocks in
+# recv() forever once the idle editor stops drawing (the probe hung at 0% CPU).
+Session.read = _read
+Session.wait_until = _wait_until
+Session.wait = _wait
 
 
 def drain(session, stop):
