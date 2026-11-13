@@ -1,10 +1,12 @@
 # Changelog
 
-All notable changes. Versions follow [Semantic Versioning](https://semver.org/);
-nothing has been released yet. Release targets: Windows x64 and Linux x64
-(static musl). macOS is not released.
+All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
+Release targets: Windows x64 and Linux x64 (static musl). macOS is not
+released.
 
-## [Unreleased] — 0.1.0 preview
+## [0.1.0] — 2026-11-13 (preview)
+
+First public release, published as a GitHub pre-release.
 
 ### Editor
 - Tabs with a one-row tab bar and tab manager (F12 / Ctrl+P), Ctrl+O file
@@ -39,7 +41,8 @@ nothing has been released yet. Release targets: Windows x64 and Linux x64
   worker and Esc cancels them with text and history unchanged.
 - Keys and pastes typed while a file opens or a tool runs are queued and
   applied in order (bounded, refused loudly when full) instead of dropped;
-  a job pauses only its own tab.
+  a job pauses only its own tab. Quit/Close pressed during a save wait for
+  it (Esc withdraws; a failed save closes nothing) instead of being refused.
 - Undo charged by the memory each step adds: six whole-file steps of a
   10 MiB file fit the 64 MiB history budget.
 - Latency gate: every measured interaction above 50 ms is investigated;
@@ -55,3 +58,13 @@ nothing has been released yet. Release targets: Windows x64 and Linux x64
 - Windows binaries link the C runtime statically; Linux release binaries
   are static musl executables; `scripts/release/notices.py` generates
   `THIRD_PARTY_NOTICES.txt`.
+- Reproducible archives with `SHA256SUMS` and `release-manifest.json`
+  (`scripts/release/package.py`); prepared, not yet submitted, winget
+  manifest (`cmm-cmm.GuineaNote`) and npm packages (`guinea-note`).
+
+### Community
+- Public repository with a Code of Conduct (Contributor Covenant 2.1),
+  contributing guide, security policy (private vulnerability reports),
+  support page, issue forms and a pull request template.
+
+[0.1.0]: https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0

@@ -1,0 +1,27 @@
+name: Feature request
+description: Suggest an improvement to Guinea Note
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Guinea Note aims to stay a simple, Notepad++-style editor. Describing the workflow helps more than describing a solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: The task and where the editor gets in the way today
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Keys, messages and what happens to the file. Every mouse action also needs a keyboard way.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives and other editors
+      description: Workarounds you use now, or how Notepad++ / other editors handle it

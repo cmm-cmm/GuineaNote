@@ -1,0 +1,62 @@
+name: Bug report
+description: Something in Guinea Note does not work as documented
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Security problems go to a private report instead (see SECURITY.md).
+        Please do not attach private files; a minimal reproduction is enough. English or Vietnamese is fine.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `guinea --version` (or the commit if built from source)
+      placeholder: guinea 0.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows x64
+        - Linux x64
+        - Other (not a release target)
+    validations:
+      required: true
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal
+      description: Terminal emulator and, if relevant, shell / SSH / tmux
+      placeholder: Windows Terminal 1.22, PowerShell 7
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: The exact keys or mouse actions, starting from `guinea <file>`
+      placeholder: |
+        1. guinea notes.txt
+        2. Ctrl+F, type "é", Enter
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: file
+    attributes:
+      label: File details
+      description: Size, BOM, LF/CRLF/mixed newlines, very long lines or unusual Unicode, if the bug involves a file
+  - type: textarea
+    id: extra
+    attributes:
+      label: Screenshot or extra context
+      description: A terminal screenshot helps for display problems. For slowness, a `GUINEANOTE_TRACE=<new .csv path>` trace is useful.

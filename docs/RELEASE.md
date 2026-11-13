@@ -32,35 +32,50 @@ added only after running on ARM hardware.
 | R0.6 | Cargo metadata and third-party notices | **Done 13/11** — `repository`, `homepage`, `readme`, `keywords`, `categories`; `scripts/release/notices.py` (193 crates, offline) |
 | R0.7 | README installation section and CHANGELOG | **Done 13/11** |
 
-## Decisions still needed from the owner
+## Owner decisions (13/11/2026)
 
-- **D1 — Visibility:** make `cmm-cmm/GuineaNote` public, or keep it private
-  with a public releases-only repository (package managers cannot download
-  private assets).
-- **D2 — Where to build:** by hand (Windows machine + Docker for Linux), or
-  a manually triggered release workflow (no push/PR CI).
-- **D4 — Names:** npm `guinea-note`, winget `cmm-cmm.GuineaNote`; the command
-  stays `guinea`.
-- **D5 — First version:** `v0.1.0` labelled preview.
-- **D6 — Signing:** SHA-256 only for v0.1 (SmartScreen may warn on browser
-  downloads; winget and npm are not blocked).
+- **D1 — Visibility:** `cmm-cmm/GuineaNote` is **public** (with Code of
+  Conduct, contributing guide, security policy, support page, issue and PR
+  templates).
+- **D2 — Where to build:** **by hand** — Windows on the maintainer's machine,
+  Linux in the Debian 12 container (`scripts/release/linux-build.sh`). No
+  GitHub Actions workflow, not even a manual one.
+- **D4 — Names:** npm `guinea-note` (platform packages
+  `@guinea-note/win32-x64`, `@guinea-note/linux-x64`), winget
+  `cmm-cmm.GuineaNote`; the command stays `guinea`.
+- **D5 — First version:** `v0.1.0`, published as a GitHub **pre-release**
+  labelled preview.
+- **D6 — Signing:** SHA-256 only for v0.1 (`SHA256SUMS`,
+  `release-manifest.json`); SmartScreen may warn on browser downloads.
 
-## Runbook (once decided)
+Channel order: GitHub Release first. The winget manifest and npm packages are
+prepared from the published archives (`packaging/`) but submitted only on a
+separate decision (npm needs the owner's login and the `@guinea-note` scope).
+
+## Runbook
 
 1. On `dev`: version and CHANGELOG; `cargo fmt --check`, Clippy `-D warnings`,
-   `cargo test --workspace`; Windows probe suite and `bash scripts/linux/run.sh`
-   sequentially with the latency gate.
-2. Merge to `main`, tag `vX.Y.Z`.
-3. Build both targets from the tag with `--locked`; generate notices; pack;
-   check `--version`, linkage (`objdump -p` / `file`) and a smoke probe from
-   the unpacked archive; write `SHA256SUMS` and `release-manifest.json`.
-4. GitHub Release (draft → check anonymous download → publish).
-5. winget: portable-zip manifest (`komac`), validate and install in Windows
-   Sandbox, open the PR.
-6. npm: platform packages `@guinea-note/win32-x64`, `@guinea-note/linux-x64`
-   built from the archive binaries (same SHA-256), launcher package
-   `guinea-note`; test `npx guinea-note --version` on both OSes.
-7. Record channel status in Notion and IMPLEMENTATION_STATUS.
+   `cargo test --workspace`; `bash scripts/windows/verify.sh` and
+   `bash scripts/linux/run.sh` sequentially with the latency gate.
+2. Fast-forward `main` to `dev`, annotated tag `vX.Y.Z`.
+3. Build both targets from the tag with `--locked`: Windows in a clean
+   worktree of the tag (`git worktree add target/release-wt vX.Y.Z`), Linux
+   with `bash scripts/release/linux-build.sh vX.Y.Z`. Generate notices
+   (`scripts/release/notices.py`), pack with `scripts/release/package.py`
+   (archives, `SHA256SUMS`, `release-manifest.json`), then check the unpacked
+   archives: Windows `objdump -p` imports and `pty_smoke.py --binary`, Linux
+   `bash scripts/release/linux-check.sh vX.Y.Z target/dist/vX.Y.Z`.
+4. Push `main` and the tag; `gh release create` (pre-release while 0.x
+   preview) with the archives, `SHA256SUMS` and `release-manifest.json`;
+   download anonymously and re-check `SHA256SUMS`.
+5. winget: update `packaging/winget/` (portable zip, `cmm-cmm.GuineaNote`),
+   validate with `winget validate` and install in Windows Sandbox, then open
+   the PR to `microsoft/winget-pkgs`.
+6. npm: `python -X utf8 scripts/release/npm.py --tag vX.Y.Z` stages the
+   platform packages from the archive binaries (same SHA-256) and the
+   `guinea-note` launcher; test `npx` from the staged tarballs on both OSes,
+   then `npm publish` platform packages before the launcher.
+7. Record channel status here, in IMPLEMENTATION_STATUS and in Notion.
 
 Rollback: never overwrite a published asset; publish a patch version
 (`npm deprecate` + dist-tag, winget PR for the fix).

@@ -10,7 +10,7 @@ Root `tests/` contains integration tests; crate modules also contain unit tests.
 
 Use Rust 1.98 or newer with native build tools; Windows requires MSVC tooling. Run commands from the repository root:
 
-- `cargo run -- .`: launch the workspace browser in an interactive terminal.
+- `cargo run -- file.txt`: open a file in an interactive terminal (folder arguments are rejected; Ctrl+O opens the file picker).
 - `cargo build --workspace --release`: build the editor and Agent binaries.
 - `cargo fmt --all -- --check`: verify formatting; use `cargo fmt --all` to apply it.
 - `cargo clippy --workspace --all-targets -- -D warnings`: reject lint warnings.

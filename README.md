@@ -1,61 +1,117 @@
 # Guinea Note
 
-Current decisions: [Notion alignment](docs/NOTION_ALIGNMENT.md). Product name is
-**Guinea Note**; the canonical executable is **guinea**. See the [migration policy](docs/CLI_MIGRATION.md).
-Research and older measurements retain their historical names.
+**A Notepad++-style text editor for the terminal**, written in Rust with
+[Ratatui](https://ratatui.rs), [Crossterm](https://github.com/crossterm-rs/crossterm)
+and [Ropey](https://github.com/cessen/ropey). Tabs, one Find/Replace panel
+with regular expressions, line tools, bookmarks, session restore, read-only
+formatted previews and saves that keep your bytes exactly as they were.
 
-Keyboard-only workflow: one Find/Replace panel, F12/Ctrl+P tab manager,
-F6/F7 or Alt+Left/Right tab switching, and a scrollable F1 guide.
-See the [complete shortcut reference](docs/KEYBOARD_SHORTCUTS.md).
+> **Status: 0.1.0 preview.** Release targets are **Windows x64** and
+> **Linux x64** (static musl, any distribution). macOS is not released.
+> Interfaces are in English and Vietnamese (`--language vi`).
 
-Terminal workflow: F2 searchable command suggestions and `goto`, F11 /
-Shift+F11 focus mode, ANSI16 fallback. Folder features (directory tree, open
-folder, project file/content search, `guinea <folder>`) were removed on
-12/11/2026 to keep the editor simple; Ctrl+O still opens a file picker.
-The main menu and tab-management toolbar have a dedicated separator, including
-compact layouts. Current performance policy investigates every interaction >50 ms;
-see [targets](docs/performance/INTERACTION_LATENCY_TARGETS.md).
-See [workflow and limits](docs/TERMINAL_WORKFLOW.md) and
-[grouped interaction baseline](docs/performance/LATENCY_BASELINE.md).
+## Features
 
-Native terminal text editor, built in Rust with Ratatui, Crossterm and Ropey.
-Implementation follows the supplied technical specification. Work in progress;
-see [implementation status](docs/IMPLEMENTATION_STATUS.md) for verified scope.
+- **Tabs like Notepad++** — one-row tab bar, tab manager (F12 / Ctrl+P),
+  session restore of open files, carets and the active tab.
+- **Find/Replace** — one panel (Ctrl+F / Ctrl+H), match case, whole word,
+  linear-time regular expressions with `$1` / `${name}` replacements, Mark
+  All, bookmarks; Replace all is a single Undo step.
+- **Editing tools** — word motion, auto-indent, block indent, duplicate and
+  move lines, sort / remove duplicate or empty lines / trim, case changes and
+  per-language line comments from the F2 action list.
+- **Exact files** — strict UTF-8 with BOM and LF/CRLF/mixed newlines
+  preserved, atomic saves with external-change conflict checks, checksummed
+  crash-recovery drafts.
+- **Responsive on large files** — long lines are indexed and large tools run
+  on workers; typing during a background job is queued, never dropped; Esc
+  cancels large tools. Every interaction above 50 ms is investigated.
+- **Previews** — Markdown (with contents sidebar), JSON, CSV/TSV, XML, TOML,
+  YAML, INI/ENV, notebooks, as a split or a linked read-only tab.
+- **Keyboard first** — every mouse action has a key; key labels on screen
+  are generated from the keymap. Optional mouse support.
+- **Opt-in Agent access** — `guineanote-agent` (JSON CLI) and
+  `guineanote-mcp` (MCP stdio server) edit live documents at an expected
+  revision under a read-only lease. See the [Agent guide](docs/AGENT_USAGE.md)
+  (Vietnamese).
+
+## Installation
+
+### Download
+
+Each [GitHub Release](https://github.com/cmm-cmm/GuineaNote/releases) has a
+`.zip` for Windows and a `.tar.gz` for Linux with `guinea`,
+`guineanote-agent`, `guineanote-mcp`, `LICENSE` and
+`THIRD_PARTY_NOTICES.txt`, plus `SHA256SUMS`:
 
 ```sh
-cargo build --release
-cargo run -- file.txt
-cargo run --release -- --language vi notes.md
-cargo run -- --help
+# Linux x64 (static: Debian 11+, Ubuntu 22.04+, Alpine, ...)
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/SHA256SUMS
+sha256sum --ignore-missing -c SHA256SUMS
+tar -xzf guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
+install -m 755 guinea-0.1.0-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 ```
 
-On Windows use `target\release\guinea.exe`; on Linux use
-`target/release/guinea`. Runtime does not require Rust or Node.js.
-Build with current stable Rust and the native platform toolchain (MSVC build
-tools on Windows). During development checks run locally; GitHub Actions/CI
-is intentionally not configured. Linux x86_64 was verified natively in a
-Debian 12 container (tests, release build, all PTY probes, X11 clipboard);
-ARM, real Linux terminal emulators, Wayland and SSH/tmux remain unverified.
+On Windows, unpack `guinea-0.1.0-x86_64-pc-windows-msvc.zip` and put
+`guinea.exe` on your `PATH` (no Visual C++ redistributable needed). Check the
+download with `Get-FileHash -Algorithm SHA256`. Binaries are not code-signed
+yet, so SmartScreen may warn about a browser download. winget and npm
+packages are planned ([release plan](docs/RELEASE.md)).
 
-### Installation
+### Build from source
 
-Release targets are **Windows x64 and Linux x64 only**; macOS is not
-released (decision of 13/11/2026). No package has been published yet; the
-planned channels are GitHub Releases, winget (`cmm-cmm.GuineaNote`) and npm
-(`npx guinea-note`), see `docs/RELEASE.md`. Until then build from source:
+Rust 1.98+ (MSVC build tools on Windows):
 
 ```sh
-# Windows (PowerShell): static C runtime from .cargo/config.toml, no VC++ redistributable needed
+# Windows: the C runtime is linked statically (.cargo/config.toml)
 cargo build --workspace --release --locked
-# Linux: static musl binaries that run on any distribution (Debian 11+, Ubuntu 22.04+, Alpine)
+# Linux: static musl binaries that run on any distribution
 rustup target add x86_64-unknown-linux-musl   # plus musl-tools on Debian/Ubuntu
 cargo build --workspace --release --locked --target x86_64-unknown-linux-musl
 ```
 
 Copy `guinea` (plus `guineanote-agent` / `guineanote-mcp` for Agent access)
-onto your PATH. Release archives will ship `LICENSE` and
-`THIRD_PARTY_NOTICES.txt` (`python -X utf8 scripts/release/notices.py`).
-Changes are listed in [CHANGELOG.md](CHANGELOG.md).
+onto your `PATH`. Runtime needs neither Rust nor Node.js. On Linux the system
+clipboard uses `wl-clipboard`, `xclip` or `xsel` when present (otherwise an
+internal clipboard; OSC 52 is opt-in).
+
+## Quick start
+
+```sh
+guinea notes.md               # open (or create on save) a file
+guinea a.txt b.txt            # several tabs
+guinea                        # reopen the previous session
+guinea --language vi file.txt # Vietnamese interface
+guinea --readonly log.txt     # no edits or saves
+guinea --help
+```
+
+Ctrl+S saves, Ctrl+Q quits, F1 shows the keyboard guide and F2 lists every
+action with its key. Recommended terminal size: 100×28 or larger.
+
+## Documentation
+
+| Topic | Document |
+| --- | --- |
+| Keyboard shortcuts (keymap v1) | [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) |
+| Editing rules | [docs/EDITOR_BEHAVIOR.md](docs/EDITOR_BEHAVIOR.md) |
+| Find/Replace | [docs/SEARCH_REPLACE.md](docs/SEARCH_REPLACE.md) |
+| File safety, recovery | [docs/FILE_SAFETY.md](docs/FILE_SAFETY.md) |
+| Preview formats | [docs/FORMATS.md](docs/FORMATS.md) |
+| Terminal workflow and limits | [docs/TERMINAL_WORKFLOW.md](docs/TERMINAL_WORKFLOW.md) |
+| Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| Implementation status | [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) |
+| Test plan, performance | [docs/TEST_PLAN.md](docs/TEST_PLAN.md), [docs/PERFORMANCE.md](docs/PERFORMANCE.md) |
+| Release plan | [docs/RELEASE.md](docs/RELEASE.md) |
+| Changes | [CHANGELOG.md](CHANGELOG.md) |
+
+The product is **Guinea Note** and the command is **guinea**; crate names,
+config paths and `GUINEANOTE_*` variables keep the older spelling
+([migration policy](docs/CLI_MIGRATION.md)). Research documents under
+`docs/research/` describe older baselines.
+
+## Reference
 
 Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
 show the welcome screen. A folder argument is rejected with a message before the
@@ -232,8 +288,8 @@ block comments, Python triple-quoted strings, JS/TS template literals and
 a per-frame budget; lines whose state is not yet known render plain, never
 mis-colored). Horizontally-scrolled lines use real line-origin context up to a
 bounded prefix, then plain text. No bounded-memory large-file support,
-LSP, plugin runtime or Git integration. macOS/Linux clipboard tools
-(pbcopy, wl-copy, xclip, xsel) are not yet runtime-verified.
+LSP, plugin runtime or Git integration. On Linux, `xclip` under X11 is
+verified; `wl-copy` (Wayland) and `xsel` are not yet runtime-verified.
 
 Crash recovery is enabled by default. Dirty tabs are checkpointed by a separate
 worker about once per second and reopen after a crash as independent unsaved
@@ -255,24 +311,26 @@ feedback; F9 reports their counts. This is not a process-RAM limit. The
 [risk mitigation report](docs/RISK_MITIGATION.md) records all five research risks,
 implemented controls, verification and remaining uncertainty.
 
-Run the required checks:
+## Contributing
+
+Bug reports, ideas and pull requests are welcome; read
+[CONTRIBUTING.md](CONTRIBUTING.md) first. The required local checks are:
 
 ```sh
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
-cargo build --release
+cargo build --workspace --release
 ```
 
-[Test plan](docs/TEST_PLAN.md) includes native PTY checks and panic cleanup.
-[Performance](docs/PERFORMANCE.md) records measured workloads and limitations.
-[Dependency audit](docs/DEPENDENCY_AUDIT.md) records the advisory snapshot and
-license/source policy results. M4 continuation adds native NTFS/kill tests and
-long-line latency measurements; Linux x86_64 runs in a container are recorded
-in the test plan, macOS execution is still unverified.
-[Architecture](docs/ARCHITECTURE.md) and [editor behavior](docs/EDITOR_BEHAVIOR.md)
-describe the APIs and editing rules. Build and test locally on each target OS;
-there are no GitHub CI workflows during development. No npm package,
-Cargo registry package, public release or optional `gn` alias has been created.
+There is no CI: checks and the PTY probes in the [test plan](docs/TEST_PLAN.md)
+run locally on Windows and in a Linux container. Please follow the
+[Code of Conduct](CODE_OF_CONDUCT.md), report vulnerabilities privately as
+described in [SECURITY.md](SECURITY.md), and see [SUPPORT.md](SUPPORT.md) for
+help.
 
-MIT for original project code; dependencies retain their own licenses.
+## License
+
+[MIT](LICENSE) for the project code. Dependencies keep their own licenses;
+release archives include `THIRD_PARTY_NOTICES.txt`
+(`python -X utf8 scripts/release/notices.py`).
