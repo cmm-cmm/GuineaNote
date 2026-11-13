@@ -1,0 +1,22 @@
+unittest-observer exit=0 seconds=0
+smoke exit=0 seconds=10
+panic-cleanup exit=0 seconds=1
+keyboard exit=0 seconds=1
+dialogs-reader exit=0 seconds=3
+search exit=0 seconds=2
+tabs exit=0 seconds=3
+dialog-mouse exit=0 seconds=1
+agent exit=0 seconds=4
+recovery exit=0 seconds=4
+session exit=0 seconds=2
+mark exit=0 seconds=0
+regex exit=0 seconds=1
+typeahead exit=0 seconds=5
+terminal-matrix exit=0 seconds=2
+latency-trace exit=0 seconds=19
+latency-no-trace exit=0 seconds=18
+navigation exit=0 seconds=7
+navigation-unprepared-2cpu exit=0 seconds=6
+navigation-unprepared-1cpu exit=0 seconds=6
+clipboard exit=0 seconds=3
+done

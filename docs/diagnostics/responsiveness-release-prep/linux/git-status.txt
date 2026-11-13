@@ -1,0 +1,17 @@
+ M CLAUDE.md
+ M Cargo.toml
+ M README.md
+ M crates/guinea-tui/src/app.rs
+ M crates/guinea-tui/src/lib.rs
+ M docs/EDITOR_BEHAVIOR.md
+ M docs/KEYBOARD_SHORTCUTS.md
+ M docs/research/09_RESPONSIVENESS_AND_EDITING_PROPOSALS.md
+ M scripts/linux/Dockerfile
+ M scripts/linux/run.sh
+ M scripts/linux/verify.sh
+ M scripts/pty_agent.py
+ M scripts/pty_typeahead.py
+?? .cargo/
+?? CHANGELOG.md
+?? docs/RELEASE.md
+?? scripts/release/

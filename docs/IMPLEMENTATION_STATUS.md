@@ -1,5 +1,34 @@
 # Implementation status
 
+## Checkpoint 13/11/2026 (9) — responsiveness (research 09) and release prep
+
+Owner decisions 13/11: release **Windows x64 and Linux x64 only** (macOS not
+released, not verified); Linux is verified with Docker Desktop.
+
+| Commit | Change |
+| --- | --- |
+| c8caf5b | Session restore on Windows kept no caret/active tab (verbatim `\\?\` paths never matched); found running the session tests on Windows for the first time |
+| fbc54ba | P1 typing queued during jobs (1,024 events / 4 MiB, in order, held while a job's dialog is answered); P2 a job pauses only its tab, one worker job at a time; P3 Undo charged by inserted bytes (6 whole-file steps of 10 MiB in 64 MiB, was 3); P4 block tools splice the changed middle; P5 Esc cancels large line/case/comment tools; whole-document line tools leave the caret and the final newline |
+| c4c35a8 | Workers start after the frame flush (a 12 MiB open preempted the prompt answer's terminal write: 53.7 → 15.6 ms on one CPU) |
+| b66f132 | Probe races: `pty_agent.py` second PTY reader unlocked on Windows (22-minute hang), `pty_typeahead.py` quit before the save receipt |
+| a7f1523 | Release prep: Windows static CRT, static musl Linux build (Debian 11+, Ubuntu 22.04, Alpine), third-party notices generator, Cargo metadata, README install section, CHANGELOG, `docs/RELEASE.md` |
+
+Verification (product code of c4c35a8, sequential runs):
+
+- Windows 11 x64, ConPTY, static CRT: 212 Rust tests, rustfmt, strict Clippy;
+  21/21 probe steps including the new `pty_typeahead.py` and the real
+  clipboard; interaction corpus 1,540 PTY samples per run, PTY max 27.7 /
+  27.9 ms (trace on/off), application max 3.9 ms; navigation max 24.0 / 23.1 /
+  27.4 ms on 12/2/1 CPUs; no investigation, 0 dropped rows.
+- Linux x86_64, Debian 12 container (Docker Desktop): 205 Rust tests, all 29
+  steps of `scripts/linux/run.sh` (21 probes, musl build + musl smoke); PTY
+  max 6.5 / 6.6 ms, application max 5.6 ms; navigation max 8.5 / 9.8 / 6.5 ms.
+
+Evidence: [docs/diagnostics/responsiveness-release-prep](diagnostics/responsiveness-release-prep/manifest.json).
+Open: release decisions D1/D2/D4–D6 (`docs/RELEASE.md`), M9 features (P7),
+ARM, real Linux terminal emulators, Wayland, SSH/tmux; Quit/Close pressed
+during a save are refused rather than queued.
+
 ## Checkpoint 12/11/2026 (8) — UI separation polish
 
 | Change | Detail |

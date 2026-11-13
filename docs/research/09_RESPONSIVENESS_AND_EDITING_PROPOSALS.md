@@ -6,6 +6,22 @@ This report records what was measured on branch `ccr-d3e9f3cf-1d3qa2`
 Measurements: Linux x86_64 cloud container (kernel 6.18), Rust 1.99.1
 release builds, Python `pty` + pyte probes. Windows was not re-measured.
 
+## Status (13/11/2026)
+
+| # | Status |
+| --- | --- |
+| P1 | **Done** (fbc54ba): bounded typing queue, replayed in order; `pty_typeahead.py` |
+| P2 | **Done** (fbc54ba): a job pauses only its tab; a second worker job is refused, opens are queued |
+| P3 | **Done** (fbc54ba): charged by inserted bytes; `io_profile` keeps 6 whole-file steps of 10 MiB in 64 MiB (was 3) |
+| P4 | **Done** (fbc54ba): block tools splice only the changed middle and are charged by it |
+| P5 | **Done** (fbc54ba): Esc cancels large line/case/comment tools; text and history unchanged |
+| P6 | **Done** (13/11): all probes pass natively on Windows/ConPTY and in the Linux container |
+| P7 | Open: Notepad++ M9 features, after the v0.1 release work |
+
+Also fixed while verifying: session restore on Windows (c8caf5b), whole-
+document line tools no longer select the whole result or move the final
+newline. macOS is out of scope (owner decision 13/11/2026).
+
 ## 1. Already fixed in this round (82d46f5)
 
 Core timings on a 10 MiB / 307,384-line CRLF corpus

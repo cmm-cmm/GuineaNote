@@ -21,3 +21,5 @@ docs/diagnostics/unprepared-lines/** -text -whitespace
 docs/diagnostics/keymap-v1/** -text -whitespace
 # Native Linux container and matching Windows verification reports.
 docs/diagnostics/linux-container/** -text -whitespace
+# Research 09 responsiveness and release-prep verification reports.
+docs/diagnostics/responsiveness-release-prep/** -text -whitespace

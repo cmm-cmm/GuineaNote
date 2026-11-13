@@ -90,6 +90,10 @@ lệnh khác. Chi tiết: [hành vi editor](EDITOR_BEHAVIOR.md).
 | Chọn hết / xóa ô | Ctrl+A / Ctrl+U |
 | Đóng, hủy công việc chưa áp dụng | Esc |
 
+Trong lúc công cụ dòng/chữ/comment lớn (> 1 triệu ký tự) đang chạy nền, **Esc**
+hủy nó: văn bản và lịch sử Undo không đổi. Phím gõ trong lúc mở file hoặc chạy
+công cụ được giữ lại và áp dụng đúng thứ tự khi xong.
+
 Thứ tự Tab: **Tìm → Thay bằng → Kết quả → Trước → Sau → Go → Thay → Tất cả**.
 Ctrl+F rồi Tab cũng tới ô thay nếu terminal không truyền đúng Ctrl+H.
 

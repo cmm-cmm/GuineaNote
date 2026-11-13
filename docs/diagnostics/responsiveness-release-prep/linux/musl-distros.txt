@@ -1,0 +1,7 @@
+ccf8acac2d061f304027ae3ee8d942e1a43782addebc9a2b2e20ad84916fcb7e  /out/guinea
+fec9ae92e4123515a0b84e8f140d62d1a7c603669693d909b18d4c5ca29a2e9d  /out/guineanote-agent
+a5798c54c72ec421a195034a2f801f98f2db4576d6becd043dfbf9e42a646a22  /out/guineanote-mcp
+== debian:11: guinea 0.1.0 guineanote-agent 0.1.0 guineanote-mcp 0.1.0 ldd (Debian GLIBC 2.31-13+deb11u14) 2.31 
+== ubuntu:22.04: guinea 0.1.0 guineanote-agent 0.1.0 guineanote-mcp 0.1.0 ldd (Ubuntu GLIBC 2.35-0ubuntu3.15) 2.35 
+== alpine:3.20: guinea 0.1.0 guineanote-agent 0.1.0 guineanote-mcp 0.1.0 musl libc (x86_64) 
+== debian:12: guinea 0.1.0 guineanote-agent 0.1.0 guineanote-mcp 0.1.0 ldd (Debian GLIBC 2.36-9+deb12u14) 2.36 

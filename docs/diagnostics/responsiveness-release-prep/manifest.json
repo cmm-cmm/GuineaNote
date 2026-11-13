@@ -1,0 +1,133 @@
+{
+  "created": "2026-11-13",
+  "purpose": "Research 09 P1-P6 and release prep R0.1-R0.4/R0.6: Windows run on the tree of c4c35a8 (worker deferral) with the probe fixes of b66f132; Linux run (scripts/linux/run.sh) on fbc54ba plus the working tree of a7f1523 (release prep + probe fixes). Product code of both runs is identical (c4c35a8).",
+  "windows": "Windows 11 x64 MSVC release with static CRT, ConPTY via pywinpty, 12 logical CPUs; pty_clipboard.py used the real clipboard and restored its previous text.",
+  "linux": "Debian 12 container under Docker Desktop 29.9.3 (WSL2 kernel), rustc 1.98.1, Python pty + pyte, private Xvfb clipboard; static musl binaries also run on debian:11, ubuntu:22.04, alpine:3.20, debian:12.",
+  "notes": [
+    "An earlier Windows run flagged one sample: answering the 12 MiB large-file prompt on one pinned CPU took 53.7 ms (terminal_write 52.3 ms) because the open worker started before the frame write; fixed in c4c35a8 (three reruns peak 15.6 ms; this run has no investigation).",
+    "pty_agent.py hung 22 minutes on Windows in that run (unlocked second PTY reader); fixed in b66f132, 3/3 passes before this run.",
+    "Not covered: macOS (not a release target), ARM, real Linux terminal emulators, Wayland clipboard, SSH/tmux."
+  ],
+  "files": {
+    "linux/agent.txt": {
+      "sha256": "4a13b9022c6ce2c846a7908e5153d5dbb5ddfa825dc9ae13b7eaa58bb67ac72e",
+      "bytes": 435
+    },
+    "linux/binary.sha256": {
+      "sha256": "962ab4f49f4cd9aa14cf4d69cf41fd05375ce12c7e49704cc95281003f132bc1",
+      "bytes": 282
+    },
+    "linux/clipboard.txt": {
+      "sha256": "418343277b3f2b80c6dff87c1d5d7f117b3d52a5a71c04f8e425ad3a28bd1000",
+      "bytes": 158
+    },
+    "linux/git-status.txt": {
+      "sha256": "07d851746c7e3cf546a71d075783931b1a637c2939a962ab7db3b77dfd5998eb",
+      "bytes": 418
+    },
+    "linux/head.txt": {
+      "sha256": "19b0d23cc03c10f563a4798ae1c13b73364b52a7bed32a9e8f5ad606ae403914",
+      "bytes": 41
+    },
+    "linux/latency-no-trace-report.json": {
+      "sha256": "db080ec39c6e53101520eb406be3ffb9fd7a41fab3f3275ef8ffc932501cd73a",
+      "bytes": 291659
+    },
+    "linux/latency-trace-report.json": {
+      "sha256": "65fc458d0a5877740504e20fe7c6d1113f5cbb476d5f17addd910497c3e80b8f",
+      "bytes": 305669
+    },
+    "linux/musl-build.txt": {
+      "sha256": "9231294ee2ff619074731d9f22d67bb3e45fb5fb3ccdd18c62cf66c6176ec1b5",
+      "bytes": 776
+    },
+    "linux/musl-distros.txt": {
+      "sha256": "09b4631178bea160f6eb2966e24ef3a80d9b45c3e0a81eb36d20b2a523055b29",
+      "bytes": 686
+    },
+    "linux/musl-smoke.txt": {
+      "sha256": "8b14c7b66f49f9b485a074b9c1d0d8b298be279335624ee42d6a36fec3beb2e5",
+      "bytes": 146
+    },
+    "linux/navigation-all-report.json": {
+      "sha256": "b8d3f9f75a5a8e3f0d1ac630a88d3ca1d52424fe4d3a6ddc14c6dbf271f6cc4a",
+      "bytes": 60283
+    },
+    "linux/navigation-unprepared-1cpu-report.json": {
+      "sha256": "096a52dbfd887b7d05bbe4100e7fad2b87f19b87d3b1871e5763a22f25fa137c",
+      "bytes": 33257
+    },
+    "linux/navigation-unprepared-2cpu-report.json": {
+      "sha256": "e9618aaaffa6795b1ddcd2b539052e2ad57af4bde1e35981c78cda40869b1f63",
+      "bytes": 33282
+    },
+    "linux/platform.txt": {
+      "sha256": "6fcd538375ef6ce785a20c369ccc321e0f938d228e8898ccf003f8649817a601",
+      "bytes": 206
+    },
+    "linux/session.txt": {
+      "sha256": "c64a4a3e21b0f97f1b43a38878a1b23bbecb5a06b66df18ee48863b40905b7bd",
+      "bytes": 362
+    },
+    "linux/summary.txt": {
+      "sha256": "0b64de3d199ea87d892ac40756234b1b0ec31f78f274b9b5b3a37cfac1740442",
+      "bytes": 829
+    },
+    "linux/typeahead.txt": {
+      "sha256": "d652f1c515b47316fc3b3c18b85ffe3fcf6d8fc2f7342f29cd8ca912a523e561",
+      "bytes": 114
+    },
+    "windows/agent.txt": {
+      "sha256": "c1d9c9f5ba251ebbd5ab7d8287b2d9368339ed92122e02637718b255fd7089de",
+      "bytes": 467
+    },
+    "windows/binary.sha256": {
+      "sha256": "d5694d1f34b5ddf68a99ecec546df9448e77acad928dc3d958345ad40bfcb92e",
+      "bytes": 92
+    },
+    "windows/clipboard.txt": {
+      "sha256": "af988b42b9dcd2d62f6320f95ee892ad199555253d96570742649b29f31cbdd9",
+      "bytes": 162
+    },
+    "windows/head.txt": {
+      "sha256": "19b0d23cc03c10f563a4798ae1c13b73364b52a7bed32a9e8f5ad606ae403914",
+      "bytes": 41
+    },
+    "windows/latency-no-trace-report.json": {
+      "sha256": "6d5a8dc613f255220c63bfd2fdb5f01e9a5bf6b7be8926e02ae1777ae2ac5b94",
+      "bytes": 302304
+    },
+    "windows/latency-trace-report.json": {
+      "sha256": "9c69b88c2e9c8b80c76763ff1694c7773395e80534cdbb2241bde2edee156532",
+      "bytes": 316939
+    },
+    "windows/navigation-all-report.json": {
+      "sha256": "8b39448dfb3bbbf525d72fbe243220cba8f5e2fba6610a17c6b7e1eba9c406ef",
+      "bytes": 64459
+    },
+    "windows/navigation-unprepared-1cpu-report.json": {
+      "sha256": "06601f77afd944013fe79eb64277e9cfcc9409b511845310553cca8cd42b4ed2",
+      "bytes": 35484
+    },
+    "windows/navigation-unprepared-2cpu-report.json": {
+      "sha256": "ed8882f01ee81c6aae10223604b251c1559e062ea6ce1e9d582b05d20318a143",
+      "bytes": 35475
+    },
+    "windows/session.txt": {
+      "sha256": "2b352f2f9de4af7eb9ce5655792721fe93128b492fe055db630cb8797ac62f5d",
+      "bytes": 386
+    },
+    "windows/summary.txt": {
+      "sha256": "5faf7e3985b5ff8028546ca3b3df6807cf5f6692abbc4b2a249e1f316015ce7f",
+      "bytes": 618
+    },
+    "windows/typeahead.txt": {
+      "sha256": "713ede5c5fc4255b2d80b5e47fda4aa9e58ed7e2ffc89d9f326bc5085202e5ce",
+      "bytes": 115
+    },
+    "windows/windows-imports.txt": {
+      "sha256": "413aad32a35f082ea9a2b560283daec55a337772c250afa963bbff63920eca84",
+      "bytes": 784
+    }
+  }
+}

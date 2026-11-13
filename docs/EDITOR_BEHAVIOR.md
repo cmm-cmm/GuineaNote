@@ -89,9 +89,20 @@ merged into one Undo step by typing coalescing.
   strings or comments.
 - **Large block edits:** line tools, case conversion and toggle comment whose
   scope (multi-line selection, else the whole document or caret line) exceeds
-  1,048,576 scalars run on the compute worker: drawing continues, edits pause
-  with a status label, and the result commits as one Undo step. Indent and
-  comment rewrite the selected block in one pass. Up/Down find the goal
+  1,048,576 scalars run on the compute worker: drawing continues, edits in
+  that tab (and its review tabs) pause with a status label, and the result
+  commits as one Undo step. **Esc** cancels the running tool at once: the
+  result is discarded, text and history stay unchanged. Indent and comment
+  rewrite only the changed middle of the block, sharing unchanged text.
+- **Type-ahead (13/11/2026):** keys and pastes received while a file opens or
+  a large tool runs are queued, not dropped (up to 1,024 events and 4 MiB of
+  pasted text), and applied in arrival order when the job ends; a full queue
+  says so and ignores further input instead of applying part of it out of
+  order. Mouse input during the job is ignored. Queued text is held while a
+  dialog the job opened (such as the large-file prompt) is answered, so it
+  can never answer the dialog. Other tabs stay editable during a job; a
+  second worker job (another large tool, Save, Open) is refused or queued
+  (opens) until the running one ends. Up/Down find the goal
   column from a bounded prefix or the cached display index; while the caret
   line's index is still being built they are queued (up to 4,096) and applied
   when it lands, or before any other input. See
@@ -99,7 +110,9 @@ merged into one Undo step by typing coalescing.
 - **Line and text tools (F2):** sort ascending/descending, remove duplicate
   lines, remove empty (blank) lines and trim trailing spaces/tabs apply to the
   selected lines or the whole document; existing newline sequences are reused
-  in order. UPPER/lower/Title case use Unicode case mapping on the selection
+  in order. A selected block stays selected afterwards; a whole-document run
+  leaves the caret (no selection, so the next key cannot replace the file)
+  and keeps the empty line after a final newline at the end. UPPER/lower/Title case use Unicode case mapping on the selection
   or caret line. `toggle-comment` adds or removes the language's line comment
   (`//`, `#`, `--`, `;`) after each non-empty line's indentation. Each is one
   Undo step; "Nothing to change" is reported when the text is already so.
