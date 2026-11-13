@@ -9,6 +9,7 @@ mod i18n;
 mod input;
 mod keyboard;
 mod layout_worker;
+mod paths;
 mod preferences;
 mod recovery;
 mod render;

@@ -307,12 +307,24 @@ impl Locale {
     pub fn render(self, message: Msg<'_>) -> String {
         let vi = self == Self::Vi;
         match message {
-            Msg::Opening(path) if vi => format!("Đang mở {}… phím gõ được giữ lại", path.display()),
-            Msg::Opening(path) => format!("Opening {}… typing is queued", path.display()),
+            Msg::Opening(path) if vi => format!(
+                "Đang mở {}… phím gõ được giữ lại",
+                crate::paths::display(path).display()
+            ),
+            Msg::Opening(path) => format!(
+                "Opening {}… typing is queued",
+                crate::paths::display(path).display()
+            ),
             Msg::Saving(path) if vi => {
-                format!("Đang lưu {}… bạn có thể tiếp tục sửa", path.display())
+                format!(
+                    "Đang lưu {}… bạn có thể tiếp tục sửa",
+                    crate::paths::display(path).display()
+                )
             }
-            Msg::Saving(path) => format!("Saving {}… you can keep editing", path.display()),
+            Msg::Saving(path) => format!(
+                "Saving {}… you can keep editing",
+                crate::paths::display(path).display()
+            ),
             Msg::Working(label) if vi => format!("{}… Esc để hủy", self.tr(label)),
             Msg::Working(label) => format!("{label}… Esc cancels"),
             Msg::AfterSaveCancelled { error, quit } if vi => format!(

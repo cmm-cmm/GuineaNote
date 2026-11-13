@@ -608,7 +608,7 @@ pub fn draw(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) -> b
                             .join(" · ")
                     )
                 } else if let Action::OpenLarge { path, .. } = action {
-                    path.to_string_lossy().into_owned()
+                    crate::paths::text(path)
                 } else {
                     app.tabs
                         .get(target)

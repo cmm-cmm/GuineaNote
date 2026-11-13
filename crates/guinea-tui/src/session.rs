@@ -142,18 +142,7 @@ impl Restore {
 /// session entry `C:\a.txt` matches the opened document `\\?\C:\a.txt`.
 pub(crate) fn key(path: &Path) -> PathBuf {
     let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
-    #[cfg(windows)]
-    if let Some(text) = path.to_str() {
-        if let Some(unc) = text.strip_prefix(r"\\?\UNC\") {
-            return PathBuf::from(format!(r"\\{unc}"));
-        }
-        if let Some(rest) = text.strip_prefix(r"\\?\")
-            && rest.as_bytes().get(1) == Some(&b':')
-        {
-            return PathBuf::from(rest);
-        }
-    }
-    path
+    crate::paths::display(&path)
 }
 
 /// Snapshot of the open file tabs. `position` maps a tab to its caret line and

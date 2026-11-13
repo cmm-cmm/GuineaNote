@@ -25,9 +25,14 @@ Vietnamese.
 > **Status: 0.1.0 preview.** Releases target **Windows x64** and **Linux x64**
 > (static binaries for any distribution). macOS is not released.
 
+<p align="center">
+  <img src="docs/images/editor.png" alt="Guinea Note editing a Rust file: tab bar, syntax colors, bookmarks in the gutter and smart highlighting of the selected word" width="900">
+</p>
+
 ## Contents
 
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [Installation](#installation)
 - [Quick start](#quick-start)
 - [Keyboard essentials](#keyboard-essentials)
@@ -71,6 +76,30 @@ Vietnamese.
   screen come from the keymap itself. Mouse support is optional.
 - **Opt-in Agent access.** A JSON CLI and an MCP server let a local coding
   agent read and edit open documents safely.
+
+## Screenshots
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/images/find-replace.png" alt="Find/Replace panel with a regular expression, capture-group replacement and the list of matches"></td>
+    <td width="50%"><img src="docs/images/markdown-preview.png" alt="Markdown source beside its formatted read-only preview with task list and callout"></td>
+  </tr>
+  <tr>
+    <td><b>Find/Replace</b> with regular expressions and <code>$1</code> replacements (Ctrl+F, Alt+R)</td>
+    <td><b>Split preview</b> of Markdown beside its source (F8)</td>
+  </tr>
+  <tr>
+    <td><img src="docs/images/actions.png" alt="F2 action list filtered to line tools, each with its key"></td>
+    <td><img src="docs/images/tabs-vietnamese.png" alt="Vietnamese interface with the tab manager open"></td>
+  </tr>
+  <tr>
+    <td><b>F2 action list</b>: every action, its key, or why it is unavailable</td>
+    <td><b>Vietnamese interface</b> and the tab manager (F12)</td>
+  </tr>
+</table>
+
+Screenshots are rendered from the real editor in a terminal
+(`python -X utf8 scripts/readme_screenshots.py`).
 
 ## Installation
 

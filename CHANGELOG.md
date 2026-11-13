@@ -4,6 +4,17 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
+## [Unreleased]
+
+### Fixed
+- Windows: the editor border, file details, the large-file prompt and the
+  Opening/Saving status showed paths with the internal `\\?\` prefix; paths
+  are now shown as typed (`D:\notes\a.md`, `\\server\share\a.md`).
+
+### Documentation
+- README screenshots rendered from the real editor
+  (`scripts/readme_screenshots.py`).
+
 ## [0.1.0] — 2026-11-13 (preview)
 
 First public release, published as a GitHub pre-release.
@@ -69,4 +80,5 @@ First public release, published as a GitHub pre-release.
 - README rewritten for the public repository, with the Guinea Note banner;
   mascot icons (PNG, ICO, SVG) in `icon/`.
 
+[Unreleased]: https://github.com/cmm-cmm/GuineaNote/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0

@@ -455,8 +455,10 @@ fn border_info(frame: &mut Frame<'_>, app: &App, area: Rect, title: &str, theme:
         .path
         .as_ref()
         .map(|path| {
-            path.strip_prefix(&app.root)
-                .unwrap_or(path)
+            let path = crate::paths::display(path);
+            let root = crate::paths::display(&app.root);
+            path.strip_prefix(&root)
+                .unwrap_or(&path)
                 .to_string_lossy()
                 .into_owned()
         })

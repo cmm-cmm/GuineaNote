@@ -34,20 +34,13 @@ impl TabManager {
             .enumerate()
             .map(|(index, tab)| {
                 let title = tab.title(locale);
+                // Without Windows' verbatim prefix; the document keeps its path.
                 let path = tab
                     .document
                     .path
-                    .as_ref()
-                    .map(|p| p.to_string_lossy().into_owned())
+                    .as_deref()
+                    .map(crate::paths::text)
                     .unwrap_or_default();
-                // Hide Windows' internal verbatim prefix in display metadata.
-                // The document and all filesystem operations keep their path.
-                #[cfg(windows)]
-                let path = if let Some(unc) = path.strip_prefix(r"\\?\UNC\") {
-                    format!(r"\\{unc}")
-                } else {
-                    path.strip_prefix(r"\\?\").unwrap_or(&path).to_owned()
-                };
                 Entry {
                     index,
                     folded: format!("{title}\n{path}").to_lowercase(),

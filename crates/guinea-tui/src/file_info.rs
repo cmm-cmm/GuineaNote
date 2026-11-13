@@ -53,19 +53,15 @@ fn inspect(document: &Document, locale: Locale, history: guinea_core::HistorySta
     let mut fields = Vec::new();
     let mut add = |en, vi, value| fields.push(Field { en, vi, value });
     if let Some(source) = &document.recovery_source {
-        add(
-            "Recovered from",
-            "Khôi phục từ",
-            source.to_string_lossy().into_owned(),
-        );
+        add("Recovered from", "Khôi phục từ", crate::paths::text(source));
     }
     add(
         "Full path",
         "Đường dẫn",
         document
             .path
-            .as_ref()
-            .map(|p| p.to_string_lossy().into_owned())
+            .as_deref()
+            .map(crate::paths::text)
             .unwrap_or_else(|| "—".into()),
     );
     add(
