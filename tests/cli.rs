@@ -18,7 +18,7 @@ fn help_and_version_need_no_terminal() {
     assert!(version.status.success());
     assert_eq!(
         String::from_utf8(version.stdout).unwrap().trim(),
-        "guinea 0.1.0"
+        concat!("guinea ", env!("CARGO_PKG_VERSION"))
     );
 }
 

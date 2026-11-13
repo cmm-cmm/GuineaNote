@@ -4,7 +4,12 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
-## [Unreleased]
+## [0.1.1] — 2026-11-13
+
+### Install
+- `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote`
+  (and `guinea-agent` for the Agent binaries) builds a tagged release from
+  GitHub; documented in the README.
 
 ### Changed
 - Dialogs no longer draw a mouse-only close mark in the top-right corner;
@@ -85,5 +90,5 @@ First public release, published as a GitHub pre-release.
 - README rewritten for the public repository, with the Guinea Note banner;
   mascot icons (PNG, ICO, SVG) in `icon/`.
 
-[Unreleased]: https://github.com/cmm-cmm/GuineaNote/compare/v0.1.0...HEAD
+[0.1.1]: https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1
 [0.1.0]: https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0

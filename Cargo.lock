@@ -741,7 +741,7 @@ dependencies = [
 
 [[package]]
 name = "guinea-agent"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "guinea-service",
@@ -752,7 +752,7 @@ dependencies = [
 
 [[package]]
 name = "guinea-core"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proptest",
  "regex",
@@ -764,7 +764,7 @@ dependencies = [
 
 [[package]]
 name = "guinea-io"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "guinea-core",
  "libc",
@@ -781,7 +781,7 @@ dependencies = [
 
 [[package]]
 name = "guinea-service"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "csv",
  "guinea-core",
@@ -803,11 +803,11 @@ dependencies = [
 
 [[package]]
 name = "guinea-syntax"
-version = "0.1.0"
+version = "0.1.1"
 
 [[package]]
 name = "guinea-tui"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clipboard-win",
  "crossterm",
@@ -833,7 +833,7 @@ dependencies = [
 
 [[package]]
 name = "guineanote"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "clap",
  "guinea-core",

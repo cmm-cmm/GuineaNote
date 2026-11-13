@@ -115,9 +115,13 @@ fn header(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         );
         if area.width > 85 {
             frame.render_widget(
-                Paragraph::new(locale.tr("WORKSPACE  /  v0.1.0 ").into_owned())
-                    .style(text_style(theme.faint))
-                    .alignment(Alignment::Right),
+                Paragraph::new(format!(
+                    "{}  /  v{} ",
+                    locale.tr("WORKSPACE"),
+                    env!("CARGO_PKG_VERSION")
+                ))
+                .style(text_style(theme.faint))
+                .alignment(Alignment::Right),
                 Rect::new(area.x + area.width - 27, area.y, 27, 1),
             );
         }

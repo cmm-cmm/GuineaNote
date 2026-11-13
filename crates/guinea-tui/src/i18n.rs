@@ -130,7 +130,7 @@ impl Locale {
             " Save " => " Lưu ",
             " Close " => " Đóng ",
             "    A little more focused." => "    Tập trung từng ý tưởng.",
-            "WORKSPACE  /  v0.1.0 " => "KHÔNG GIAN  /  v0.1.0 ",
+            "WORKSPACE" => "KHÔNG GIAN",
             "Settings saved" => "Đã lưu thiết lập",
             "Saving settings…" => "Đang lưu thiết lập…",
             "Saving settings… Esc cancels exit" => "Đang lưu thiết lập… Esc hủy thoát",

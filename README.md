@@ -22,7 +22,7 @@ It is built with [Ratatui](https://ratatui.rs),
 [Ropey](https://github.com/cessen/ropey). The interface is in English and
 Vietnamese.
 
-> **Status: 0.1.0 preview.** Releases target **Windows x64** and **Linux x64**
+> **Status: 0.1.x preview.** Releases target **Windows x64** and **Linux x64**
 > (static binaries for any distribution). macOS is not released.
 
 <p align="center">
@@ -115,25 +115,42 @@ contains:
 **Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others):
 
 ```sh
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/SHA256SUMS
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xzf guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
-install -m 755 guinea-0.1.0-x86_64-unknown-linux-musl/guinea ~/.local/bin/
+tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 ```
 
 **Windows x64** (PowerShell; no Visual C++ redistributable needed):
 
 ```powershell
-Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/guinea-0.1.0-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
 Get-FileHash -Algorithm SHA256 guinea.zip    # compare with SHA256SUMS
 Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
-# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.0-x86_64-pc-windows-msvc to your PATH
+# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.1-x86_64-pc-windows-msvc to your PATH
 ```
 
 The binaries are not code-signed yet, so SmartScreen may warn about a browser
 download. winget (`cmm-cmm.GuineaNote`) and npm (`npx guinea-note`) packages
 are planned; see the [release plan](docs/RELEASE.md).
+
+### Install with Cargo
+
+With Rust 1.98 or newer (and the MSVC build tools on Windows), Cargo builds
+and installs a tagged release straight from GitHub:
+
+```sh
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote
+# Agent access (optional): guineanote-agent and guineanote-mcp
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guinea-agent
+```
+
+The binaries go to `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows).
+They use your toolchain's defaults: on Linux they link the system glibc, and
+on Windows the Visual C++ runtime is linked dynamically (the release archives
+link it statically). Upgrade by running the same command with a newer tag and
+`--force`; remove with `cargo uninstall guineanote guinea-agent`.
 
 ### Build from source
 

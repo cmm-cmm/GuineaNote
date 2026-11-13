@@ -3,17 +3,17 @@ members = ["crates/guinea-core", "crates/guinea-io", "crates/guinea-tui", "crate
 resolver = "2"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 license = "MIT"
 rust-version = "1.98"
 
 [workspace.dependencies]
-guinea-core = { version = "0.1.0", path = "crates/guinea-core" }
-guinea-io = { version = "0.1.0", path = "crates/guinea-io" }
-guinea-syntax = { version = "0.1.0", path = "crates/guinea-syntax" }
-guinea-tui = { version = "0.1.0", path = "crates/guinea-tui" }
-guinea-service = { version = "0.1.0", path = "crates/guinea-service" }
+guinea-core = { version = "0.1.1", path = "crates/guinea-core" }
+guinea-io = { version = "0.1.1", path = "crates/guinea-io" }
+guinea-syntax = { version = "0.1.1", path = "crates/guinea-syntax" }
+guinea-tui = { version = "0.1.1", path = "crates/guinea-tui" }
+guinea-service = { version = "0.1.1", path = "crates/guinea-service" }
 thiserror = "2"
 unicode-segmentation = "1.12"
 unicode-width = "0.2"
