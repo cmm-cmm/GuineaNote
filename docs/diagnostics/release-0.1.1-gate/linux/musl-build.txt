@@ -1,0 +1,17 @@
+   Compiling guinea-core v0.1.1 (/work/src/crates/guinea-core)
+   Compiling guinea-syntax v0.1.1 (/work/src/crates/guinea-syntax)
+   Compiling guinea-io v0.1.1 (/work/src/crates/guinea-io)
+   Compiling guinea-service v0.1.1 (/work/src/crates/guinea-service)
+   Compiling guinea-agent v0.1.1 (/work/src/crates/guinea-agent)
+   Compiling guinea-tui v0.1.1 (/work/src/crates/guinea-tui)
+   Compiling guineanote v0.1.1 (/work/src)
+    Finished `release` profile [optimized] target(s) in 13.50s
+target/x86_64-unknown-linux-musl/release/guinea: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=8ce3ecd6a784ef841a02e4d58ab0480f46e79ba2, not stripped
+	statically linked
+guinea 0.1.1
+target/x86_64-unknown-linux-musl/release/guineanote-agent: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=a02590eb92d0fcdd75d45a804b69f46f3f3907b5, not stripped
+	statically linked
+guineanote-agent 0.1.1
+target/x86_64-unknown-linux-musl/release/guineanote-mcp: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=bd09059db722e6784429483c774e09aba580c2e6, not stripped
+	statically linked
+guineanote-mcp 0.1.1

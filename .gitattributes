@@ -27,3 +27,7 @@ docs/diagnostics/responsiveness-release-prep/** -text -whitespace
 docs/diagnostics/release-0.1.0-gate/** -text -whitespace
 # v0.1.0 release artifacts and checks.
 docs/diagnostics/release-0.1.0/** -text -whitespace
+# v0.1.1 release gate reports.
+docs/diagnostics/release-0.1.1-gate/** -text -whitespace
+# v0.1.1 release artifacts and checks.
+docs/diagnostics/release-0.1.1/** -text -whitespace

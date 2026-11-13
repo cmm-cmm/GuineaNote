@@ -1,0 +1,12 @@
+/work/src/target/previews/agent-ai-readonly.png
+{
+  "live_unsaved_read": "PASS",
+  "patch_stale_idempotency_one_undo": "PASS",
+  "noop_revision_and_external_disk_conflict": "PASS",
+  "unicode_bom_crlf_save": "PASS",
+  "mcp_live_both_versions": "PASS",
+  "AI_badge_readonly_other_tab_edit": "PASS",
+  "client_death_cleanup": "PASS",
+  "mcp_cancel_tab_manager_and_overload": "PASS",
+  "save_client_death_modal_and_transaction": "PASS"
+}

@@ -1,0 +1,24 @@
+    Finished `release` profile [optimized] target(s) in 1m 03s
+  Installing /usr/local/cargo/bin/guinea
+   Installed package `guineanote v0.1.0 (https://github.com/cmm-cmm/GuineaNote?branch=main#158ec99f)` (executable `guinea`)
+
+real	1m4.152s
+user	5m14.978s
+sys	0m28.861s
+
+real	0m44.727s
+user	4m50.979s
+sys	0m17.356s
+  Installing /usr/local/cargo/bin/guineanote-agent
+  Installing /usr/local/cargo/bin/guineanote-mcp
+   Installed package `guinea-agent v0.1.0 (https://github.com/cmm-cmm/GuineaNote?branch=main#158ec99f)` (executables `guineanote-agent`, `guineanote-mcp`)
+-rwxr-xr-x 1 root root 10119000 Nov 13 09:04 guinea
+-rwxr-xr-x 1 root root  3718128 Nov 13 09:05 guineanote-agent
+-rwxr-xr-x 1 root root  7232192 Nov 13 09:05 guineanote-mcp
+guinea 0.1.0
+guineanote-agent 0.1.0
+guineanote-mcp 0.1.0
+	linux-vdso.so.1 (0x000072a1b62b2000)
+	libgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x000072a1b5b08000)
+	libc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x000072a1b5926000)
+	/lib64/ld-linux-x86-64.so.2 (0x000072a1b62b4000)

@@ -1,0 +1,24 @@
+{
+  "session": [
+    {
+      "case": "save-on-exit",
+      "ok": true
+    },
+    {
+      "case": "restore-tabs-caret-active",
+      "ok": true
+    },
+    {
+      "case": "named-files-skip-restore",
+      "ok": true
+    },
+    {
+      "case": "missing-file-reported",
+      "ok": true
+    },
+    {
+      "case": "disabled-by-config",
+      "ok": true
+    }
+  ]
+}

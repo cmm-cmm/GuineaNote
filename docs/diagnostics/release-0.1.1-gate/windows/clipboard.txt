@@ -1,0 +1,4 @@
+copy: OK 'alpha Việt é 👩\u200d💻\r\nsecond line\r\n'
+paste: OK 'OS→Guinea Việt 👩\u200d💻'
+restored previous clipboard text
+PTY_CLIPBOARD_OK

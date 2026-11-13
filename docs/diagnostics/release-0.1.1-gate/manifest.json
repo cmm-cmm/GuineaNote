@@ -1,0 +1,144 @@
+{
+  "created": "2026-11-13",
+  "purpose": "Release gate for v0.1.1 on commit 1bc0998 (version bump; Windows path display fix; dialog corner close mark removed): scripts/windows/verify.sh and scripts/linux/run.sh, run sequentially; plus cargo install --git from GitHub (main 158ec99) in a clean rust:1.98-bookworm container.",
+  "windows": "Windows 11 x64 MSVC static CRT, ConPTY via pywinpty; 21/21 steps with the real clipboard (restored). PTY max 25.5/28.7 ms (trace on/off), application max 6.3 ms; navigation max 25.7/21.8/24.5 ms on 12/2/1 CPUs; no investigation, 0 dropped samples.",
+  "linux": "Debian 12 container under Docker Desktop; 207 Rust tests and all 29 steps of scripts/linux/run.sh (fmt, clippy, test, builds, 21 probe steps, latency, musl build and smoke). PTY max 6.6/8.1 ms; navigation max 9.5/8.7/10.5 ms; no investigation.",
+  "notes": [
+    "Correction: docs/diagnostics/release-0.1.0-gate/manifest.json says 'all 32 steps' for Linux; scripts/linux/run.sh has 29 steps (the run log repeated the fmt/clippy/test lines). That evidence is left unchanged.",
+    "cargo install --git (Windows, temp --root) also succeeded; it links VCRUNTIME140/api-ms-win-crt dynamically because the repository's .cargo/config.toml does not apply to git installs (documented in the README)."
+  ],
+  "files": {
+    "linux/agent.txt": {
+      "sha256": "4a13b9022c6ce2c846a7908e5153d5dbb5ddfa825dc9ae13b7eaa58bb67ac72e",
+      "bytes": 435
+    },
+    "linux/binary.sha256": {
+      "sha256": "13d6c6eed343e56f4782793da3a89132b68d649da3d5c05f2fa769f8ba41c3dd",
+      "bytes": 282
+    },
+    "linux/cargo-install-git.txt": {
+      "sha256": "1bf6740f7fc4febb99392ca991702f42a35933076fc475a45680c68a9410aa6a",
+      "bytes": 1033
+    },
+    "linux/clipboard.txt": {
+      "sha256": "418343277b3f2b80c6dff87c1d5d7f117b3d52a5a71c04f8e425ad3a28bd1000",
+      "bytes": 158
+    },
+    "linux/dialog-mouse.txt": {
+      "sha256": "3e636a9a57352ca3040f1c8ac2ade808bcd0790175922853135ba1892ce141ad",
+      "bytes": 225
+    },
+    "linux/git-status.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "linux/head.txt": {
+      "sha256": "4e12b445f79b899ebe4d5026658ee9d5a359855a745db68d915bc12994165227",
+      "bytes": 41
+    },
+    "linux/latency-no-trace-report.json": {
+      "sha256": "f9d263ef8081046400e2c3e0e5574a68d993c5e2c207f50555ee03f71d1d808b",
+      "bytes": 291585
+    },
+    "linux/latency-trace-report.json": {
+      "sha256": "7150caf33a3943e25fe112b16091f51e548dea21bdffb410d144a7a9811ea7dd",
+      "bytes": 305629
+    },
+    "linux/musl-build.txt": {
+      "sha256": "1c591e167cb8f66704c9de6102581e36cb90bfbeead61d90ed204d65c37b93c2",
+      "bytes": 1204
+    },
+    "linux/musl-smoke.txt": {
+      "sha256": "526de2f5e9ed08f9e6a2fd5e5fce122d6299b0383f41e55387a365ff12516d41",
+      "bytes": 146
+    },
+    "linux/navigation-all-report.json": {
+      "sha256": "4d10f15c7868f610e1437d30322b25b507016d530cdea458f1b112e819452360",
+      "bytes": 60287
+    },
+    "linux/navigation-unprepared-1cpu-report.json": {
+      "sha256": "75ef28f1235194fa4790d188d17efdcdaa8b956f0a37aa5a17c954001ee018a0",
+      "bytes": 33267
+    },
+    "linux/navigation-unprepared-2cpu-report.json": {
+      "sha256": "a47a1fa3cbc6a3a2ecca56c0dc1e946fc5ce3e9df4d1b4725e07e98309bb2524",
+      "bytes": 33277
+    },
+    "linux/platform.txt": {
+      "sha256": "9a1077706a5ad27d86c712f773599bc45dd4e58ac04c0ba96768a3bea9e00798",
+      "bytes": 206
+    },
+    "linux/session.txt": {
+      "sha256": "c64a4a3e21b0f97f1b43a38878a1b23bbecb5a06b66df18ee48863b40905b7bd",
+      "bytes": 362
+    },
+    "linux/summary.txt": {
+      "sha256": "5f1d6312d075e7f9ba09b434c448cfa74fa953b9b047801da3deb7e52daa8f7b",
+      "bytes": 832
+    },
+    "linux/test.txt": {
+      "sha256": "358f7cf5081b7853e2cd4a1ba7ecd15f3e85d93d5a74b381f9e9ee857043a381",
+      "bytes": 20386
+    },
+    "linux/typeahead.txt": {
+      "sha256": "ca9bac96778df622557299b37a4c940f794705771ed5741f3c4550e32ecb0b29",
+      "bytes": 141
+    },
+    "windows/agent.txt": {
+      "sha256": "c1d9c9f5ba251ebbd5ab7d8287b2d9368339ed92122e02637718b255fd7089de",
+      "bytes": 467
+    },
+    "windows/binary.sha256": {
+      "sha256": "00114fc5a6fd6f3df91edf83f3116368c30852409a763323f7f07814284e5315",
+      "bytes": 294
+    },
+    "windows/clipboard.txt": {
+      "sha256": "af988b42b9dcd2d62f6320f95ee892ad199555253d96570742649b29f31cbdd9",
+      "bytes": 162
+    },
+    "windows/dialog-mouse.txt": {
+      "sha256": "202bad6a9479862ba64fb2d8eff7861f7c16b8655cb9d07509eec86719340188",
+      "bytes": 293
+    },
+    "windows/git-status.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "windows/head.txt": {
+      "sha256": "4e12b445f79b899ebe4d5026658ee9d5a359855a745db68d915bc12994165227",
+      "bytes": 41
+    },
+    "windows/latency-no-trace-report.json": {
+      "sha256": "043769ec58db65e19952f28c6c525ba4852c5039beba2f67341b86ff226911a6",
+      "bytes": 302184
+    },
+    "windows/latency-trace-report.json": {
+      "sha256": "967ceec68363758a21d932bb4c98f12a1d1df555bdbf21bb0ba47262a798bfbf",
+      "bytes": 316818
+    },
+    "windows/navigation-all-report.json": {
+      "sha256": "d4a12454d48df0e85fb654aff742bbcc75736a0d70bafc2f8f34568896ee36c2",
+      "bytes": 64469
+    },
+    "windows/navigation-unprepared-1cpu-report.json": {
+      "sha256": "efa1fc49e8d993c88a0eb59a2a0a596be9bbfe5035e9726b16ed00cd4facca54",
+      "bytes": 35486
+    },
+    "windows/navigation-unprepared-2cpu-report.json": {
+      "sha256": "3979bf73e1d7acceb37b0ce6d6e7deb52ab0106f8e10d6eace25d86033fa8916",
+      "bytes": 35457
+    },
+    "windows/session.txt": {
+      "sha256": "2b352f2f9de4af7eb9ce5655792721fe93128b492fe055db630cb8797ac62f5d",
+      "bytes": 386
+    },
+    "windows/summary.txt": {
+      "sha256": "14d2ce2047b6784a9ae22f15b0b76684bbf2a9557e69042c3c189c8068428aa7",
+      "bytes": 613
+    },
+    "windows/typeahead.txt": {
+      "sha256": "30880b8ffaa5afd97961e621eaa1f73f1804567a4bd60e6a1ea4b86d8fa82f75",
+      "bytes": 142
+    }
+  }
+}

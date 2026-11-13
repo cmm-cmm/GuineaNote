@@ -1,0 +1,323 @@
+   Compiling guinea-core v0.1.1 (/work/src/crates/guinea-core)
+   Compiling guinea-syntax v0.1.1 (/work/src/crates/guinea-syntax)
+   Compiling guinea-io v0.1.1 (/work/src/crates/guinea-io)
+   Compiling guinea-service v0.1.1 (/work/src/crates/guinea-service)
+   Compiling guinea-tui v0.1.1 (/work/src/crates/guinea-tui)
+   Compiling guinea-agent v0.1.1 (/work/src/crates/guinea-agent)
+   Compiling guineanote v0.1.1 (/work/src)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 8.05s
+     Running unittests src/lib.rs (target/debug/deps/guinea_agent-cf314c18dc60b870)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/guineanote_agent-5450801b2bfa10cf)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/mcp.rs (target/debug/deps/guineanote_mcp-ee3f795cf4d3eb66)
+
+running 1 test
+test tests::malformed_editor_reply_fields_become_errors_not_panics ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/guinea_core-1165e3cf60a013bc)
+
+running 63 tests
+test buffer::tests::checked_ranges_never_panic ... ok
+test coordinates::tests::coordinates_are_distinct_and_checked ... ok
+test document::tests::bare_cr_is_visible_content_and_end_removes_only_one_line_ending ... ok
+test document::tests::agent_edits_are_atomic_one_undo_and_revision_checked ... ok
+test document::tests::join_combining_sequence_snaps_cursor ... ok
+test document::tests::independent_view_states_do_not_fork_text_or_history_and_reject_stale_positions ... ok
+test document::tests::newline_policy_and_readonly ... ok
+test document::tests::bounded_history_keeps_latest_undo_and_never_marks_trimmed_content_saved ... ok
+test document::tests::save_snapshot_preserves_later_edits_selection_and_history ... ok
+test document::tests::savepoint_and_history_branch ... ok
+test document::tests::selection_search_replace_is_one_transaction ... ok
+test document::tests::unicode_navigation_and_deletion ... ok
+test document::tests::regex_replace_all_and_replace_match_expand_groups_in_one_undo ... ok
+test editing::bookmark_tests::bookmark_matches_marks_each_matching_line_once_and_keeps_others ... ok
+test document::tests::chunk_edges_match_extended_graphemes ... ok
+test document::tests::worker_snapshot_is_history_free_and_preserves_original_access_and_selection ... ok
+test editing::bookmark_tests::bookmarks_follow_edits_undo_and_redo ... ok
+test editing::bookmark_tests::mark_target_uses_one_line_selection_or_the_caret_word ... ok
+test editing::bookmark_tests::matching_bracket_is_found_in_both_directions_within_the_limit ... ok
+test editing::bookmark_tests::navigation_copy_and_removal_of_bookmarked_lines ... ok
+test editing::final_newline_tests::whole_document_line_tools_keep_the_final_newline_in_place ... ok
+test editing::line_operation_tests::case_conversion_is_unicode_aware_and_keeps_selection ... ok
+test editing::line_operation_tests::line_operations_keep_newlines_and_are_one_undo_step ... ok
+test editing::line_operation_tests::toggle_line_comment_round_trips_and_skips_blank_lines ... ok
+test editing::line_tool_selection_tests::whole_document_line_tools_leave_no_selection_but_blocks_stay_selected ... ok
+test editing::tests::block_indent_detects_unit_and_outdent_reverses_it ... ok
+test editing::tests::duplicate_and_move_lines_preserve_newlines_and_selection ... ok
+test editing::tests::typing_coalesces_until_caret_moves_or_another_edit ... ok
+test editing::tests::whole_line_cut_and_copy_keep_newline_sequences ... ok
+test editing::tests::word_deletes_are_single_undo_steps ... ok
+test search::tests::default_options_keep_literal_case_sensitive_matching ... ok
+test editing::tests::word_motion_skips_spaces_keeps_clusters_and_crosses_lines ... ok
+test search::tests::ignore_case_folds_unicode_scalars_one_to_one ... ok
+test search::tests::matches_never_split_grapheme_clusters_with_any_option ... ok
+test search::tests::whole_word_requires_non_word_neighbours ... ok
+test search::tests::regex_mode_skips_empty_matches_and_grapheme_splits ... ok
+test search::tests::regex_mode_finds_patterns_per_line_with_crlf_and_options ... ok
+test document::tests::search_boundary_check_matches_full_segmentation ... ok
+test search::tests::regex_replacement_expands_capture_groups ... ok
+test buffer::tests::edit_matches_string ... ok
+test view::tests::long_ascii_cache_preserves_combining_edits_at_checkpoints ... ok
+test search::tests::invalid_regex_is_reported_and_matches_nothing ... ok
+test editing::block_splice_tests::block_tools_charge_and_splice_only_the_changed_lines ... ok
+test view::tests::partial_ascii_scan_preserves_joining_accents_crlf_and_tabs ... ok
+test view::tests::incremental_layout_rebuilds_joins_and_history_at_checkpoints ... ok
+test document::tests::whole_file_steps_are_charged_once_by_the_memory_they_add ... ok
+test view::tests::short_line_edit_keeps_prepared_long_line_with_shifted_coordinates ... ok
+test view::tests::oversized_ascii_line_does_not_allocate_a_full_layout_copy ... ok
+test document::tests::random_commands_preserve_graphemes_and_undo ... ok
+test view::tests::stale_worker_index_is_rejected_after_an_edit ... ok
+test view::tests::prefix_ascii_edits_preserve_global_tab_stops_without_reindexing ... ok
+test view::tests::ascii_tab_cache_reuses_prefix_storage_and_matches_full_unicode_layout ... ok
+test view::tests::start_queries_on_unindexed_long_lines_do_not_copy_the_line ... ok
+test view::tests::windows_keep_absolute_tabs_and_clusters ... ok
+test view::tests::prefix_cache_reuse_preserves_snapshots_unicode_fallback_and_coordinates ... ok
+test view::tests::multiline_cache_matches_fresh_layout_after_edits_history_and_tab_changes ... ok
+test view::tests::worker_index_matches_synchronous_layout_and_clears_pending ... ok
+test document::tests::navigation_matches_unicode_segmentation ... ok
+test view::tests::sparse_index_matches_full_unicode_layout_after_edits_and_undo ... ok
+test editing::bookmark_tests::bookmark_matches_stops_at_the_line_limit ... ok
+test view::tests::caret_window_is_bounded_and_keeps_clusters_whole ... ok
+test view::tests::parallel_index_preserves_global_tab_stops_and_cluster_boundaries ... ok
+test view::tests::prepared_indexes_survive_ascii_edits_and_rebuild_for_unicode_and_tabs ... ok
+
+test result: ok. 63 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 6.42s
+
+     Running unittests src/lib.rs (target/debug/deps/guinea_io-e2c87606e5f74c7b)
+
+running 21 tests
+test recovery::tests::recovery_kill_probe ... ok
+test tests::invalid_input_never_becomes_lossy_text ... ok
+test tests::detect_change_during_save_before_replace ... ok
+test tests::missing_paths_are_not_created_until_save ... ok
+test tests::failures_before_commit_preserve_original_and_history ... ok
+test tests::conflicts_and_save_as_do_not_overwrite ... ok
+test tests::readonly_and_large_file_are_explicit ... ok
+test recovery::tests::corrupted_checkpoints_are_retained_and_quick_quit_does_not_discard_unseen_drafts ... ok
+test tests::save_kill_probe ... ok
+test tests::symlinks_are_never_replaced ... ok
+test tests::replacement_identity_conflict_and_hardlinks_preserve_all_original_names ... ok
+test recovery::tests::real_process_kill_recovers_committed_checkpoint ... ok
+test recovery::tests::save_as_provenance_change_updates_checkpoint_without_a_text_edit ... ok
+test recovery::tests::successful_save_or_explicit_close_removes_only_its_own_checkpoint ... ok
+test recovery::tests::checkpoint_recovers_exact_unsaved_unicode_bom_and_source_without_overwriting ... ok
+test recovery::tests::rejected_draft_does_not_starve_other_tabs_or_remove_prior_checkpoint ... ok
+test tests::streaming_builder_detects_newlines_across_chunks_without_normalizing_bytes ... ok
+test recovery::tests::crash_during_handoff_offers_the_draft_once ... ok
+test tests::killing_save_process_before_commit_preserves_original ... ok
+test tests::golden_roundtrips_are_byte_exact ... ok
+test tests::valid_utf8_roundtrips_without_normalization ... ok
+
+test result: ok. 21 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.20s
+
+     Running unittests src/lib.rs (target/debug/deps/guinea_service-17535bafac7b40c6)
+
+running 3 tests
+test live::tests::queue_overload_rejects_acquire_without_waiting_for_an_unowned_release ... ok
+test ipc::tests::native_local_transport_permissions_credentials_and_cleanup ... ok
+test live::tests::queued_timeout_cannot_later_commit_and_started_commit_returns_its_result ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+     Running tests/contract.rs (target/debug/deps/contract-3596544acb2e8b54)
+
+running 6 tests
+test native_directory_links_cannot_escape_workspace ... ok
+test malformed_data_and_output_are_bounded ... ok
+test paginated_unicode_read_search_analysis_and_conflicts ... ok
+test scope_secrets_limits_and_typed_schema ... ok
+test recovered_tabs_keep_secret_and_workspace_policy_even_without_a_save_path ... ok
+test response_budget_and_invalid_write_ids_do_not_fill_ledger ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/guinea_syntax-ba5e10812a6022b1)
+
+running 7 tests
+test line_state_tests::block_comments_and_strings_carry_across_lines ... ok
+test tests::detection_plain_text_and_markdown ... ok
+test line_state_tests::python_triple_strings_js_templates_and_markup_comments ... ok
+test tests::lexer_uses_scalar_offsets_and_ignores_comments_inside_strings ... ok
+test tests::extended_sources_config_names_and_shebangs_have_safe_fallbacks ... ok
+test tests::programming_and_data_aliases_and_special_names ... ok
+test tests::semantic_tokens_escape_lifetimes_macros_and_block_comments_are_ordered ... ok
+
+test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/guinea_tui-326df2e7b3996d2d)
+
+running 101 tests
+test app::tests::closing_inactive_dirty_and_linked_tabs_preserves_selection_and_source ... ok
+test app::tests::f8_opens_settings_cancel_does_not_change_language_and_apply_is_explicit ... ok
+test app::tests::dirty_close_and_quit_require_explicit_yes ... ok
+test app::tests::function_keys_follow_previous_next_review_settings_and_outline_mapping ... ok
+test app::tests::goto_uses_grapheme_columns_and_rejects_out_of_range_without_moving ... ok
+test app::agent::tests::open_tab_manager_refreshes_when_ai_releases_its_lock ... ok
+test app::agent::tests::ai_lease_locks_source_and_review_and_keeps_other_tabs_editable ... ok
+test app::modal_ui::tests::bounded_goto_matches_full_segmentation_across_prefix_growth ... ok
+test app::tests::keymap_v1_editing_commands_are_single_undo_steps ... ok
+test app::tests::idle_does_not_request_redraw_and_large_open_needs_yes ... ok
+test app::agent::tests::lease_drop_after_worker_panic_restores_original_readonly_state ... ok
+test app::tests::mouse_cursor_placement_uses_cells_and_keeps_graphemes_whole ... ok
+test app::tests::mark_all_falls_back_to_the_find_query_with_its_options ... ok
+test app::tests::mouse_hit_regions_activate_tabs_and_workspace_actions ... ok
+test app::tests::line_case_and_comment_actions_run_from_f2_with_reasons ... ok
+test app::tests::mark_all_marks_caret_word_bookmarks_lines_and_clears ... ok
+test app::tests::mark_all_keeps_selected_text_literal_and_find_regex_as_regex ... ok
+test app::tests::palette_completion_focus_mode_and_removed_folder_keys_preserve_text ... ok
+test app::tests::readonly_applies_to_new_tabs_and_paste ... ok
+test app::tests::open_prompt_with_a_folder_path_opens_the_file_picker_there ... ok
+test app::tests::review_chooser_split_and_dirty_source_close_keep_document_safe ... ok
+test app::tests::queued_typing_is_held_while_a_dialog_opened_by_the_job_is_answered ... ok
+test app::tests::review_tab_tracks_source_and_cannot_replace_editable_history ... ok
+test app::tests::tab_keys_leave_search_safely_and_do_not_bypass_dirty_confirmation ... ok
+test app::tests::tab_manager_filters_duplicate_paths_and_cancels_without_editing ... ok
+test app::tests::tabs_clipboard_paste_history_and_fallback ... ok
+test app::tests::windows_release_events_do_not_duplicate_text ... ok
+test clipboard::tests::auto_mode_never_touches_the_system_clipboard_in_tests ... ok
+test clipboard::tests::base64_and_osc52_encode_unicode_exactly ... ok
+test app::tests::reload_advances_preview_revision_even_for_saved_unedited_source ... ok
+test clipboard::tests::osc52_copies_through_the_terminal_and_caps_large_selections ... ok
+test commands::tests::every_bound_action_has_a_terminal_portable_primary_key ... ok
+test commands::tests::keyboard_guides_mention_every_primary_key ... ok
+test app::tests::session_positions_beyond_a_changed_file_fall_back_safely ... ok
+test commands::tests::keymap_has_unique_ids_and_no_conflicting_bindings ... ok
+test commands::tests::lookup_normalizes_case_backtab_and_respects_scope ... ok
+test commands::tests::keyboard_guides_only_name_bound_or_context_keys ... ok
+test config::tests::config_has_safe_defaults_and_rejects_unknown_fields ... ok
+test app::tests::tab_manager_refreshes_metadata_after_pending_save_without_losing_filter ... ok
+test file_info::tests::reports_buffer_and_disk_separately_without_writing ... ok
+test i18n::tests::translates_ui_and_keeps_paths_intact ... ok
+test keyboard::tests::help_wraps_without_losing_vietnamese_or_splitting_graphemes ... ok
+test i18n::tests::every_status_literal_has_a_vietnamese_translation ... ok
+test keyboard::tests::reverse_tab_and_alternative_keys_do_not_depend_on_shift_encoding ... ok
+test paths::tests::plain_paths_are_shown_unchanged ... ok
+test file_picker::tests::browses_filters_paths_and_never_changes_files ... ok
+test app::tests::previous_session_reopens_tabs_carets_and_active_tab ... ok
+test preferences::tests::persists_only_language_atomically ... ok
+test preferences::tests::rapid_changes_keep_last_selected_language ... ok
+test render::tests::cell_clipping_never_splits_wide_cluster_or_emits_controls ... ok
+test app::tests::worker_open_save_find_replace_and_conflict_keep_tabs_separate ... ok
+test render::tests::clipped_syntax_uses_real_string_context_and_falls_back_when_unknown ... ok
+test render::tests::bookmarks_smart_highlight_and_brackets_are_painted ... ok
+test app::tests::quit_and_close_during_a_save_wait_for_it_and_never_skip_checks ... ok
+test render::tests::ai_context_and_manager_details_follow_linked_review_and_locale ... ok
+test app::tests::esc_cancels_a_running_line_tool_and_leaves_text_and_history_unchanged ... ok
+test render::tests::confirmation_buttons_cancel_by_default_and_close_the_clicked_inactive_tab ... ok
+test render::tests::monochrome_resets_colors_in_source_and_dialog_cells ... ok
+test render::tests::mark_all_matches_are_painted_in_visible_lines ... ok
+test render::tests::keyboard_guide_scrolls_to_the_last_line_in_a_small_terminal ... ok
+test app::tests::a_job_pauses_only_its_own_tab ... ok
+test render::tests::renders_unicode_viewport_and_handles_tiny_resize ... ok
+test render::tests::mouse_drag_selects_whole_unicode_clusters_and_wheel_preserves_caret ... ok
+test render::tests::status_keeps_global_cancellation_feedback_visible ... ok
+test render::tests::ansi_palette_project_and_command_dialogs_fit_small_viewports ... ok
+test render::tests::overflowing_tabs_keep_count_active_and_close_hit_regions_correct ... ok
+test render::tests::syntax_prefix_stops_at_viewport_without_splitting_graphemes ... ok
+test render::tests::small_dialog_buttons_stay_inside_and_tabs_require_a_real_double_click ... ok
+test render::tests::main_menu_is_separated_from_tab_management_and_click_regions ... ok
+test review::data::tests::env_is_literal_and_preserves_duplicates_multiline_quotes_and_hashes ... ok
+test review::data::tests::ini_properties_sections_and_continuations ... ok
+test review::data::tests::notebook_renders_saved_cells_and_text_without_running_or_embedding_outputs ... ok
+test render::tests::tabs_keep_neighbors_and_active_file_visible ... ok
+test review::tests::markdown_formats_blocks_and_never_emits_terminal_escape ... ok
+test app::tests::large_block_edits_run_on_the_worker_and_undo_as_one_step ... ok
+test review::tests::rich_markdown_has_navigable_outline_cards_stats_and_bounded_unicode_tables ... ok
+test review::tests::structured_formats_report_errors_and_preserve_source_semantics ... ok
+test review::data::tests::structured_yaml_json5_and_config_dialects ... ok
+test review::tests::table_cells_remain_aligned_and_later_columns_are_reachable ... ok
+test review::tests::switching_away_from_pending_reviews_does_not_strand_worker_permits ... ok
+test review::tests::stale_results_locale_and_resize_never_replace_source ... ok
+test search::tests::replace_one_advances_past_newly_inserted_matches ... ok
+test search::tests::replacement_receipt_keeps_its_original_revision ... ok
+test search::tests::replacement_is_prepared_off_thread_and_commits_as_one_undo ... ok
+test search::tests::unicode_matches_are_paged_and_never_split_clusters ... ok
+test search::tests::unified_fields_buttons_and_portable_replace_all_are_keyboard_reachable ... ok
+test session::tests::missing_files_and_damaged_sessions_restore_nothing_harmful ... ok
+test session::tests::saves_file_tabs_with_positions_and_restores_existing_ones ... ok
+test session::tests::saving_replaces_the_previous_session_atomically ... ok
+test search::tests::changed_queries_discard_stale_results_and_inputs_edit_graphemes ... ok
+test render::tests::new_dialogs_are_visible_and_safe_when_resized ... ok
+test syntax_state::tests::states_follow_edits_incrementally_and_reset_on_unknown_history ... ok
+test search::tests::case_and_whole_word_options_rescan_and_scope_replace_all ... ok
+test render::tests::unified_search_keeps_both_fields_and_focused_actions_visible_without_mouse ... ok
+test search::tests::regex_mode_reports_bad_patterns_and_replaces_with_groups ... ok
+test syntax_state::tests::frame_budget_defers_far_lines_instead_of_guessing ... ok
+test app::tests::typing_during_a_background_job_is_queued_and_replayed_in_order ... ok
+test render::tests::up_down_wait_for_the_long_line_index_and_keep_input_order ... ok
+test app::tests::a_full_typing_queue_refuses_more_input_loudly ... ok
+test render::tests::first_end_on_unindexed_long_line_renders_without_blocking_then_settles ... ok
+test render::tests::every_clickable_region_maps_to_a_handled_action ... ok
+
+test result: ok. 101 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.26s
+
+     Running unittests src/main.rs (target/debug/deps/guinea-0ea98a41c68ac5aa)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/cli.rs (target/debug/deps/cli-14520371319768f7)
+
+running 4 tests
+test unsupported_language_fails_before_entering_terminal ... ok
+test invalid_config_reports_error_before_touching_terminal ... ok
+test help_and_version_need_no_terminal ... ok
+test folders_are_rejected_and_files_require_an_interactive_terminal ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/file_workflow.rs (target/debug/deps/file_workflow-789ae0d79573bf35)
+
+running 1 test
+test two_documents_have_independent_history_and_file_metadata ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests guinea_agent
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_io
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_service
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_syntax
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests guinea_tui
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

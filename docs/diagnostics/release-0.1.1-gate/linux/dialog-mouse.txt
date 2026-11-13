@@ -1,0 +1,8 @@
+/work/src/target/previews/confirmation-en-redesign.png
+/work/src/target/previews/input-dialog-redesign.png
+/work/src/target/previews/confirmation-vi-redesign.png
+{
+  "sample_count": 15,
+  "max_ms": 12.753,
+  "failures": []
+}
