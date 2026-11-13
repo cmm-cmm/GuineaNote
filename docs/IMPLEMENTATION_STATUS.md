@@ -19,6 +19,24 @@ Debian 12 container 206 tests and all 32 steps (musl build and smoke), PTY
 max 6.5 / 7.3 ms, navigation max 9.1 / 6.6 / 8.0 ms. No interaction above
 50 ms. Evidence: [docs/diagnostics/release-0.1.0-gate](diagnostics/release-0.1.0-gate/manifest.json).
 
+| Commit | Change |
+| --- | --- |
+| 7fc1ad8 | Release gate evidence; scripts marked executable |
+| 8120df7 | README rewritten (banner, badges, install, configuration, platforms), mascot icons in `icon/`, old Codex prompt removed — tagged **v0.1.0** |
+
+Release: repository made public (secret scanning and push protection on,
+GitHub Actions disabled, private vulnerability reporting on, community
+profile 100%); `main` fast-forwarded to `8120df7`; GitHub **pre-release
+v0.1.0** with the Windows zip, the Linux tar.gz, `SHA256SUMS` and
+`release-manifest.json`. Both archives checked unpacked (Windows imports +
+PTY smoke; Linux static-pie + PTY smoke + Debian 11/12, Ubuntu 22.04, Alpine
+3.20), downloaded anonymously and re-verified. Linux binaries are
+reproducible (two builds from different tag commits were byte-identical).
+winget manifest validated and npm packages tested from tarballs, neither
+submitted. Evidence: [docs/diagnostics/release-0.1.0](diagnostics/release-0.1.0/manifest.json).
+Open: winget PR, npm publish, M9 features (P7), ARM, real Linux terminal
+emulators, Wayland, SSH/tmux.
+
 ## Checkpoint 13/11/2026 (9) — responsiveness (research 09) and release prep
 
 Owner decisions 13/11: release **Windows x64 and Linux x64 only** (macOS not

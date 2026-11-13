@@ -4,7 +4,7 @@
 # with the unpacked binary (probe scripts from the tag), then runs --version
 # on several distributions.
 #   bash scripts/release/linux-check.sh v0.1.0 target/dist/v0.1.0
-set -eu
+set -euo pipefail
 TAG="$1"
 DIST="$2"
 VERSION="${TAG#v}"

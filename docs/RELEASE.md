@@ -4,7 +4,19 @@ Repository copy of the Notion page "Kế hoạch phát hành: npx (npm), winget,
 Homebrew (12/11/2026)", updated 13/11/2026 with the owner's decision: **macOS
 is not released and not verified**; only Windows x64 and Linux x64 ship.
 Homebrew therefore drops out of the plan (Linuxbrew alone is not worth a tap
-for v0.1). Nothing has been published: no tag, release, workflow or package.
+for v0.1).
+
+## Channel status
+
+| Channel | v0.1.0 (13/11/2026) |
+| --- | --- |
+| GitHub Release | **Published** as a pre-release: [v0.1.0](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0), tag on `8120df7`; anonymous download re-checked against `SHA256SUMS` |
+| winget `cmm-cmm.GuineaNote` | Manifest in `packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.0`, `winget validate` OK; Windows Sandbox install and PR to `microsoft/winget-pkgs` not done |
+| npm `guinea-note` | Packages staged by `scripts/release/npm.py` and tested from tarballs (`npx guinea --version` on Windows and Linux); not published (needs the owner's npm login and the `@guinea-note` scope) |
+
+Evidence: `docs/diagnostics/release-0.1.0/` (archives' SHA-256, manifest,
+archive checks, npm manifest) and `docs/diagnostics/release-0.1.0-gate/`
+(full Windows and Linux suites).
 
 ## Artifacts
 

@@ -1,0 +1,31 @@
+guinea-0.1.0-x86_64-pc-windows-msvc.zip: OK
+guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz: OK
+total 20352
+-rw-r--r-- 1 root root     1080 Nov 13 06:38 LICENSE
+-rw-r--r-- 1 root root    15388 Nov 13 06:38 README.md
+-rw-r--r-- 1 root root   418338 Nov 13 06:38 THIRD_PARTY_NOTICES.txt
+-rwxr-xr-x 1 root root 10073184 Nov 13 06:38 guinea
+-rwxr-xr-x 1 root root  3572360 Nov 13 06:38 guineanote-agent
+-rwxr-xr-x 1 root root  6744056 Nov 13 06:38 guineanote-mcp
+/tmp/guinea-0.1.0-x86_64-unknown-linux-musl/guinea: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=4148844bd5531b0e84c2095c482c228ad894aff2, not stripped
+guinea 0.1.0
+guineanote-agent 0.1.0
+guineanote-mcp 0.1.0
+warning: remote HEAD refers to nonexistent ref, unable to checkout
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+{
+  "pty": "PASS",
+  "panic": false,
+  "idle_wall_seconds": 2.002,
+  "idle_cpu_seconds": 0.0,
+  "idle_output_bytes": 31,
+  "rss_bytes": 4788224
+}
+== debian:11
+guinea 0.1.0
+== debian:12
+guinea 0.1.0
+== ubuntu:22.04
+guinea 0.1.0
+== alpine:3.20
+guinea 0.1.0

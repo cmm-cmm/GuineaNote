@@ -1,0 +1,39 @@
+{
+  "created": "2026-11-13",
+  "purpose": "v0.1.0 (tag on 8120df7) release artifacts and checks. Built by hand from the tag: Windows in a clean worktree (MSVC, static CRT, --locked), Linux in a clean clone inside the Debian 12 container (static musl, --locked).",
+  "checks": [
+    "Windows archive: imports only system DLLs (no VCRUNTIME/api-ms-win-crt), --version of all three binaries, pty_smoke.py PASS with the unpacked guinea.exe.",
+    "Linux archive: SHA256SUMS OK, static-pie, --version of all three binaries, pty_smoke.py PASS with the unpacked binary, guinea --version on debian:11, debian:12, ubuntu:22.04, alpine:3.20.",
+    "Linux binaries rebuilt from a second tag commit (README/icons only) were byte-identical to the first build.",
+    "GitHub pre-release assets downloaded anonymously: SHA256SUMS OK, release-manifest.json identical.",
+    "npm packages staged from the archives (not published): installed from tarballs and `npx guinea --version` on Windows and in node:20-bookworm-slim; the installed Linux binary has the archive's SHA-256.",
+    "winget manifest packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.0: `winget validate` succeeded (not submitted).",
+    "Product code is identical to the release gate commit 231dadc/7fc1ad8 (docs/diagnostics/release-0.1.0-gate); later commits changed docs, README, icons and evidence only."
+  ],
+  "files": {
+    "linux-check.txt": {
+      "sha256": "9fbbba0e4e0ce395edb9a38164bb2d40503645af52c32d8eeed691d7f3dc288a",
+      "bytes": 1255
+    },
+    "npm-manifest.json": {
+      "sha256": "1b0d1de66dd113d1ac6580185502c876de01cb8d301eaed1937f5a8315825c10",
+      "bytes": 816
+    },
+    "release-manifest.json": {
+      "sha256": "e5186aa390180f62ab854821bde541b5deefdb04f90526f7d32772c4adccf3b9",
+      "bytes": 2646
+    },
+    "SHA256SUMS": {
+      "sha256": "88c0effb53315ea746ae6700a0ace19af9309880124aa21a292a90eb6d713688",
+      "bytes": 218
+    },
+    "windows-check.txt": {
+      "sha256": "eb8aef68d35e1080d58408520f141f07bce703e7ea3b7c8cfa7c6199e5995ee8",
+      "bytes": 615
+    },
+    "windows-smoke.txt": {
+      "sha256": "d6c128c0f355fee99c4a07fd1c5fc2d5684245440fafbd32c49dd2e390957aef",
+      "bytes": 154
+    }
+  }
+}

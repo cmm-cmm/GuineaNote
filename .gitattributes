@@ -25,3 +25,5 @@ docs/diagnostics/linux-container/** -text -whitespace
 docs/diagnostics/responsiveness-release-prep/** -text -whitespace
 # v0.1.0 release gate reports (Windows suite + Linux container).
 docs/diagnostics/release-0.1.0-gate/** -text -whitespace
+# v0.1.0 release artifacts and checks.
+docs/diagnostics/release-0.1.0/** -text -whitespace
