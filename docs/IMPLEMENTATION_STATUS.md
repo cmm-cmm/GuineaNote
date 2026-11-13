@@ -8,7 +8,7 @@ Scoop and AUR dropped.
 
 | Commit | Change |
 | --- | --- |
-| e693766 | README screenshots from the real editor (`scripts/readme_screenshots.py`); Windows paths shown without the `\?\` prefix (`paths.rs`) |
+| e693766 | README screenshots from the real editor (`scripts/readme_screenshots.py`); Windows paths shown without the `\\?\` prefix (`paths.rs`) |
 | 5bc94fe, 96ea536, 5d2522d | Release channels re-planned per platform |
 | a7f8b95 | Dialogs lose the mouse-only corner close mark; Esc closes every dialog |
 | 158ec99 | Screenshots re-rendered after all tabs open |
