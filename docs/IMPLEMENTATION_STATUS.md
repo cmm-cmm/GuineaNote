@@ -1,5 +1,24 @@
 # Implementation status
 
+## Checkpoint 13/11/2026 (10) — public repository and v0.1.0 release
+
+Owner decisions 13/11: D1 public repository, D2 builds by hand (no GitHub
+Actions), D4 names (`guinea-note`, `@guinea-note/*`, `cmm-cmm.GuineaNote`),
+D5 `v0.1.0` as a pre-release labelled preview, D6 SHA-256 only. GitHub Release
+first; winget and npm are prepared but not submitted.
+
+| Commit | Change |
+| --- | --- |
+| c45741a | Quit/Close (keys, F2, tab close buttons) pressed during a save wait for it (Esc withdraws; a failed save closes nothing and says so) instead of being refused; `pty_typeahead.py` covers Ctrl+S Ctrl+Q on 9 MiB |
+| 231dadc | README rewritten for the public (features, install, docs index); CONTRIBUTING, CODE_OF_CONDUCT (Contributor Covenant 2.1), SECURITY, SUPPORT, issue forms, PR template, CODEOWNERS; release tooling `scripts/release/{package.py,linux-build.sh,linux-check.sh,winget.py,npm.py}`, `packaging/` npm launcher; `scripts/windows/verify.sh` |
+
+Release gate on 231dadc (sequential): Windows 11/ConPTY 213 Rust tests,
+rustfmt, strict Clippy, 21/21 suite steps with the real clipboard, PTY max
+23.8 / 26.0 ms, navigation max 22.5 / 22.4 / 29.0 ms on 12/2/1 CPUs; Linux
+Debian 12 container 206 tests and all 32 steps (musl build and smoke), PTY
+max 6.5 / 7.3 ms, navigation max 9.1 / 6.6 / 8.0 ms. No interaction above
+50 ms. Evidence: [docs/diagnostics/release-0.1.0-gate](diagnostics/release-0.1.0-gate/manifest.json).
+
 ## Checkpoint 13/11/2026 (9) — responsiveness (research 09) and release prep
 
 Owner decisions 13/11: release **Windows x64 and Linux x64 only** (macOS not
@@ -25,9 +44,9 @@ Verification (product code of c4c35a8, sequential runs):
   max 6.5 / 6.6 ms, application max 5.6 ms; navigation max 8.5 / 9.8 / 6.5 ms.
 
 Evidence: [docs/diagnostics/responsiveness-release-prep](diagnostics/responsiveness-release-prep/manifest.json).
-Open: release decisions D1/D2/D4–D6 (`docs/RELEASE.md`), M9 features (P7),
-ARM, real Linux terminal emulators, Wayland, SSH/tmux; Quit/Close pressed
-during a save are refused rather than queued.
+Open (at the time): release decisions D1/D2/D4–D6, M9 features (P7), ARM,
+real Linux terminal emulators, Wayland, SSH/tmux; Quit/Close during a save
+(fixed in checkpoint 10).
 
 ## Checkpoint 12/11/2026 (8) — UI separation polish
 

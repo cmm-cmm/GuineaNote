@@ -1,0 +1,7 @@
+ M packaging/npm/guinea-note/bin/guinea.js
+ M scripts/linux/run.sh
+ M scripts/linux/verify.sh
+ M scripts/release/linux-build.sh
+ M scripts/release/linux-check.sh
+ M scripts/release/linux-musl.sh
+ M scripts/windows/verify.sh

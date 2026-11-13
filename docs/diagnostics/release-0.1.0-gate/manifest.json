@@ -1,0 +1,132 @@
+{
+  "created": "2026-11-13",
+  "purpose": "Release gate for v0.1.0 on commit 231dadc (Quit/Close wait for a running save; community files; release tooling): scripts/windows/verify.sh and scripts/linux/run.sh, run sequentially.",
+  "windows": "Windows 11 x64 MSVC release with static CRT, ConPTY via pywinpty, 12 logical CPUs; 21/21 steps; pty_clipboard.py used the real clipboard and restored its previous text. PTY max 23.8/26.0 ms (trace on/off, 1,540 samples each), application max 7.1 ms; navigation max 22.5/22.4/29.0 ms on 12/2/1 CPUs; no investigation, 0 dropped samples.",
+  "linux": "Debian 12 container under Docker Desktop, rustc 1.98.1, Python pty + pyte, private Xvfb clipboard; 206 Rust tests, all 32 steps including musl build and musl smoke. PTY max 6.5/7.3 ms, application max 4.0 ms; navigation max 9.1/6.6/8.0 ms; no investigation.",
+  "notes": [
+    "linux/git-status.txt lists shell/launcher scripts as modified only because the archive copied from Windows marks them executable; their git mode is fixed to 100755 in the commit that adds this evidence.",
+    "Not covered: macOS (not a release target), ARM, real Linux terminal emulators, Wayland clipboard, SSH/tmux."
+  ],
+  "files": {
+    "linux/agent.txt": {
+      "sha256": "4a13b9022c6ce2c846a7908e5153d5dbb5ddfa825dc9ae13b7eaa58bb67ac72e",
+      "bytes": 435
+    },
+    "linux/binary.sha256": {
+      "sha256": "827247c8ab68ba1143db8c2752ed4e88b214e1cb18429d6e080f0b21e68de94d",
+      "bytes": 282
+    },
+    "linux/clipboard.txt": {
+      "sha256": "418343277b3f2b80c6dff87c1d5d7f117b3d52a5a71c04f8e425ad3a28bd1000",
+      "bytes": 158
+    },
+    "linux/git-status.txt": {
+      "sha256": "148de37b6e7b84c7d9194fdabc7aec4c154170e39529bfd33546196acbd00e7b",
+      "bytes": 224
+    },
+    "linux/head.txt": {
+      "sha256": "9452e5eb8383f24051f776103b30259c6d769e416a1584fb68176ce8447ae029",
+      "bytes": 41
+    },
+    "linux/latency-no-trace-report.json": {
+      "sha256": "399dfa85d84e482642dafbfd7b7ed88d8aeb719399494af5d31baf3c3d7e610f",
+      "bytes": 291596
+    },
+    "linux/latency-trace-report.json": {
+      "sha256": "1c92649e950f1e970731848dcada145eb2eaa56b83759a31463358c5c5c70d90",
+      "bytes": 305654
+    },
+    "linux/musl-build.txt": {
+      "sha256": "9a469b5aad075a9fe803904024d2540a2e7a96f88b6e6641dd11dfe84fc6c919",
+      "bytes": 880
+    },
+    "linux/musl-smoke.txt": {
+      "sha256": "cdd8cb4e5f1673d1ceb71750d165615e3d1c42076dfe2f535dbc929b1613530f",
+      "bytes": 146
+    },
+    "linux/navigation-all-report.json": {
+      "sha256": "7e626069378da4aacd24183f47876a37a2f5fd4ea0acc64db0d6cee1cd54a987",
+      "bytes": 60290
+    },
+    "linux/navigation-unprepared-1cpu-report.json": {
+      "sha256": "9a9e467f939da3fc1de38977d2e429342c0c73d166c0024b52eb73e7974223a0",
+      "bytes": 33258
+    },
+    "linux/navigation-unprepared-2cpu-report.json": {
+      "sha256": "13c704aff59e79ebc9c223934ab73b2a3df6e2a56104160210bb70d304007af2",
+      "bytes": 33259
+    },
+    "linux/platform.txt": {
+      "sha256": "63423ab5dda679a3f9ae28569094800128d72062c0d15c78bac5f8b78ea04e6b",
+      "bytes": 206
+    },
+    "linux/session.txt": {
+      "sha256": "c64a4a3e21b0f97f1b43a38878a1b23bbecb5a06b66df18ee48863b40905b7bd",
+      "bytes": 362
+    },
+    "linux/summary.txt": {
+      "sha256": "c3fac4415d2d6c92c68ce3719920b703d12abc690b9874e13e1a476d43668929",
+      "bytes": 830
+    },
+    "linux/test.txt": {
+      "sha256": "965e002f894ce0f6cdf9f81ec0cc98140014ef9618872d90e626926bfedb6fd5",
+      "bytes": 20005
+    },
+    "linux/typeahead.txt": {
+      "sha256": "ca9bac96778df622557299b37a4c940f794705771ed5741f3c4550e32ecb0b29",
+      "bytes": 141
+    },
+    "windows/agent.txt": {
+      "sha256": "c1d9c9f5ba251ebbd5ab7d8287b2d9368339ed92122e02637718b255fd7089de",
+      "bytes": 467
+    },
+    "windows/binary.sha256": {
+      "sha256": "bb0c5e0dfe9d118469b31bca7644e7e8f98aa5b46632a282bd2360867ddc25c7",
+      "bytes": 294
+    },
+    "windows/clipboard.txt": {
+      "sha256": "af988b42b9dcd2d62f6320f95ee892ad199555253d96570742649b29f31cbdd9",
+      "bytes": 162
+    },
+    "windows/git-status.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "windows/head.txt": {
+      "sha256": "9452e5eb8383f24051f776103b30259c6d769e416a1584fb68176ce8447ae029",
+      "bytes": 41
+    },
+    "windows/latency-no-trace-report.json": {
+      "sha256": "122630c3ca397174590ef91578f239f3fc71a061e3b3b6b5c496d6f0aee0600a",
+      "bytes": 302169
+    },
+    "windows/latency-trace-report.json": {
+      "sha256": "dea8e84eecdc9151d9ed279520f47c4a8cb4371b9c2ea340ce382ac70265cd66",
+      "bytes": 316868
+    },
+    "windows/navigation-all-report.json": {
+      "sha256": "dee1ce8546ae77a03d3d0fd411a02f9ae695ceb351195165cfc06363c176305a",
+      "bytes": 64475
+    },
+    "windows/navigation-unprepared-1cpu-report.json": {
+      "sha256": "bfa3e6388f67702b5330999139f7618a9824209564f95e4e42dca81e7e2880d6",
+      "bytes": 35476
+    },
+    "windows/navigation-unprepared-2cpu-report.json": {
+      "sha256": "9a9d6296b9098f3efbbf0685383da45e6de030b5581589049d7a9d50fa985fe6",
+      "bytes": 35446
+    },
+    "windows/session.txt": {
+      "sha256": "2b352f2f9de4af7eb9ce5655792721fe93128b492fe055db630cb8797ac62f5d",
+      "bytes": 386
+    },
+    "windows/summary.txt": {
+      "sha256": "d84cb9ebc8fb09b16b53151a81859a37d0444d57fd3daa600e868275290f4677",
+      "bytes": 612
+    },
+    "windows/typeahead.txt": {
+      "sha256": "30880b8ffaa5afd97961e621eaa1f73f1804567a4bd60e6a1ea4b86d8fa82f75",
+      "bytes": 142
+    }
+  }
+}

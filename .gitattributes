@@ -23,3 +23,5 @@ docs/diagnostics/keymap-v1/** -text -whitespace
 docs/diagnostics/linux-container/** -text -whitespace
 # Research 09 responsiveness and release-prep verification reports.
 docs/diagnostics/responsiveness-release-prep/** -text -whitespace
+# v0.1.0 release gate reports (Windows suite + Linux container).
+docs/diagnostics/release-0.1.0-gate/** -text -whitespace

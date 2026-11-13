@@ -1,0 +1,12 @@
+   Compiling guinea-tui v0.1.0 (/work/src/crates/guinea-tui)
+   Compiling guineanote v0.1.0 (/work/src)
+    Finished `release` profile [optimized] target(s) in 5.52s
+target/x86_64-unknown-linux-musl/release/guinea: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=4148844bd5531b0e84c2095c482c228ad894aff2, not stripped
+	statically linked
+guinea 0.1.0
+target/x86_64-unknown-linux-musl/release/guineanote-agent: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=065dda66035b6507ec984b6c3c8c26c37fddb1cf, not stripped
+	statically linked
+guineanote-agent 0.1.0
+target/x86_64-unknown-linux-musl/release/guineanote-mcp: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), static-pie linked, BuildID[sha1]=7a8a406984c5f122d50b1f70155e94f4c51f1724, not stripped
+	statically linked
+guineanote-mcp 0.1.0
