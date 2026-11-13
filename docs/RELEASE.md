@@ -22,7 +22,8 @@ archive checks, npm manifest) and `docs/diagnostics/release-0.1.0-gate/`
 ## Channel plan by platform (revised 13/11/2026)
 
 The owner asked for channels chosen per platform (for example winget for
-Windows). Every channel installs the **same files** as the GitHub Release
+Windows). Scoop and AUR were considered and **removed from the plan by the
+owner on 13/11/2026**. Every channel installs the **same files** as the GitHub Release
 archives (same SHA-256); none rebuilds. Name availability was checked on
 13/11/2026 (read-only lookups).
 
@@ -31,16 +32,14 @@ archives (same SHA-256); none rebuilds. Name availability was checked on
 | Channel | User command | Gatekeeping | Plan |
 | --- | --- | --- | --- |
 | **winget** `cmm-cmm.GuineaNote` | `winget install cmm-cmm.GuineaNote` | PR to `microsoft/winget-pkgs`: automated validation (schema, URL from the publisher's release, antivirus/Defender scan, silent install/uninstall), then a moderator; one package version per PR | **Phase 1.** Manifest generator ready (`scripts/release/winget.py`, portable zip). Test with `winget validate` and the repo's `Tools/SandboxTest.ps1` (needs Windows Sandbox) |
-| **Scoop**, own bucket `cmm-cmm/scoop-bucket` | `scoop bucket add guinea https://github.com/cmm-cmm/scoop-bucket` then `scoop install guinea-note` | None (our repository). The official Main bucket needs a well-known tool (example: ≥500 stars, ≥150 forks) and a stable, non-pre-release version, so it is not possible yet | **Phase 1.** One JSON manifest with `checkver`/`autoupdate` from GitHub Releases |
-| Chocolatey `guinea-note` | `choco install guinea-note` | Human moderation on the community repository (days to weeks), package verifier, API key | Phase 3, after winget and Scoop have users |
+| Chocolatey `guinea-note` | `choco install guinea-note` | Human moderation on the community repository (days to weeks), package verifier, API key | Phase 3, after winget has users |
 
 ### Linux x64 (static musl binary, any distribution)
 
 | Channel | User command | Gatekeeping | Plan |
 | --- | --- | --- | --- |
-| **AUR** `guinea-note-bin` | `yay -S guinea-note-bin` (or `makepkg -si`) | AUR account with an SSH key; prebuilt binaries must use the `-bin` suffix; no official Arch package of the same name exists | **Phase 1.** PKGBUILD that downloads the musl tar.gz with `sha256sums`; checked with `makepkg` and `namcap` in an `archlinux` container |
 | **.deb / .rpm** on the GitHub Release | `sudo apt install ./guinea-note_0.1.1_amd64.deb`, `sudo dnf install ./guinea-note-0.1.1-1.x86_64.rpm` | None (release assets; no APT/YUM repository to host) | **Phase 2.** Built from the same musl binaries by `dpkg-deb` / `rpmbuild` in containers; install/uninstall checked on Debian 12, Ubuntu 22.04 and Fedora |
-| Homebrew tap `cmm-cmm/homebrew-tap` | `brew install cmm-cmm/tap/guinea-note` | None (our tap); homebrew-core needs source builds and popularity | **Phase 1** (owner's request 13/11). Linux-only formula (`depends_on :linux`) installing the musl binaries; `brew install`, `brew test` and `brew audit --strict` checked in the `homebrew/brew` container. On macOS the formula refuses to install with a clear message. Homebrew has no native Windows version; on Windows it runs inside WSL 2 (Linux), where this Linux formula applies, so Windows users get native packages from winget/Scoop and Homebrew only inside WSL |
+| Homebrew tap `cmm-cmm/homebrew-tap` | `brew install cmm-cmm/tap/guinea-note` | None (our tap); homebrew-core needs source builds and popularity | **Phase 1** (owner's request 13/11). Linux-only formula (`depends_on :linux`) installing the musl binaries; `brew install`, `brew test` and `brew audit --strict` checked in the `homebrew/brew` container. On macOS the formula refuses to install with a clear message. Homebrew has no native Windows version; on Windows it runs inside WSL 2 (Linux), where this Linux formula applies, so Windows users get the native package from winget and Homebrew only inside WSL |
 | Nix (nixpkgs) | `nix profile install nixpkgs#guinea-note` | Review in `NixOS/nixpkgs`, source build, a maintainer | Phase 3 |
 | Snap, Flatpak, AppImage | — | — | **Not planned.** Flatpak and AppImage target desktop GUI apps. A strictly confined snap cannot edit files outside home, and classic confinement needs manual approval |
 
@@ -62,25 +61,20 @@ archives (same SHA-256); none rebuilds. Name availability was checked on
 3. **GitHub Release v0.1.1:** tag, build from the tag on both platforms,
    `package.py`, archive checks, upload, anonymous download check. Proposed:
    publish 0.1.1 as a normal release (not a pre-release) so that
-   `releases/latest` and Scoop `checkver` resolve to it.
+   `releases/latest` resolves to it.
 4. **winget:** `winget.py` → `winget validate` → Sandbox test → PR from the
    owner's fork of `microsoft/winget-pkgs` (`gh`).
-5. **Scoop:** create `cmm-cmm/scoop-bucket` with `bucket/guinea-note.json`;
-   test `scoop install` from the bucket.
-6. **Homebrew:** create `cmm-cmm/homebrew-tap` with `Formula/guinea-note.rb`
+5. **Homebrew:** create `cmm-cmm/homebrew-tap` with `Formula/guinea-note.rb`
    (generated from `release-manifest.json`); check install/test/audit in the
    `homebrew/brew` container; then `brew install cmm-cmm/tap/guinea-note`.
-7. **AUR:** `guinea-note-bin` PKGBUILD and `.SRCINFO`; check in an
-   `archlinux` container; push to `aur@aur.archlinux.org:guinea-note-bin.git`.
-8. **npm / npx:** stage with unscoped names, test `npx` from tarballs on both
+6. **npm / npx:** stage with unscoped names, test `npx` from tarballs on both
    platforms, owner runs `npm login`, publish platform packages, then the
    launcher; check `npx guinea-note@0.1.1 --version` from the registry.
-9. **README "Install" section** with the per-platform commands, CHANGELOG,
+7. **README "Install" section** with the per-platform commands, CHANGELOG,
    IMPLEMENTATION_STATUS and Notion.
 
-Owner actions needed: `npm login` (2FA); an AUR account with an SSH public key;
-approval to create the public repositories `cmm-cmm/scoop-bucket` and
-`cmm-cmm/homebrew-tap`; Windows Sandbox enabled for the winget test (optional:
+Owner actions needed: `npm login` (2FA); approval to create the public
+repository `cmm-cmm/homebrew-tap`; Windows Sandbox enabled for the winget test (optional:
 otherwise the bot's validation is the install test).
 
 ## Artifacts
