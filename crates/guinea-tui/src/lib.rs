@@ -187,6 +187,8 @@ pub fn run_with_agent(
                 out.flush()?;
             }
         }
+        // File/compute workers start once the frame announcing them is out.
+        app.start_workers();
         // At most four idle wakeups/sec, no redraw without state changes.
         if let Some(event) = input.read(Duration::from_millis(if app.background_work() {
             8

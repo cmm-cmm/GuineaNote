@@ -276,6 +276,10 @@ pub struct App {
     pending_cancellable: bool,
     /// Cancelled workers still finishing; their results are discarded.
     retired: Vec<thread::JoinHandle<()>>,
+    /// The job's worker, waiting for the next frame flush, and the poll it
+    /// was created in.
+    deferred_worker: Option<(Box<dyn FnOnce() + Send + 'static>, u64)>,
+    polls: u64,
     /// Keys and pastes received while a job paused edits, in arrival order.
     deferred: VecDeque<Event>,
     deferred_bytes: usize,
@@ -347,6 +351,8 @@ impl App {
             pending_document: None,
             pending_cancellable: false,
             retired: Vec::new(),
+            deferred_worker: None,
+            polls: 0,
             deferred: VecDeque::new(),
             deferred_bytes: 0,
             deferred_modal: false,
@@ -455,7 +461,7 @@ impl App {
         self.pending = Some(receiver);
         self.message = self.config.language.render(Msg::Opening(&path));
         let tab_width = self.config.tab_width;
-        self.worker = Some(thread::spawn(move || {
+        self.spawn_after_frame(Box::new(move || {
             let result = guinea_io::open(&path, readonly, limit)
                 .inspect(|document| {
                     document.prepare_view(tab_width);
@@ -486,7 +492,7 @@ impl App {
         self.pending = Some(receiver);
         self.saving = true;
         self.message = self.config.language.render(Msg::Saving(&path));
-        self.worker = Some(thread::spawn(move || {
+        self.spawn_after_frame(Box::new(move || {
             let report = guinea_io::save(&mut document, &path);
             let (result, warning) = match report {
                 Ok(report) => (Ok(document), report.warning),
@@ -536,7 +542,7 @@ impl App {
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
         self.message = self.config.language.render(Msg::Working(label));
-        self.worker = Some(thread::spawn(move || {
+        self.spawn_after_frame(Box::new(move || {
             let (result, warning) = match task(&mut document) {
                 Ok(message) => (Ok(document), Some(message)),
                 Err(error) => (Err(error.into()), None),
@@ -547,6 +553,21 @@ impl App {
                 warning,
             });
         }));
+    }
+
+    /// Workers start after the next frame is flushed (or on the following
+    /// poll when nothing draws): spawning before the frame let a just-started
+    /// open of a 12 MiB file preempt that frame's terminal write for 52 ms on
+    /// one CPU, the same effect the layout worker already avoids.
+    fn spawn_after_frame(&mut self, work: Box<dyn FnOnce() + Send + 'static>) {
+        self.deferred_worker = Some((work, self.polls));
+    }
+
+    /// Called by the event loop right after a frame is flushed.
+    pub fn start_workers(&mut self) {
+        if let Some((work, _)) = self.deferred_worker.take() {
+            self.worker = Some(thread::spawn(work));
+        }
     }
 
     fn join_worker(&mut self) {
@@ -573,6 +594,14 @@ impl App {
 
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        self.polls = self.polls.wrapping_add(1);
+        if self
+            .deferred_worker
+            .as_ref()
+            .is_some_and(|(_, at)| self.polls.wrapping_sub(*at) > 1)
+        {
+            self.start_workers();
+        }
         self.reap_retired();
         self.poll_recovery();
         self.poll_agent();
@@ -951,6 +980,8 @@ impl App {
         self.pending = None;
         self.pending_document = None;
         self.pending_cancellable = false;
+        // A worker that has not started yet is simply never started.
+        self.deferred_worker = None;
         if let Some(worker) = self.worker.take() {
             self.retired.push(worker);
         }
