@@ -1,0 +1,75 @@
+{
+  "name": "guinea",
+  "version": "0.1.1",
+  "tag": "v0.1.1",
+  "commit": "6b698d90fdace0893bf3cf1c75f1a762bd31813c",
+  "source_date": "2026-11-13T09:12:03Z",
+  "rustc": {
+    "x86_64-pc-windows-msvc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+    "x86_64-unknown-linux-musl": "rustc 1.98.1 (48a229cea 2026-09-01)"
+  },
+  "targets": {
+    "x86_64-pc-windows-msvc": {
+      "archive": "guinea-0.1.1-x86_64-pc-windows-msvc.zip",
+      "sha256": "20d5b6eca4ed883430dd53a2e9f2bb6672f8282d72f9d3b8cabb41c7f2f84a9c",
+      "bytes": 6189524,
+      "contents": {
+        "LICENSE": {
+          "sha256": "36540cd3854321213a5736e9be6988326a37f424f341e4d445425005262aeb5e",
+          "bytes": 1080
+        },
+        "README.md": {
+          "sha256": "baadb197aee3075eccf69d63ac6bfb37e35c1a14c35b86f8efad94e0acc643c8",
+          "bytes": 17489
+        },
+        "THIRD_PARTY_NOTICES.txt": {
+          "sha256": "346fbc6df6012f6c3399a39e4a944fc7ab90e3cf5b23db772c5ae81e2defdc79",
+          "bytes": 418338
+        },
+        "guinea.exe": {
+          "sha256": "269860576acbe7872d378be797b61e0ab96f65a9c3beb9ca14559c53063bb53b",
+          "bytes": 8023040
+        },
+        "guineanote-agent.exe": {
+          "sha256": "74d7f16caf7302f86ed0827e1170e2382fb2b75585bedb46f91c23c750e94520",
+          "bytes": 2812928
+        },
+        "guineanote-mcp.exe": {
+          "sha256": "5cbfaf1b9155a961ed2934ae034fbdf3d80efac26e7c8d732041a39b4235484a",
+          "bytes": 5625856
+        }
+      }
+    },
+    "x86_64-unknown-linux-musl": {
+      "archive": "guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz",
+      "sha256": "39d0947691046e45af96f62f3e1ac7298645444f9d75825c412eaf0d6945c8cc",
+      "bytes": 7298091,
+      "contents": {
+        "LICENSE": {
+          "sha256": "36540cd3854321213a5736e9be6988326a37f424f341e4d445425005262aeb5e",
+          "bytes": 1080
+        },
+        "README.md": {
+          "sha256": "baadb197aee3075eccf69d63ac6bfb37e35c1a14c35b86f8efad94e0acc643c8",
+          "bytes": 17489
+        },
+        "THIRD_PARTY_NOTICES.txt": {
+          "sha256": "346fbc6df6012f6c3399a39e4a944fc7ab90e3cf5b23db772c5ae81e2defdc79",
+          "bytes": 418338
+        },
+        "guinea": {
+          "sha256": "4ae841aaf7fedaaad7f68467bba13e1f48d73e11da423011acf7b01863c717b4",
+          "bytes": 10072264
+        },
+        "guineanote-agent": {
+          "sha256": "ccaf2c5659a797ed52c74d61891eff89306aebaad1a22687b3bcb0f299bb5389",
+          "bytes": 3572344
+        },
+        "guineanote-mcp": {
+          "sha256": "acc0cd2d753b6ecf2d9d7198bcf34ab750f4b3b26205000b3dd6de0303cf22db",
+          "bytes": 6743704
+        }
+      }
+    }
+  }
+}

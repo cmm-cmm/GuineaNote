@@ -3,79 +3,53 @@
 Repository copy of the Notion page "Kế hoạch phát hành: npx (npm), winget,
 Homebrew (12/11/2026)", updated 13/11/2026 with the owner's decision: **macOS
 is not released and not verified**; only Windows x64 and Linux x64 ship.
-Channels were re-planned per platform on 13/11/2026 (see "Channel plan by
-platform"). The owner asked for npx and Homebrew in the first wave; Homebrew
-ships as a Linux-only tap.
+**Confirmed channels (owner, 13/11/2026), for a new project:** GitHub Releases
+and `cargo install --git` first (done with v0.1.1), then winget and npm/npx.
+Homebrew is deferred until macOS ships or users ask; Scoop and AUR are not
+planned.
 
 ## Channel status
 
-| Channel | v0.1.0 (13/11/2026) |
+| Channel | Status |
 | --- | --- |
-| GitHub Release | **Published** as a pre-release: [v0.1.0](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0), tag on `8120df7`; anonymous download re-checked against `SHA256SUMS` |
-| winget `cmm-cmm.GuineaNote` | Manifest in `packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.0`, `winget validate` OK; Windows Sandbox install and PR to `microsoft/winget-pkgs` not done |
-| npm `guinea-note` | Packages staged by `scripts/release/npm.py` and tested from tarballs (`npx guinea --version` on Windows and Linux); not published (needs the owner's npm login); platform packages renamed to unscoped `guinea-note-win32-x64` / `guinea-note-linux-x64` on 13/11 |
+| GitHub Releases | **v0.1.1 published** (pre-release, tag on `6b698d9`): [v0.1.1](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1); anonymous download re-checked against `SHA256SUMS`. v0.1.0 (pre-release, `8120df7`) remains |
+| `cargo install --git` | **Available from v0.1.1**: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote` (plus `guinea-agent`); verified from the tag in a clean `rust:1.98-bookworm` container and from GitHub on Windows. Git installs use the user's toolchain defaults (dynamic VC runtime on Windows, glibc on Linux) |
+| winget `cmm-cmm.GuineaNote` | **Next.** Generator `scripts/release/winget.py`; the 0.1.0 manifest validated but was never submitted |
+| npm / npx `guinea-note` | **Next.** Unscoped platform packages `guinea-note-win32-x64` / `guinea-note-linux-x64`; staging and tarball tests ready (`scripts/release/npm.py`); needs the owner's `npm login` |
+| Homebrew tap | Deferred (macOS is not released; few Homebrew users on Linux) |
 
-Evidence: `docs/diagnostics/release-0.1.0/` (archives' SHA-256, manifest,
-archive checks, npm manifest) and `docs/diagnostics/release-0.1.0-gate/`
-(full Windows and Linux suites).
+Evidence: `docs/diagnostics/release-0.1.1/` and `release-0.1.1-gate/`
+(v0.1.1), `release-0.1.0/` and `release-0.1.0-gate/` (v0.1.0).
 
-## Channel plan by platform (revised 13/11/2026)
+## Channel choice for a new project (13/11/2026)
 
-The owner asked for channels chosen per platform (for example winget for
-Windows). Scoop and AUR were considered and **removed from the plan by the
-owner on 13/11/2026**. Every channel installs the **same files** as the GitHub Release
-archives (same SHA-256); none rebuilds. Name availability was checked on
-13/11/2026 (read-only lookups).
+Few channels, each maintained well: every channel adds manual work to every
+release (there is no CI). Channels that need popularity or long reviews wait.
 
-### Windows x64
+| Channel | Decision | Why |
+| --- | --- | --- |
+| GitHub Releases | **Now** | Source of every other channel; SHA-256 checked |
+| `cargo install --git` | **Now** | No publishing; only README instructions |
+| winget | **Next** | Built into Windows 10/11; no popularity requirement (bot validation plus a moderator, one version per PR) |
+| npm / npx | **Next** | Reaches developers with Node; three packages per release, owner's 2FA login |
+| Homebrew tap | Later | Linux/WSL only without macOS; an extra repository to update per release |
+| .deb / .rpm assets | Later | When Linux users ask |
+| crates.io + cargo-binstall | Later | Internal crates must be renamed (`guinea-core` is taken) |
+| homebrew-core, Scoop Main | Later | Need popularity (about 75 / 500 stars) |
+| Chocolatey, Nix, distro repositories | Later | Manual moderation or a package maintainer |
+| Scoop (own bucket), AUR | Not planned | Removed by the owner |
+| Snap, Flatpak, AppImage | Not planned | Desktop GUI formats; strict snaps cannot edit files outside home |
 
-| Channel | User command | Gatekeeping | Plan |
-| --- | --- | --- | --- |
-| **winget** `cmm-cmm.GuineaNote` | `winget install cmm-cmm.GuineaNote` | PR to `microsoft/winget-pkgs`: automated validation (schema, URL from the publisher's release, antivirus/Defender scan, silent install/uninstall), then a moderator; one package version per PR | **Phase 1.** Manifest generator ready (`scripts/release/winget.py`, portable zip). Test with `winget validate` and the repo's `Tools/SandboxTest.ps1` (needs Windows Sandbox) |
-| Chocolatey `guinea-note` | `choco install guinea-note` | Human moderation on the community repository (days to weeks), package verifier, API key | Phase 3, after winget has users |
+### Next steps
 
-### Linux x64 (static musl binary, any distribution)
-
-| Channel | User command | Gatekeeping | Plan |
-| --- | --- | --- | --- |
-| **.deb / .rpm** on the GitHub Release | `sudo apt install ./guinea-note_0.1.1_amd64.deb`, `sudo dnf install ./guinea-note-0.1.1-1.x86_64.rpm` | None (release assets; no APT/YUM repository to host) | **Phase 2.** Built from the same musl binaries by `dpkg-deb` / `rpmbuild` in containers; install/uninstall checked on Debian 12, Ubuntu 22.04 and Fedora |
-| Homebrew tap `cmm-cmm/homebrew-tap` | `brew install cmm-cmm/tap/guinea-note` | None (our tap); homebrew-core needs source builds and popularity | **Phase 1** (owner's request 13/11). Linux-only formula (`depends_on :linux`) installing the musl binaries; `brew install`, `brew test` and `brew audit --strict` checked in the `homebrew/brew` container. On macOS the formula refuses to install with a clear message. Homebrew has no native Windows version; on Windows it runs inside WSL 2 (Linux), where this Linux formula applies, so Windows users get the native package from winget and Homebrew only inside WSL |
-| Nix (nixpkgs) | `nix profile install nixpkgs#guinea-note` | Review in `NixOS/nixpkgs`, source build, a maintainer | Phase 3 |
-| Snap, Flatpak, AppImage | — | — | **Not planned.** Flatpak and AppImage target desktop GUI apps. A strictly confined snap cannot edit files outside home, and classic confinement needs manual approval |
-
-### Both platforms
-
-| Channel | User command | Gatekeeping | Plan |
-| --- | --- | --- | --- |
-| **GitHub Releases** | download, check `SHA256SUMS` | — | Done (v0.1.0) |
-| **npm / npx** `guinea-note` | `npx guinea-note file.txt`, `npm i -g guinea-note` | Owner's npm account with 2FA. **Decision 13/11: unscoped platform packages** `guinea-note-win32-x64` and `guinea-note-linux-x64` (no npm organization needed). Publish by hand; trusted publishing needs CI | **Phase 1.** Staging and tarball tests ready (`scripts/release/npm.py`); rename the platform packages |
-| crates.io + cargo-binstall | `cargo install guineanote --locked`, `cargo binstall guineanote` | Every workspace crate must be published, and `guinea-core` is already taken on crates.io | Phase 2: rename the internal crates (for example `guineanote-core`) or merge them, add `[package.metadata.binstall]` pointing at the release archives |
-
-### Phase 1 order (v0.1.1)
-
-1. **Bump to 0.1.1** (workspace version and internal dependency versions,
-   `Cargo.lock`, CHANGELOG `[0.1.1]`, README download URLs); the release
-   contains the Windows path-display fix.
-2. **Gate:** `cargo fmt --check`, Clippy, tests, `scripts/windows/verify.sh`,
-   `scripts/linux/run.sh`, run one after the other.
-3. **GitHub Release v0.1.1:** tag, build from the tag on both platforms,
-   `package.py`, archive checks, upload, anonymous download check. Proposed:
-   publish 0.1.1 as a normal release (not a pre-release) so that
-   `releases/latest` resolves to it.
-4. **winget:** `winget.py` → `winget validate` → Sandbox test → PR from the
-   owner's fork of `microsoft/winget-pkgs` (`gh`).
-5. **Homebrew:** create `cmm-cmm/homebrew-tap` with `Formula/guinea-note.rb`
-   (generated from `release-manifest.json`); check install/test/audit in the
-   `homebrew/brew` container; then `brew install cmm-cmm/tap/guinea-note`.
-6. **npm / npx:** stage with unscoped names, test `npx` from tarballs on both
-   platforms, owner runs `npm login`, publish platform packages, then the
-   launcher; check `npx guinea-note@0.1.1 --version` from the registry.
-7. **README "Install" section** with the per-platform commands, CHANGELOG,
-   IMPLEMENTATION_STATUS and Notion.
-
-Owner actions needed: `npm login` (2FA); approval to create the public
-repository `cmm-cmm/homebrew-tap`; Windows Sandbox enabled for the winget test (optional:
-otherwise the bot's validation is the install test).
+1. **winget:** `scripts/release/winget.py --dist target/dist/v0.1.1`, then
+   `winget validate`, a Windows Sandbox test if available, and a PR from the
+   owner's fork of `microsoft/winget-pkgs` (`gh`); review takes days.
+2. **npm / npx:** `scripts/release/npm.py --tag v0.1.1`, `npx` tested from the
+   tarballs on both platforms, the owner runs `npm login`, platform packages
+   are published before the launcher, then `npx guinea-note@0.1.1 --version` is
+   checked from the registry.
+3. README install commands, CHANGELOG, IMPLEMENTATION_STATUS and Notion.
 
 ## Artifacts
 

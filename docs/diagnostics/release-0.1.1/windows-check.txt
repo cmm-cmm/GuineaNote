@@ -1,0 +1,25 @@
+== guinea
+DLL Name: KERNEL32.dll
+DLL Name: USER32.dll
+DLL Name: advapi32.dll
+DLL Name: api-ms-win-core-synch-l1-2-0.dll
+DLL Name: bcryptprimitives.dll
+DLL Name: kernel32.dll
+DLL Name: ntdll.dll
+guinea 0.1.1
+== guineanote-agent
+DLL Name: KERNEL32.dll
+DLL Name: advapi32.dll
+DLL Name: api-ms-win-core-synch-l1-2-0.dll
+DLL Name: bcryptprimitives.dll
+DLL Name: kernel32.dll
+DLL Name: ntdll.dll
+guineanote-agent 0.1.1
+== guineanote-mcp
+DLL Name: KERNEL32.dll
+DLL Name: advapi32.dll
+DLL Name: api-ms-win-core-synch-l1-2-0.dll
+DLL Name: bcryptprimitives.dll
+DLL Name: kernel32.dll
+DLL Name: ntdll.dll
+guineanote-mcp 0.1.1

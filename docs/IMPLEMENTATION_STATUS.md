@@ -1,5 +1,40 @@
 # Implementation status
 
+## Checkpoint 13/11/2026 (11) — v0.1.1: GitHub Release and cargo install --git
+
+Owner decision 13/11: for a new project, ship GitHub Releases and
+`cargo install --git` first, then winget and npm/npx; Homebrew deferred;
+Scoop and AUR dropped.
+
+| Commit | Change |
+| --- | --- |
+| e693766 | README screenshots from the real editor (`scripts/readme_screenshots.py`); Windows paths shown without the `\?\` prefix (`paths.rs`) |
+| 5bc94fe, 96ea536, 5d2522d | Release channels re-planned per platform |
+| a7f8b95 | Dialogs lose the mouse-only corner close mark; Esc closes every dialog |
+| 158ec99 | Screenshots re-rendered after all tabs open |
+| 1bc0998 | Version 0.1.1; README "Install with Cargo"; welcome screen and `tests/cli.rs` take the version from Cargo (the welcome screen showed a hard-coded v0.1.0) |
+| 6b698d9 | Release gate evidence — tagged **v0.1.1**, `main` fast-forwarded |
+
+Gate on 1bc0998 (sequential):
+- Windows 21/21 steps: PTY max 25.5 / 28.7 ms, navigation max 25.7 / 21.8 /
+  24.5 ms.
+- Linux container: 207 tests, 29/29 steps, PTY max 6.6 / 8.1 ms, navigation
+  max 9.5 / 8.7 / 10.5 ms.
+- No interaction above 50 ms.
+- Correction: the v0.1.0 record says 32 Linux steps; the suite has 29.
+
+Release:
+- **GitHub pre-release v0.1.1**: both archives checked unpacked (Windows
+  system-DLL imports and PTY smoke; Linux static-pie, PTY smoke and four
+  distributions), anonymous download re-verified.
+- **`cargo install --git --tag v0.1.1`** verified in a clean Linux container
+  and from GitHub on Windows. On Windows it links the VC runtime dynamically,
+  as the README says.
+
+Evidence: [release-0.1.1-gate](diagnostics/release-0.1.1-gate/manifest.json),
+[release-0.1.1](diagnostics/release-0.1.1/manifest.json).
+Next: winget PR, npm publish (owner's login).
+
 ## Checkpoint 13/11/2026 (10) — public repository and v0.1.0 release
 
 Owner decisions 13/11: D1 public repository, D2 builds by hand (no GitHub

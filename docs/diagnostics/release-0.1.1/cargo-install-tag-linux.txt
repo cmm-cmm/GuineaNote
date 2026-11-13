@@ -1,0 +1,2 @@
+   Installed package `guineanote v0.1.1 (https://github.com/cmm-cmm/GuineaNote?tag=v0.1.1#6b698d90)` (executable `guinea`)
+guinea 0.1.1

@@ -1,0 +1,37 @@
+{
+  "created": "2026-11-13",
+  "purpose": "v0.1.1 (tag on 6b698d9) release artifacts and checks. Built by hand from the tag: Windows in a clean worktree (MSVC, static CRT, --locked), Linux in a clean clone inside the Debian 12 container (static musl, --locked). Published as a GitHub pre-release.",
+  "checks": [
+    "Windows archive: imports only system DLLs (no VCRUNTIME/api-ms-win-crt), --version of all three binaries, pty_smoke.py PASS with the unpacked guinea.exe.",
+    "Linux archive: SHA256SUMS OK, static-pie, --version of all three binaries, pty_smoke.py PASS with the unpacked binary, guinea --version on debian:11, debian:12, ubuntu:22.04, alpine:3.20.",
+    "GitHub release assets downloaded anonymously: SHA256SUMS OK, release-manifest.json identical.",
+    "cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote in a clean rust:1.98-bookworm container: guinea 0.1.1.",
+    "Gate on 1bc0998 (same product code as the tag; 6b698d9 adds gate evidence only): docs/diagnostics/release-0.1.1-gate."
+  ],
+  "files": {
+    "cargo-install-tag-linux.txt": {
+      "sha256": "57fc9deed7651c63d3f813d0482542fb61822b27c852c65158300c31b2bd0fe8",
+      "bytes": 136
+    },
+    "linux-check.txt": {
+      "sha256": "e74024b9c6c61257706faab9986f4f71e756f5ab8609e167ee3685379e373dd4",
+      "bytes": 1255
+    },
+    "release-manifest.json": {
+      "sha256": "df19850331a4cdc385df1a32516066bf917d066202dd92f32ec388ad6e8cd4eb",
+      "bytes": 2646
+    },
+    "SHA256SUMS": {
+      "sha256": "832e5bea49ba061af2409f5a9c94eecae4b5783cf2bdf62d1461cd72508d52ab",
+      "bytes": 218
+    },
+    "windows-check.txt": {
+      "sha256": "d1fe4f28b4922ce757215fa8a32527b74418295d483e6851d37462836d7a7305",
+      "bytes": 615
+    },
+    "windows-smoke.txt": {
+      "sha256": "b2faf93727111462342d4b85457e6b8bea60e63eac061556741311385ea3ea88",
+      "bytes": 159
+    }
+  }
+}
