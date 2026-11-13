@@ -102,7 +102,10 @@ merged into one Undo step by typing coalescing.
   dialog the job opened (such as the large-file prompt) is answered, so it
   can never answer the dialog. Other tabs stay editable during a job; a
   second worker job (another large tool, Save, Open) is refused or queued
-  (opens) until the running one ends. Up/Down find the goal
+  (opens) until the running one ends. Quit or Close requested while a save
+  runs waits for that save (Esc withdraws it) and then runs with the usual
+  unsaved-changes prompt; if the save fails nothing is closed and the status
+  line says so next to the error. Up/Down find the goal
   column from a bounded prefix or the cached display index; while the caret
   line's index is still being built they are queued (up to 4,096) and applied
   when it lands, or before any other input. See

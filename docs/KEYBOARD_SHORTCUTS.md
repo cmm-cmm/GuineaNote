@@ -92,7 +92,9 @@ lệnh khác. Chi tiết: [hành vi editor](EDITOR_BEHAVIOR.md).
 
 Trong lúc công cụ dòng/chữ/comment lớn (> 1 triệu ký tự) đang chạy nền, **Esc**
 hủy nó: văn bản và lịch sử Undo không đổi. Phím gõ trong lúc mở file hoặc chạy
-công cụ được giữ lại và áp dụng đúng thứ tự khi xong.
+công cụ được giữ lại và áp dụng đúng thứ tự khi xong. Ctrl+Q/Ctrl+W (hoặc nút
+Đóng) bấm trong lúc đang lưu sẽ chờ lưu xong rồi mới thoát/đóng (vẫn hỏi nếu
+còn thay đổi chưa lưu; lưu lỗi thì không đóng gì); Esc hủy việc chờ đó.
 
 Thứ tự Tab: **Tìm → Thay bằng → Kết quả → Trước → Sau → Go → Thay → Tất cả**.
 Ctrl+F rồi Tab cũng tới ô thay nếu terminal không truyền đúng Ctrl+H.

@@ -225,6 +225,10 @@ impl Locale {
                 "Hàng đợi phím đã đầy; phím gõ thêm bị bỏ qua cho tới khi xử lý nền hoàn tất"
             }
             "Cancelled; the document is unchanged" => "Đã hủy; tài liệu không đổi",
+            "Quits when the save completes; Esc cancels" => "Sẽ thoát khi lưu xong; Esc để hủy",
+            "Closes the tab when the save completes; Esc cancels" => {
+                "Sẽ đóng tab khi lưu xong; Esc để hủy"
+            }
             "Typing queue was full; input after it filled was ignored" => {
                 "Hàng đợi phím đã đầy; phần gõ sau khi đầy đã bị bỏ qua"
             }
@@ -311,6 +315,15 @@ impl Locale {
             Msg::Saving(path) => format!("Saving {}… you can keep editing", path.display()),
             Msg::Working(label) if vi => format!("{}… Esc để hủy", self.tr(label)),
             Msg::Working(label) => format!("{label}… Esc cancels"),
+            Msg::AfterSaveCancelled { error, quit } if vi => format!(
+                "{}; không lưu được nên đã hủy {}",
+                self.tr(error),
+                if quit { "thoát" } else { "đóng tab" }
+            ),
+            Msg::AfterSaveCancelled { error, quit } => format!(
+                "{error}; not saved, so {} was cancelled",
+                if quit { "quit" } else { "closing the tab" }
+            ),
             Msg::SettingsSaveFailed(error) if vi => {
                 format!("Đã áp dụng cho phiên này; lưu thiết lập thất bại: {error}")
             }
@@ -412,6 +425,11 @@ pub enum Msg<'a> {
     MarkBookmarked {
         lines: usize,
         limited: bool,
+    },
+    /// The save a Quit/Close waited for failed; nothing was closed.
+    AfterSaveCancelled {
+        error: &'a str,
+        quit: bool,
     },
     /// Previous session reopened; `missing` files no longer existed.
     SessionRestored {

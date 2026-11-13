@@ -153,6 +153,15 @@ impl InputKind {
     }
 }
 
+/// Quit/Close requested while a save runs: performed once that save
+/// succeeds (with the usual unsaved-changes checks), dropped if it fails.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum AfterSave {
+    Quit,
+    /// Tab key: document id and whether it is a review tab.
+    Close(u64, bool),
+}
+
 #[derive(Debug, Clone)]
 pub enum Action {
     Close,
@@ -249,6 +258,7 @@ pub struct App {
     mouse_selecting: Option<u64>,
     last_modal_click: Option<(std::time::Instant, ModalClick)>,
     saving: bool,
+    after_save: Option<AfterSave>,
     quit_after_settings: bool,
     readonly: bool,
     next_untitled: usize,
@@ -335,6 +345,7 @@ impl App {
             readonly,
             next_untitled: 2,
             saving: false,
+            after_save: None,
             quit_after_settings: false,
             clipboard,
             paste_target: None,
@@ -655,7 +666,12 @@ impl App {
                     self.saving = false;
                     self.join_worker();
                     self.redraw = true;
+                    let saved = matches!(
+                        (&completed.job, &completed.result),
+                        (Job::Save { .. }, Ok(_))
+                    );
                     self.finish_job(completed);
+                    self.run_after_save(saved);
                 }
                 Err(TryRecvError::Disconnected) => {
                     self.pending = None;
@@ -667,6 +683,7 @@ impl App {
                     self.message =
                         "File worker failed; document retained. Retry or save to a new path."
                             .into();
+                    self.run_after_save(false);
                 }
                 Err(TryRecvError::Empty) => {}
             }
@@ -948,6 +965,15 @@ impl App {
     pub fn handle(&mut self, event: Event) {
         if self.quit_after_settings || matches!(event, Event::Resize(..)) {
             self.handle_now(event);
+            return;
+        }
+        if self.after_save.is_some()
+            && matches!(&event, Event::Key(key) if key.code == KeyCode::Esc
+                && key.kind != KeyEventKind::Release && key.modifiers.is_empty())
+        {
+            self.after_save = None;
+            self.message = "Cancelled".into();
+            self.redraw = true;
             return;
         }
         if self.input_paused() {
@@ -1354,6 +1380,46 @@ impl App {
             self.exit = true;
         }
     }
+
+    /// Quit/Close pressed during a save waits for that save (Esc cancels)
+    /// instead of being refused.
+    pub(crate) fn queue_after_save(&mut self, action: AfterSave) {
+        self.after_save = Some(action);
+        self.message = match action {
+            AfterSave::Quit => "Quits when the save completes; Esc cancels",
+            AfterSave::Close(..) => "Closes the tab when the save completes; Esc cancels",
+        }
+        .into();
+        self.redraw = true;
+    }
+
+    /// Runs the Quit/Close queued during a save. A failed save keeps every
+    /// tab open and says so next to the error.
+    fn run_after_save(&mut self, saved: bool) {
+        let Some(action) = self.after_save.take() else {
+            return;
+        };
+        if !saved {
+            let quit = action == AfterSave::Quit;
+            self.message = self.config.language.render(Msg::AfterSaveCancelled {
+                error: &self.message,
+                quit,
+            });
+            return;
+        }
+        match action {
+            AfterSave::Quit => self.command("quit"),
+            AfterSave::Close(id, review) => {
+                if let Some(index) = self
+                    .tabs
+                    .iter()
+                    .position(|t| (t.document.id, t.review_source.is_some()) == (id, review))
+                {
+                    self.request_close_tab(index);
+                }
+            }
+        }
+    }
     fn close(&mut self) {
         self.close_at(self.active);
     }
@@ -1374,7 +1440,13 @@ impl App {
             self.message = "AI is working in this tab; read-only until it finishes".into();
             return;
         }
-        if self.busy() {
+        if self.saving {
+            let tab = &self.tabs[index];
+            self.queue_after_save(AfterSave::Close(
+                tab.document.id,
+                tab.review_source.is_some(),
+            ));
+        } else if self.busy() {
             self.message = "Background operation in progress; retry when complete".into();
         } else if self.tabs[index].review_source.is_none() && self.tabs[index].document.is_dirty() {
             self.modal = Some(Modal::Confirm {
@@ -2422,6 +2494,68 @@ mod tests {
         assert_eq!(std::fs::read_to_string(path_a).unwrap(), "external");
         assert_eq!(a.tabs[1].document.text(), "changed typed during save 👩‍💻\n");
         assert!(a.tabs[1].document.is_dirty());
+    }
+
+    #[test]
+    fn quit_and_close_during_a_save_wait_for_it_and_never_skip_checks() {
+        let dir = tempfile::tempdir().unwrap();
+        let (one, two) = (dir.path().join("one.txt"), dir.path().join("two.txt"));
+        std::fs::write(&one, "một\n").unwrap();
+        std::fs::write(&two, "hai\n").unwrap();
+        let mut a = App::new(vec![one.clone(), two.clone()], false, Config::default());
+        drain_jobs(&mut a);
+        assert_eq!(a.tabs.len(), 2);
+        // Close waits for the save of the active tab, then closes it.
+        a.handle(Event::Paste("x".into()));
+        a.command("save");
+        a.command("close");
+        assert_eq!(
+            a.message,
+            "Closes the tab when the save completes; Esc cancels"
+        );
+        assert_eq!(a.tabs.len(), 2);
+        drain_jobs(&mut a);
+        assert_eq!(a.tabs.len(), 1);
+        assert_eq!(std::fs::read_to_string(&two).unwrap(), "xhai\n");
+        // Esc withdraws a queued Quit; the save itself still completes.
+        a.handle(Event::Paste("y".into()));
+        a.command("save");
+        a.command("quit");
+        assert_eq!(a.message, "Quits when the save completes; Esc cancels");
+        a.handle(key(KeyCode::Esc));
+        assert_eq!(a.message, "Cancelled");
+        drain_jobs(&mut a);
+        assert!(!a.exit);
+        assert_eq!(std::fs::read_to_string(&one).unwrap(), "ymột\n");
+        // Typing after Quit makes the tab dirty again: Quit asks first.
+        a.handle(Event::Paste("z".into()));
+        a.command("save");
+        a.command("quit");
+        a.handle(Event::Paste("!".into()));
+        drain_jobs(&mut a);
+        assert!(!a.exit);
+        assert!(matches!(
+            a.modal,
+            Some(Modal::Confirm {
+                action: Action::Quit,
+                ..
+            })
+        ));
+        a.modal = None;
+        // A failed save keeps everything open and says why.
+        std::fs::write(&one, "external").unwrap();
+        a.command("save");
+        a.command("quit");
+        drain_jobs(&mut a);
+        assert!(!a.exit);
+        assert!(a.message.contains("changed outside"), "{}", a.message);
+        assert!(a.message.ends_with("not saved, so quit was cancelled"));
+        assert_eq!(std::fs::read_to_string(&one).unwrap(), "external");
+        // Once nothing is unsaved, a Quit queued behind a save exits.
+        a.start_save(dir.path().join("three.txt"));
+        a.command("quit");
+        drain_jobs(&mut a);
+        assert!(a.exit);
     }
 
     #[test]

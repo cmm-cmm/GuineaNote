@@ -5,6 +5,7 @@ use super::*;
 /// Block edits touching more scalars than this run on the compute worker
 /// (about 1 MiB of text: a few milliseconds at most on the input thread).
 pub(super) const OFFLOAD_SCALARS: usize = 1 << 20;
+const BUSY_REASON: &str = "Background operation in progress; retry when complete";
 
 impl App {
     /// Why an action cannot run now, shared by the dispatcher and F2.
@@ -101,7 +102,7 @@ impl App {
             return Some("Review tab is read-only; return to source to edit or save");
         }
         if self.busy() && BUSY_BLOCKED.contains(&command) {
-            return Some("Background operation in progress; retry when complete");
+            return Some(BUSY_REASON);
         }
         if tab.document.readonly && (EDITS.contains(&command) || LINE_OPS.contains(&command)) {
             return Some("Document is read-only");
@@ -112,6 +113,17 @@ impl App {
     pub fn command(&mut self, command: &str) {
         let command = crate::commands::canonical(command);
         if let Some(reason) = self.unavailable(command) {
+            // Only the running save stands in the way: wait for it.
+            if self.saving && matches!(command, "quit" | "close") && reason == BUSY_REASON {
+                let tab = &self.tabs[self.active];
+                let action = if command == "quit" {
+                    AfterSave::Quit
+                } else {
+                    AfterSave::Close(tab.document.id, tab.review_source.is_some())
+                };
+                self.queue_after_save(action);
+                return;
+            }
             self.message = reason.into();
             self.redraw = true;
             return;

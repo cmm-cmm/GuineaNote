@@ -1,6 +1,7 @@
 """Type-ahead and cancel during background jobs (research 09, P1/P5): keys typed while a
 ~9 MiB file opens, and while a whole-file sort runs on the worker, must all
-land in order instead of being dropped. Saves and checks exact bytes.
+land in order instead of being dropped; Ctrl+Q behind Ctrl+S waits for the
+save. Saves and checks exact bytes.
 Only owned temporary files/preferences change. Run after cargo build --release.
 """
 import json
@@ -116,19 +117,46 @@ def cancel_sort(root, round_):
         raise
 
 
+def quit_during_save(root, round_):
+    """Ctrl+Q right behind Ctrl+S on a ~9 MiB file waits for the save and
+    then exits cleanly with the new bytes on disk. Returns whether the Quit
+    arrived while the save still ran."""
+    path = root / f"quit-{round_}.txt"
+    body = "dòng é 👩‍💻\r\n" * 380_000
+    path.write_bytes(body.encode())
+    ui = Session([str(BINARY), str(path)], preferences_path=root / "preferences.toml")
+    try:
+        ui.wait("dòng é")
+        ui.send(f"q{round_}")
+        ui.wait("MODIFIED")
+        ui.send(CTRL_S + CTRL_Q)
+        ui.wait("TERM_STATE_OK", timeout=30)
+        ui.wait("CHILD_EXIT=0")
+        waited = b"Quits when" in ui.output
+        ui.close()
+        assert path.read_bytes() == (f"q{round_}" + body).encode()
+        return waited
+    except BaseException:
+        ui.close()
+        raise
+
+
 def main():
     with tempfile.TemporaryDirectory(prefix="guineanote-typeahead-") as directory:
         root = Path(directory)
         opens = [during_open(root, n) for n in range(3)]
         sort = during_sort(root)
         cancels = [cancel_sort(root, n) for n in range(3)]
+        quits = [quit_during_save(root, n) for n in range(3)]
     assert any(cancels), "Esc never arrived while the sort ran"
     # Exact bytes prove nothing was lost; the status line proves the input
     # really arrived while a job ran (in at least one round per scenario).
     assert any(opens), "no round typed while the open job ran"
     assert sort, "the typing did not arrive while the sort ran"
+    assert any(quits), "Ctrl+Q never arrived while a save ran"
     print(json.dumps({"typeahead": {"open_rounds": len(opens), "open_queued": sum(opens),
                                     "sort_queued": sort, "esc_cancelled": sum(cancels),
+                                    "quit_waited_for_save": sum(quits),
                                     "exact_bytes": True}}))
 
 

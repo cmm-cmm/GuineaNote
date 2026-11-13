@@ -179,7 +179,9 @@ rounds) and while a whole-file sort runs land in order with exact saved bytes;
 the status line proves they arrived mid-job (`typing is queued`); Esc during a
 500,000-line sort shows `Cancelled; the document is unchanged` and the file
 stays byte-identical (at least one of 3 rounds must cancel; a round where the
-sort finished first must be a complete sort). Rust tests cover order across
+sort finished first must be a complete sort); Ctrl+S immediately followed by
+Ctrl+Q on a ~9 MiB file (3 rounds) shows `Quits when the save completes`,
+exits 0 and leaves the new bytes on disk. Rust tests cover order across
 keys/pastes, the 1,024-event / 4 MiB bound, typing held while a dialog the job
 opened (large-file prompt) is answered, edits in other tabs during a job,
 refusal of a second worker job, Esc cancel with unchanged text/history, Undo
@@ -379,6 +381,16 @@ cargo clippy --locked --workspace --all-targets --target aarch64-apple-darwin --
 ```
 
 These checks do not link or execute native binaries.
+
+### Full native Windows suite
+
+`bash scripts/windows/verify.sh [OUT]` (Git Bash, default
+`target/windows-out`) builds the release binaries and runs every PTY probe in
+order, the latency corpus with and without trace, navigation on 12/2/1 CPUs
+and, last, `pty_clipboard.py --use-system-clipboard` (restores the previous
+clipboard text; `SKIP_SYSTEM_CLIPBOARD=1` skips it). Each step's exit code
+and duration go to `OUT/summary.txt`, reports to `OUT/*-report.json`. Nothing
+else may build or probe meanwhile.
 
 ### Native Linux x86_64 in a container
 
