@@ -538,10 +538,12 @@ impl Document {
         }
         let before = self.snapshot();
         let layout_edit = self.prepare_layout_edit(&range, text);
-        let charge = self.buffer.char_to_byte(CharIndex(range.end))?.0
-            - self.buffer.char_to_byte(CharIndex(range.start))?.0
-            + text.len()
-            + 4096;
+        // Charged by the memory this step adds: its inserted text. Removed
+        // text is either an earlier step's insertion (charged there) or part
+        // of the oldest retained state, so history stays within the budget
+        // plus one document snapshot, and consecutive steps that share
+        // snapshots are not counted twice.
+        let charge = text.len() + 4096;
         let changed = !self.buffer.range_equals(range.clone(), text)?;
         self.buffer.remove(range.clone())?;
         self.buffer.insert(range.start, text)?;
@@ -746,11 +748,38 @@ impl Document {
         if !self.is_grapheme_boundary(span.start) || !self.is_grapheme_boundary(span.end) {
             return Err(EditError::GraphemeBoundary);
         }
+        // Splice only the changed middle: unchanged leading/trailing text
+        // keeps sharing rope chunks with the previous state, and the step is
+        // charged by what it inserts, not by the whole block or document.
+        let old = self.buffer.slice(span.clone())?;
+        let (old_bytes, new_bytes) = (old.as_bytes(), text.as_bytes());
+        let mut prefix = old_bytes
+            .iter()
+            .zip(new_bytes)
+            .take_while(|(a, b)| a == b)
+            .count();
+        while !text.is_char_boundary(prefix) {
+            prefix -= 1;
+        }
+        let room = old_bytes.len().min(new_bytes.len()) - prefix;
+        let mut suffix = old_bytes
+            .iter()
+            .rev()
+            .zip(new_bytes.iter().rev())
+            .take(room)
+            .take_while(|(a, b)| a == b)
+            .count();
+        while !text.is_char_boundary(text.len() - suffix) {
+            suffix -= 1;
+        }
+        let start = span.start + old[..prefix].chars().count();
+        let end = span.end - old[old.len() - suffix..].chars().count();
+        let middle = &text[prefix..text.len() - suffix];
         let mut prepared = self.review_snapshot();
-        prepared.buffer.remove(span.clone())?;
-        prepared.buffer.insert(span.start, text)?;
+        prepared.buffer.remove(start..end)?;
+        prepared.buffer.insert(start, middle)?;
         prepared.view.selection = Selection::default();
-        self.accept_prepared(&prepared, self.revision)
+        self.commit_prepared(&prepared, self.revision, middle.len().saturating_add(4096))
     }
 
     /// Commit an off-thread prepared snapshot by swapping shared buffer state,
@@ -761,6 +790,19 @@ impl Document {
         prepared: &Self,
         expected_revision: u64,
     ) -> Result<(), EditError> {
+        // The prepared buffer is charged whole (it may share no chunks with
+        // the previous one); the previous buffer is the prior step's `after`
+        // or the oldest retained state, never counted a second time.
+        let charge = prepared.buffer.len_bytes().saturating_add(4096);
+        self.commit_prepared(prepared, expected_revision, charge)
+    }
+
+    fn commit_prepared(
+        &mut self,
+        prepared: &Self,
+        expected_revision: u64,
+        charge: usize,
+    ) -> Result<(), EditError> {
         if self.readonly {
             return Err(EditError::ReadOnly);
         }
@@ -769,11 +811,6 @@ impl Document {
         }
         let before = self.snapshot();
         let removed = self.buffer.len_chars();
-        let charge = self
-            .buffer
-            .len_bytes()
-            .saturating_add(prepared.buffer.len_bytes())
-            .saturating_add(4096);
         self.buffer = prepared.buffer.clone();
         self.view.selection = prepared.view.selection;
         self.content_state = self.next_content_state;
@@ -1131,6 +1168,39 @@ mod tests {
         assert!(!d.redo().unwrap());
         assert!(d.is_dirty());
         assert!(d.history_status().charged_bytes <= 20_000);
+    }
+
+    #[test]
+    fn whole_file_steps_are_charged_once_by_the_memory_they_add() {
+        // Research 09 P3: a whole-file step used to be charged before + after
+        // (twice its unique memory): 3 steps fitted where 6 now do. Indented
+        // steps of these short lines are up to 40% larger than the file, hence
+        // 8 sizes of budget (the old charge kept 3 steps in it).
+        let text = "dòng e\u{301}\r\n".repeat(64 * 1024); // ~0.75 MiB
+        let size = text.len();
+        let mut d = Document::from_text(&text);
+        d.set_history_limits(HistoryLimits {
+            max_transactions: 2048,
+            max_edit_bytes: 8 * size,
+        });
+        for step in 0..8 {
+            d.select_all();
+            d.indent_lines("    ", 4, step % 2 == 1).unwrap();
+        }
+        let status = d.history_status();
+        assert!(status.undo >= 6, "kept {} whole-file steps", status.undo);
+        assert!(status.charged_bytes <= 8 * size);
+        // Every retained step still undoes exactly.
+        let mut undone = 0;
+        while d.undo().unwrap() {
+            undone += 1;
+        }
+        assert_eq!(undone, status.undo);
+        // Small edits are charged their inserted bytes plus the step base.
+        let mut small = Document::from_text(&text);
+        small.select(0, 0).unwrap();
+        small.insert("界").unwrap();
+        assert_eq!(small.history_status().charged_bytes, "界".len() + 4096);
     }
 
     #[test]

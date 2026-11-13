@@ -218,8 +218,15 @@ impl Locale {
             "Untitled buffer has no file to reload" => {
                 "File chưa đặt tên chưa có dữ liệu trên đĩa để tải lại"
             }
-            "Background operation in progress; edits paused until it completes" => {
-                "Đang xử lý nền; tạm dừng sửa cho tới khi hoàn tất"
+            "Background operation in progress; typing is queued and applied when it completes" => {
+                "Đang xử lý nền; phím gõ được giữ lại và áp dụng khi hoàn tất"
+            }
+            "Typing queue is full; further input is ignored until the background operation completes" => {
+                "Hàng đợi phím đã đầy; phím gõ thêm bị bỏ qua cho tới khi xử lý nền hoàn tất"
+            }
+            "Cancelled; the document is unchanged" => "Đã hủy; tài liệu không đổi",
+            "Typing queue was full; input after it filled was ignored" => {
+                "Hàng đợi phím đã đầy; phần gõ sau khi đầy đã bị bỏ qua"
             }
             "Background operation in progress; retry when complete" => {
                 "Đang xử lý nền; hãy thử lại khi hoàn tất"
@@ -296,14 +303,14 @@ impl Locale {
     pub fn render(self, message: Msg<'_>) -> String {
         let vi = self == Self::Vi;
         match message {
-            Msg::Opening(path) if vi => format!("Đang mở {}… tạm dừng sửa", path.display()),
-            Msg::Opening(path) => format!("Opening {}… edits paused", path.display()),
+            Msg::Opening(path) if vi => format!("Đang mở {}… phím gõ được giữ lại", path.display()),
+            Msg::Opening(path) => format!("Opening {}… typing is queued", path.display()),
             Msg::Saving(path) if vi => {
                 format!("Đang lưu {}… bạn có thể tiếp tục sửa", path.display())
             }
             Msg::Saving(path) => format!("Saving {}… you can keep editing", path.display()),
-            Msg::Working(label) if vi => format!("{}… tạm dừng sửa", self.tr(label)),
-            Msg::Working(label) => format!("{label}… edits paused"),
+            Msg::Working(label) if vi => format!("{}… Esc để hủy", self.tr(label)),
+            Msg::Working(label) => format!("{label}… Esc cancels"),
             Msg::SettingsSaveFailed(error) if vi => {
                 format!("Đã áp dụng cho phiên này; lưu thiết lập thất bại: {error}")
             }

@@ -269,7 +269,25 @@ pub struct App {
     /// counted on the input thread. Applied in order once the index lands,
     /// or before any other input so nothing is reordered.
     queued_moves: Vec<(Movement, bool)>,
+    /// The document the running job reads or replaces; `None` when it
+    /// touches no open tab (a file opening into a new tab).
+    pending_document: Option<u64>,
+    /// The running job is a line/case/comment tool that Esc may cancel.
+    pending_cancellable: bool,
+    /// Cancelled workers still finishing; their results are discarded.
+    retired: Vec<thread::JoinHandle<()>>,
+    /// Keys and pastes received while a job paused edits, in arrival order.
+    deferred: VecDeque<Event>,
+    deferred_bytes: usize,
+    /// Whether a dialog was open when the queue started.
+    deferred_modal: bool,
+    /// Input arrived after the queue filled and was refused.
+    deferred_full: bool,
 }
+
+/// Bounds of the typing queue kept while a background job pauses edits.
+const MAX_DEFERRED_EVENTS: usize = 1024;
+const MAX_DEFERRED_PASTE_BYTES: usize = 4 * 1024 * 1024;
 
 impl App {
     pub fn new(files: Vec<PathBuf>, readonly: bool, config: Config) -> Self {
@@ -326,11 +344,19 @@ impl App {
             queued: files.into(),
             session: None,
             queued_moves: Vec::new(),
+            pending_document: None,
+            pending_cancellable: false,
+            retired: Vec::new(),
+            deferred: VecDeque::new(),
+            deferred_bytes: 0,
+            deferred_modal: false,
+            deferred_full: false,
         }
     }
 
     pub fn background_work(&self) -> bool {
         !self.agent_leases.is_empty()
+            || !self.retired.is_empty()
             || self.layout.busy()
             || self.syntax_pending
             || self.clipboard.busy()
@@ -405,6 +431,21 @@ impl App {
     }
 
     fn start_open(&mut self, path: PathBuf, replace: Option<u64>, limit: u64) {
+        if self.pending.is_some() {
+            // One file job at a time; this open follows the running one.
+            self.queued.push_back(path);
+            return;
+        }
+        // A reload pauses its tab; a new file pauses only the pristine blank
+        // tab it would replace (typing there would otherwise be stranded).
+        self.pending_document = replace.or_else(|| {
+            (self.tabs.len() == 1
+                && self.document().path.is_none()
+                && self.document().text().is_empty()
+                && !self.document().is_dirty())
+            .then(|| self.document().id)
+        });
+        self.pending_cancellable = false;
         let readonly = self.readonly;
         let job = Job::Open {
             path: path.clone(),
@@ -429,12 +470,18 @@ impl App {
     }
 
     fn start_save(&mut self, path: PathBuf) {
+        if self.pending.is_some() {
+            self.message = "Background operation in progress; retry when complete".into();
+            return;
+        }
         if self.document().readonly {
             self.message = "Document is read-only".into();
             return;
         }
         let mut document = self.document().worker_snapshot();
         let job = Job::Save { id: document.id };
+        self.pending_document = Some(document.id);
+        self.pending_cancellable = false;
         let (sender, receiver) = mpsc::channel();
         self.pending = Some(receiver);
         self.saving = true;
@@ -470,7 +517,18 @@ impl App {
         bookmarks: bool,
         task: impl FnOnce(&mut Document) -> Result<String, guinea_core::EditError> + Send + 'static,
     ) {
+        if self.pending.is_some() {
+            self.message = "Background operation in progress; retry when complete".into();
+            return;
+        }
+        if self.retired.len() >= 2 {
+            // Bound CPU spent on cancelled results that are still finishing.
+            self.message = "Background operation in progress; retry when complete".into();
+            return;
+        }
         let mut document = self.document().worker_snapshot();
+        self.pending_document = Some(document.id);
+        self.pending_cancellable = true;
         let job = Job::Compute {
             id: document.id,
             bookmarks,
@@ -499,8 +557,23 @@ impl App {
         }
     }
 
+    /// Joins cancelled workers that finished (a panic still propagates).
+    fn reap_retired(&mut self) {
+        let mut index = 0;
+        while index < self.retired.len() {
+            if self.retired[index].is_finished() {
+                if let Err(panic) = self.retired.swap_remove(index).join() {
+                    std::panic::resume_unwind(panic);
+                }
+            } else {
+                index += 1;
+            }
+        }
+    }
+
     /// Called once per event-loop iteration, never blocking on pending work.
     pub fn poll_jobs(&mut self) {
+        self.reap_retired();
         self.poll_recovery();
         self.poll_agent();
         self.poll_search();
@@ -548,6 +621,8 @@ impl App {
                 Ok(completed) => {
                     documents_changed = true;
                     self.pending = None;
+                    self.pending_document = None;
+                    self.pending_cancellable = false;
                     self.saving = false;
                     self.join_worker();
                     self.redraw = true;
@@ -555,6 +630,8 @@ impl App {
                 }
                 Err(TryRecvError::Disconnected) => {
                     self.pending = None;
+                    self.pending_document = None;
+                    self.pending_cancellable = false;
                     self.saving = false;
                     self.join_worker();
                     self.redraw = true;
@@ -835,7 +912,128 @@ impl App {
         }
     }
 
+    /// Input entry point. While an open/compute job pauses edits, keys and
+    /// pastes are queued (bounded) instead of dropped and replayed in order
+    /// when it ends. Queued input is held, not replayed, while a dialog the
+    /// job opened (for example a large-file confirmation) is answered.
     pub fn handle(&mut self, event: Event) {
+        if self.quit_after_settings || matches!(event, Event::Resize(..)) {
+            self.handle_now(event);
+            return;
+        }
+        if self.input_paused() {
+            if self.pending_cancellable
+                && matches!(&event, Event::Key(key) if key.code == KeyCode::Esc
+                    && key.kind != KeyEventKind::Release && key.modifiers.is_empty())
+            {
+                self.cancel_compute();
+            } else {
+                self.defer(event);
+            }
+            return;
+        }
+        if !self.deferred.is_empty() && self.replay_allowed() {
+            self.replay_deferred();
+            if self.input_paused() || !self.deferred.is_empty() {
+                self.defer(event);
+                return;
+            }
+        }
+        self.handle_now(event);
+    }
+
+    /// Edits pause only in the tab a job works on (and its review tabs);
+    /// other tabs stay editable. Saving never pauses input.
+    /// Esc during a line/case/comment job: the UI is free at once and the
+    /// worker's result is discarded when it arrives, so text and history are
+    /// unchanged. Input queued before the Esc is then applied.
+    fn cancel_compute(&mut self) {
+        self.pending = None;
+        self.pending_document = None;
+        self.pending_cancellable = false;
+        if let Some(worker) = self.worker.take() {
+            self.retired.push(worker);
+        }
+        self.message = "Cancelled; the document is unchanged".into();
+        self.redraw = true;
+    }
+
+    fn input_paused(&self) -> bool {
+        if !self.busy() || self.saving {
+            return false;
+        }
+        let tab = &self.tabs[self.active];
+        self.pending_document
+            .is_some_and(|id| tab.document.id == id || tab.review_source == Some(id))
+    }
+
+    /// Replay only into the dialog state the input was typed in.
+    fn replay_allowed(&self) -> bool {
+        !self.input_paused() && self.modal.is_some() == self.deferred_modal
+    }
+
+    fn defer(&mut self, event: Event) {
+        let bytes = match &event {
+            Event::Key(key) if key.kind != KeyEventKind::Release => 0,
+            Event::Paste(text) => text.len(),
+            // Mouse positions refer to the frame they were made on; releases
+            // carry no input.
+            _ => return,
+        };
+        if self.deferred.is_empty() {
+            self.deferred_modal = self.modal.is_some();
+            self.deferred_bytes = 0;
+            self.deferred_full = false;
+        }
+        if self.deferred_full
+            || self.deferred.len() >= MAX_DEFERRED_EVENTS
+            || self.deferred_bytes.saturating_add(bytes) > MAX_DEFERRED_PASTE_BYTES
+        {
+            // Refuse loudly; never apply part of the queue out of order.
+            self.deferred_full = true;
+            self.message = "Typing queue is full; further input is ignored until the background operation completes".into();
+        } else {
+            self.deferred_bytes += bytes;
+            self.deferred.push_back(event);
+            self.message =
+                "Background operation in progress; typing is queued and applied when it completes"
+                    .into();
+        }
+        self.redraw = true;
+    }
+
+    /// Applies queued input in order; stops if a replayed key starts another
+    /// job (the rest waits for it).
+    fn replay_deferred(&mut self) {
+        while let Some(event) = self.deferred.pop_front() {
+            if let Event::Paste(text) = &event {
+                self.deferred_bytes = self.deferred_bytes.saturating_sub(text.len());
+            }
+            self.handle_now(event);
+            if self.input_paused() {
+                return;
+            }
+        }
+        if self.deferred_full {
+            self.deferred_full = false;
+            self.message = "Typing queue was full; input after it filled was ignored".into();
+        }
+    }
+
+    /// Called by the event loop when no input is waiting: replays queued
+    /// input once its job (and any queued file opens) finished.
+    pub fn replay_ready_input(&mut self) {
+        if self.deferred.is_empty() || !self.queued.is_empty() || !self.replay_allowed() {
+            return;
+        }
+        self.begin_input();
+        self.replay_deferred();
+        let drained = self.deferred.is_empty();
+        self.end_input(drained);
+        self.redraw = true;
+    }
+
+    fn handle_now(&mut self, event: Event) {
         if self.quit_after_settings {
             if matches!(event, Event::Key(key) if key.code == KeyCode::Esc) {
                 self.quit_after_settings = false;
@@ -848,12 +1046,9 @@ impl App {
             self.redraw = true;
             return;
         }
-        if self.busy() && !self.saving {
-            if matches!(event, Event::Key(_)) {
-                self.message =
-                    "Background operation in progress; edits paused until it completes".into();
-                self.redraw = true;
-            }
+        if self.input_paused() {
+            // Only reachable for replayed input; `handle` queues the rest.
+            self.defer(event);
             return;
         }
         // Queued Up/Down apply before any other input, keeping the order.
@@ -1693,6 +1888,9 @@ mod tests {
         assert_eq!(a.document().text(), "a\nb\n");
         a.command("sort-lines");
         assert_eq!(a.message, "Nothing to change");
+        // Whole-document line tools leave no selection; case needs one.
+        assert!(a.document().selection().is_empty());
+        a.document_mut().select_all();
         a.command("upper-case");
         assert_eq!(a.document().text(), "A\nB\n");
         a.command("toggle-comment");
@@ -1725,6 +1923,174 @@ mod tests {
             assert!(std::time::Instant::now() < deadline, "worker timed out");
             thread::sleep(std::time::Duration::from_millis(2));
         }
+    }
+
+    fn type_keys(a: &mut App, text: &str) {
+        for ch in text.chars() {
+            a.handle(Event::Key(KeyEvent::new(
+                KeyCode::Char(ch),
+                KeyModifiers::NONE,
+            )));
+        }
+    }
+
+    #[test]
+    fn typing_during_a_background_job_is_queued_and_replayed_in_order() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("large.txt");
+        let text = "line e\u{301}\r\n".repeat(800_000);
+        std::fs::write(&path, &text).unwrap();
+        let mut a = App::new(vec![path], false, Config::default());
+        a.poll_jobs();
+        assert!(a.busy(), "the open job is running");
+        // Keys, a paste and more keys while the file opens.
+        type_keys(&mut a, "Việt");
+        a.handle(Event::Paste("+é👩‍💻+".into()));
+        type_keys(&mut a, "x");
+        a.handle(Event::Mouse(crossterm::event::MouseEvent {
+            kind: crossterm::event::MouseEventKind::Down(crossterm::event::MouseButton::Left),
+            column: 0,
+            row: 0,
+            modifiers: KeyModifiers::NONE,
+        }));
+        assert_eq!(a.deferred.len(), 6, "mouse input is not queued");
+        assert!(a.message.contains("typing is queued"));
+        drain_jobs(&mut a);
+        a.replay_ready_input();
+        assert!(a.deferred.is_empty());
+        // Applied to the opened document, at its caret, in arrival order.
+        assert_eq!(a.document().text(), format!("Việt+é👩‍💻+x{text}"));
+        // One typing group plus the paste: Undo restores the file text.
+        while a.document().is_dirty() && a.document_mut().undo().unwrap() {}
+        assert_eq!(a.document().text(), text);
+        // Typing after the replay is applied directly.
+        type_keys(&mut a, "!");
+        assert!(a.document().text().starts_with('!'));
+    }
+
+    #[test]
+    fn a_job_pauses_only_its_own_tab() {
+        let mut a = app();
+        let lines: Vec<String> = (0..120_000).rev().map(|n| format!("line {n:06}")).collect();
+        a.handle(Event::Paste(lines.join("\n")));
+        a.new_blank();
+        let other = a.active;
+        a.active = 0;
+        a.document_mut().select(0, 0).unwrap();
+        a.command("sort-lines");
+        assert!(a.busy());
+        // Another tab stays editable while tab 0 sorts.
+        a.active = other;
+        type_keys(&mut a, "Việt");
+        assert_eq!(a.tabs[other].document.text(), "Việt", "applied immediately");
+        assert!(a.deferred.is_empty());
+        // Small commands still apply at once in the other tab.
+        a.document_mut().select_all();
+        a.command("upper-case");
+        assert_eq!(a.tabs[other].document.text(), "VIỆT");
+        // A second worker job is refused instead of replacing the running one.
+        let big = "z\n".repeat(700_000);
+        a.document_mut().select(0, 0).unwrap();
+        a.handle(Event::Paste(big.clone()));
+        a.document_mut().select_all();
+        a.command("sort-lines");
+        assert_eq!(
+            a.message,
+            "Background operation in progress; retry when complete"
+        );
+        assert_eq!(a.tabs[other].document.text(), format!("{big}VIỆT"));
+        // Back in the sorting tab, typing is queued until the sort lands.
+        a.active = 0;
+        type_keys(&mut a, "!");
+        assert_eq!(a.deferred.len(), 1);
+        drain_jobs(&mut a);
+        a.replay_ready_input();
+        let text = a.tabs[0].document.text();
+        // A whole-document sort leaves the caret (no selection), so the queued
+        // key is inserted there instead of replacing the sorted text.
+        assert!(
+            text.starts_with("!line 000000\nline 000001\n"),
+            "{}",
+            &text[..24]
+        );
+    }
+
+    #[test]
+    fn esc_cancels_a_running_line_tool_and_leaves_text_and_history_unchanged() {
+        let mut a = app();
+        let lines: Vec<String> = (0..200_000).rev().map(|n| format!("dòng {n:06}")).collect();
+        let text = lines.join("\r\n");
+        a.handle(Event::Paste(text.clone()));
+        let undo = a.document().history_status().undo;
+        let revision = a.document().revision();
+        a.document_mut().select(0, 0).unwrap();
+        a.command("sort-lines");
+        assert!(a.busy());
+        type_keys(&mut a, "ab");
+        a.handle(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+        assert!(!a.busy(), "control returns at once");
+        assert_eq!(a.message, "Cancelled; the document is unchanged");
+        // Keys typed before the Esc still apply, to the unsorted text.
+        a.replay_ready_input();
+        assert_eq!(a.document().text(), format!("ab{text}"));
+        // The cancelled result never lands, even after its worker finishes.
+        let deadline = std::time::Instant::now() + std::time::Duration::from_secs(20);
+        while !a.retired.is_empty() {
+            a.poll_jobs();
+            assert!(std::time::Instant::now() < deadline);
+            thread::sleep(std::time::Duration::from_millis(5));
+        }
+        assert_eq!(a.document().text(), format!("ab{text}"));
+        assert!(a.document_mut().undo().unwrap());
+        assert_eq!(a.document().text(), text);
+        assert_eq!(a.document().history_status().undo, undo);
+        assert!(a.document().revision() > revision);
+        // Esc in another state keeps its usual meaning (no job: nothing).
+        a.handle(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+        assert!(!a.busy());
+    }
+
+    #[test]
+    fn a_full_typing_queue_refuses_more_input_loudly() {
+        let mut a = app();
+        a.handle(Event::Paste("b\na\n".repeat(600_000)));
+        a.document_mut().select(0, 0).unwrap();
+        a.command("sort-lines");
+        assert!(a.busy());
+        type_keys(&mut a, &"k".repeat(MAX_DEFERRED_EVENTS + 5));
+        assert_eq!(a.deferred.len(), MAX_DEFERRED_EVENTS);
+        assert!(a.message.starts_with("Typing queue is full"));
+        drain_jobs(&mut a);
+        a.replay_ready_input();
+        assert_eq!(
+            a.document().text().matches('k').count(),
+            MAX_DEFERRED_EVENTS
+        );
+        assert!(a.message.starts_with("Typing queue was full"));
+    }
+
+    #[test]
+    fn queued_typing_is_held_while_a_dialog_opened_by_the_job_is_answered() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("big.txt");
+        std::fs::write(&path, "x".repeat(4096)).unwrap();
+        let config = Config {
+            large_file_warning_bytes: 1024,
+            ..Config::default()
+        };
+        let mut a = App::new(vec![path], false, config);
+        a.poll_jobs();
+        assert!(a.busy(), "the open job is running");
+        type_keys(&mut a, "yes");
+        drain_jobs(&mut a);
+        a.replay_ready_input();
+        assert!(matches!(a.modal, Some(Modal::Confirm { .. })));
+        assert_eq!(a.deferred.len(), 3, "typed text must not answer the dialog");
+        // The user answers the dialog; then the held text is typed.
+        a.handle(Event::Key(KeyEvent::new(KeyCode::Esc, KeyModifiers::NONE)));
+        assert!(a.modal.is_none());
+        a.replay_ready_input();
+        assert_eq!(a.document().text(), "yes");
     }
 
     #[test]

@@ -165,6 +165,10 @@ pub fn run_with_agent(
             let _span = trace::span("poll_jobs");
             app.poll_jobs();
         }
+        {
+            let _span = trace::span("input_replay");
+            app.replay_ready_input();
+        }
         if app.redraw {
             let _draw = trace::span("draw_total");
             terminal.draw(|frame| {

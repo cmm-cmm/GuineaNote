@@ -171,6 +171,22 @@ block edit above 1 Mi scalars runs on the worker without blocking input and
 undoes as one step, that small scopes still apply immediately, and that
 Up/Down wait for a pending long-line index and never overtake later input.
 
+## Type-ahead and cancel during background jobs — 2026-11-13
+
+`python -X utf8 scripts/pty_typeahead.py` (after a release build), on Windows
+and in the Linux container: keys sent while a ~9 MiB file is still opening (3
+rounds) and while a whole-file sort runs land in order with exact saved bytes;
+the status line proves they arrived mid-job (`typing is queued`); Esc during a
+500,000-line sort shows `Cancelled; the document is unchanged` and the file
+stays byte-identical (at least one of 3 rounds must cancel; a round where the
+sort finished first must be a complete sort). Rust tests cover order across
+keys/pastes, the 1,024-event / 4 MiB bound, typing held while a dialog the job
+opened (large-file prompt) is answered, edits in other tabs during a job,
+refusal of a second worker job, Esc cancel with unchanged text/history, Undo
+charged once per whole-file step (≥ 6 steps of the file in the budget), block
+tools charged by the changed span, and whole-document line tools leaving no
+selection and the final newline in place.
+
 ## Regex search — 2026-11-12
 
 `python -X utf8 scripts/pty_regex.py` (after a release build): a capture-group

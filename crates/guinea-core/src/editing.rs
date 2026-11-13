@@ -506,7 +506,14 @@ impl Document {
         let lines = if self.selection_spans_lines() {
             self.selected_lines()
         } else {
-            0..self.buffer().len_lines()
+            // The whole document, except the empty line after a final
+            // newline: sorting must not move that newline to the top.
+            let count = self.buffer().len_lines();
+            let last_empty = count > 1
+                && self
+                    .line_bounds(count - 1)
+                    .is_ok_and(|bounds| bounds.is_empty());
+            0..count - usize::from(last_empty)
         };
         let start = self.buffer().line_to_char(lines.start)?;
         let end = self.line_bounds(lines.end - 1)?.end;
@@ -516,6 +523,8 @@ impl Document {
     /// Apply a line operation; existing newline sequences are reused in order
     /// (a block of CRLF lines stays CRLF). Returns false when nothing changed.
     pub fn apply_line_operation(&mut self, operation: LineOperation) -> Result<bool, EditError> {
+        let had_selection = self.selection_spans_lines();
+        let caret = self.cursor();
         let range = self.operation_lines()?;
         let text = self.buffer().slice(range.clone())?;
         // Borrowed line slices: no per-line allocation for 100k+ lines.
@@ -559,7 +568,14 @@ impl Document {
         }
         self.replace_range(range.clone(), &output)?;
         let end = range.start + output.chars().count();
-        self.select(range.start, end)?;
+        if had_selection {
+            // A selected block stays selected, ready for the next tool.
+            self.select(range.start, end)?;
+        } else if self.select(caret.min(end), caret.min(end)).is_err() {
+            // Whole-document runs leave no selection, so the next key typed
+            // cannot replace the entire file; the caret keeps its offset.
+            self.select(range.start, range.start)?;
+        }
         Ok(true)
     }
 
@@ -1128,5 +1144,98 @@ mod bookmark_tests {
             (super::MARK_LINE_LIMIT, true)
         );
         assert_eq!(d.bookmarks().count(), super::MARK_LINE_LIMIT);
+    }
+}
+
+#[cfg(test)]
+mod line_tool_selection_tests {
+    use crate::{Document, LineOperation};
+
+    #[test]
+    fn whole_document_line_tools_leave_no_selection_but_blocks_stay_selected() {
+        let mut d = Document::from_text("c\r\nb\r\na");
+        d.select(1, 1).unwrap();
+        assert!(
+            d.apply_line_operation(LineOperation::SortAscending)
+                .unwrap()
+        );
+        assert_eq!(d.text(), "a\r\nb\r\nc");
+        assert!(
+            d.selection().is_empty(),
+            "typing next must not replace the file"
+        );
+        assert_eq!(d.cursor(), 1);
+        // A selected block of lines stays selected for the next tool.
+        let mut d = Document::from_text("z\nc\nb\na");
+        d.select(2, 7).unwrap();
+        assert!(
+            d.apply_line_operation(LineOperation::SortAscending)
+                .unwrap()
+        );
+        assert_eq!(d.text(), "z\na\nb\nc");
+        assert_eq!(d.selection().range(), 2..7);
+    }
+}
+
+#[cfg(test)]
+mod block_splice_tests {
+    use crate::{Document, TextBuffer};
+
+    #[test]
+    fn block_tools_charge_and_splice_only_the_changed_lines() {
+        // Research 09 P4: commenting 1,000 lines of a large file is charged by
+        // the changed span, not by the whole document.
+        let text = "fn ví_dụ() {} // e\u{301} 👩\u{200d}💻\r\n".repeat(60_000);
+        let mut d = Document::from_text(&text);
+        let start = d.buffer().line_to_char(20_000).unwrap();
+        let end = d.buffer().line_to_char(21_000).unwrap() - 2; // before CRLF
+        d.select(start, end).unwrap();
+        let before = d.history_status().charged_bytes;
+        d.toggle_line_comment("//").unwrap();
+        let charged = d.history_status().charged_bytes - before;
+        let block = d
+            .buffer()
+            .slice(start..d.buffer().line_to_char(21_000).unwrap())
+            .unwrap();
+        assert!(
+            charged <= block.len() + 4096,
+            "charged {charged} for a {} byte block",
+            block.len()
+        );
+        assert!(charged < text.len() / 20);
+        assert!(block.starts_with("// fn ví_dụ()"));
+        d.undo().unwrap();
+        assert_eq!(d.text(), text);
+        d.redo().unwrap();
+        // Indenting the same block shares the unchanged neighbours too.
+        let before = d.history_status().charged_bytes;
+        d.select(start, end).unwrap();
+        d.indent_lines("\t", 4, false).unwrap();
+        assert!(d.history_status().charged_bytes - before < text.len() / 20);
+        while d.undo().unwrap() {}
+        assert_eq!(d.text(), text);
+    }
+}
+
+#[cfg(test)]
+mod final_newline_tests {
+    use crate::{Document, LineOperation};
+
+    #[test]
+    fn whole_document_line_tools_keep_the_final_newline_in_place() {
+        for (text, sorted) in [
+            ("b\r\na\r\n", "a\r\nb\r\n"),
+            ("b\na", "a\nb"),
+            ("b\n\na\n", "\na\nb\n"),
+        ] {
+            let mut d = Document::from_text(text);
+            d.select(0, 0).unwrap();
+            d.apply_line_operation(LineOperation::SortAscending)
+                .unwrap();
+            assert_eq!(d.text(), sorted, "{text:?}");
+        }
+        let mut d = Document::from_text("x\n\n\ny\n");
+        assert!(d.apply_line_operation(LineOperation::RemoveEmpty).unwrap());
+        assert_eq!(d.text(), "x\ny\n");
     }
 }
