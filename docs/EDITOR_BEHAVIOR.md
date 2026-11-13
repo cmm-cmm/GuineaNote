@@ -126,7 +126,7 @@ Enter/Shift+Enter moves next/previous; Tab cycles fields/results, Enter in resul
 returns to the editor. Ctrl+R replaces one, Alt+A replaces all. Replacement
 is prepared off-thread and applied only to the original document revision with
 current write permission. Each operation is one Undo step; saving is separate.
-Esc or the close button discards pending work. See SEARCH_REPLACE.md for limits.
+Esc discards pending work. See SEARCH_REPLACE.md for limits.
 
 Open/save and full-document find/replace are background jobs. Opening and legacy
 find-next temporarily block edits while allowing status feedback and resize;

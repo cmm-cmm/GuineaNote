@@ -28,13 +28,6 @@ def click(ui,label,condition=None,button=0):
     return pointer(x+1,y,button)
 
 
-def close_x(ui,title):
-    ui.wait_until(lambda lines:any(title in line and " x " in line for line in lines))
-    row,line=next((i,line) for i,line in enumerate(ui.screen.display) if title in line)
-    # Tabs share one row: take the close button that follows this title.
-    return pointer(line.index(" x ",line.index(title))+1,row)
-
-
 def main():
     with tempfile.TemporaryDirectory(prefix="guineanote-dialog-mouse-") as directory:
         root=Path(directory)
@@ -68,7 +61,9 @@ def main():
             assert "Tabs 3/3" in "\n".join(ui.screen.display)
             ui.send("\x17")
             ui.wait("UNSAVED CHANGES / CONFIRM")
-            action(ui,"dialog:header-close",close_x(ui,"UNSAVED CHANGES / CONFIRM"),lambda s:"UNSAVED CHANGES / CONFIRM" not in s)
+            # Dialogs have no mouse-only close mark in the title bar; Esc closes them.
+            assert not any("UNSAVED CHANGES / CONFIRM" in line and " x " in line for line in ui.screen.display)
+            action(ui,"dialog:esc-close","\x1b",lambda s:"UNSAVED CHANGES / CONFIRM" not in s)
             ui.send("\x17")
             ui.wait("UNSAVED CHANGES / CONFIRM")
             action(ui,"dialog:discard-close",click(ui,"Discard & close"),"Tabs 2/2")

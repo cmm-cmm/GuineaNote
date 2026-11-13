@@ -62,17 +62,9 @@ fn surface(
         ));
     let inner = block.inner(rect);
     frame.render_widget(block, rect);
+    // No mouse-only close mark in the corner: Esc closes every dialog, and
+    // dialogs that need it show their own Cancel / Keep working button.
     hits.modal = rect;
-    if rect.width >= 8 && rect.height >= 3 {
-        let close = Rect::new(rect.right() - 5, rect.y, 3, 1);
-        text(
-            frame,
-            close,
-            Line::from(" x "),
-            fg(theme.text).bg(theme.raised),
-        );
-        hits.modal_actions.push((close, "cancel"));
-    }
     inner
 }
 fn text(frame: &mut Frame<'_>, area: Rect, value: impl Into<Line<'static>>, style: Style) {

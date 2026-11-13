@@ -17,7 +17,7 @@ Giao diện hỗ trợ tiếng Việt và tiếng Anh, theo F10 Settings.
    terminal truyền được. Có thể Tab tới nút Replace/Replace all rồi Enter.
    Một lần thay tạo một
    bước Undo; Ctrl+Z trong editor hoàn tác. Ctrl+S lưu riêng sau khi kiểm tra.
-5. Esc hoặc `x` đóng panel. Công việc chưa được áp dụng sẽ bị hủy; thay đổi đã
+5. Esc đóng panel. Công việc chưa được áp dụng sẽ bị hủy; thay đổi đã
    áp dụng vẫn có thể Undo. Panel không tự ghi dữ liệu xuống đĩa.
 
 Khi mở, từ khóa lấy từ vùng văn bản một dòng đang chọn (tối đa 256 Unicode

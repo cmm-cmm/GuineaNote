@@ -2,8 +2,9 @@
 
 ## Dialog, mouse and search redesign
 
-All dialogs now share raised title bars, clear borders, a shadow and a clickable
-top-right close button. Confirmations identify affected files and explain the
+All dialogs now share raised title bars, clear borders and a shadow. (The
+clickable top-right close mark was removed on 13/11/2026: Esc closes every
+dialog, and dialogs that need it have their own Cancel / Keep working button.) Confirmations identify affected files and explain the
 consequence above two large decision buttons. Keep working is initially selected;
 Tab/Left/Right changes the selection, Enter/Space applies it, and Y/N remain
 available. Input dialogs have a framed field and clickable Submit/Cancel.

@@ -6,6 +6,11 @@ released.
 
 ## [Unreleased]
 
+### Changed
+- Dialogs no longer draw a mouse-only close mark in the top-right corner;
+  Esc closes every dialog, and dialogs that need it keep their own Cancel /
+  Keep working button.
+
 ### Fixed
 - Windows: the editor border, file details, the large-file prompt and the
   Opening/Saving status showed paths with the internal `\\?\` prefix; paths
