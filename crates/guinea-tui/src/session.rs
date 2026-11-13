@@ -79,16 +79,17 @@ impl Restore {
         let mut files = Vec::new();
         let mut missing = 0;
         for (index, entry) in stored.files.into_iter().take(MAX_FILES).enumerate() {
-            if !entry.path.is_file() || restore.positions.contains_key(&entry.path) {
+            let normalized = key(&entry.path);
+            if !entry.path.is_file() || restore.positions.contains_key(&normalized) {
                 missing += usize::from(!entry.path.is_file());
                 continue;
             }
             if stored.active == Some(index) {
-                restore.active = Some(entry.path.clone());
+                restore.active = Some(normalized.clone());
             }
             restore
                 .positions
-                .insert(entry.path.clone(), (entry.line, entry.column));
+                .insert(normalized, (entry.line, entry.column));
             files.push(entry.path);
         }
         restore.outstanding = files.len();
@@ -103,7 +104,7 @@ impl Restore {
 
     /// Position to apply to a just-opened file, if it was part of the session.
     pub fn opened(&mut self, path: &Path) -> Option<(usize, usize)> {
-        let position = self.positions.remove(&absolute(path))?;
+        let position = self.positions.remove(&key(path))?;
         self.outstanding = self.outstanding.saturating_sub(1);
         Some(position)
     }
@@ -111,7 +112,7 @@ impl Restore {
     /// A queued session file failed to open: it is reported as skipped and
     /// no longer blocks the active-tab choice.
     pub fn failed(&mut self, path: &Path) {
-        if self.positions.remove(&absolute(path)).is_some() {
+        if self.positions.remove(&key(path)).is_some() {
             self.outstanding = self.outstanding.saturating_sub(1);
             self.total = self.total.saturating_sub(1);
             self.missing += 1;
@@ -121,7 +122,7 @@ impl Restore {
     /// A queued session file waits for a large-file confirmation; it opens
     /// (at its start) if confirmed, so it is neither restored nor skipped.
     pub fn deferred(&mut self, path: &Path) {
-        if self.positions.remove(&absolute(path)).is_some() {
+        if self.positions.remove(&key(path)).is_some() {
             self.outstanding = self.outstanding.saturating_sub(1);
         }
     }
@@ -136,8 +137,23 @@ impl Restore {
     }
 }
 
-fn absolute(path: &Path) -> PathBuf {
-    std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf())
+/// The comparable form of a file path: absolute and, on Windows, without the
+/// verbatim `\\?\` prefix that canonicalized document paths carry, so a
+/// session entry `C:\a.txt` matches the opened document `\\?\C:\a.txt`.
+pub(crate) fn key(path: &Path) -> PathBuf {
+    let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    #[cfg(windows)]
+    if let Some(text) = path.to_str() {
+        if let Some(unc) = text.strip_prefix(r"\\?\UNC\") {
+            return PathBuf::from(format!(r"\\{unc}"));
+        }
+        if let Some(rest) = text.strip_prefix(r"\\?\")
+            && rest.as_bytes().get(1) == Some(&b':')
+        {
+            return PathBuf::from(rest);
+        }
+    }
+    path
 }
 
 /// Snapshot of the open file tabs. `position` maps a tab to its caret line and
@@ -154,7 +170,7 @@ fn capture(tabs: &[Tab], active: usize, position: impl Fn(&Tab) -> (usize, usize
         if tab.review_source.is_some() || stored.files.len() == MAX_FILES {
             continue;
         }
-        let path = absolute(path);
+        let path = key(path);
         // TOML strings are UTF-8; a non-UTF-8 path cannot round-trip.
         if path.to_str().is_none() || stored.files.iter().any(|e| e.path == path) {
             continue;
@@ -282,5 +298,27 @@ mod tests {
             "closing every file tab clears the session"
         );
         assert_eq!(std::fs::read_dir(dir.path()).unwrap().count(), 2);
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn verbatim_document_paths_match_session_entries() {
+        let plain = Path::new(r"C:\notes\Việt.txt");
+        assert_eq!(key(Path::new(r"\\?\C:\notes\Việt.txt")), plain);
+        assert_eq!(key(plain), plain);
+        assert_eq!(
+            key(Path::new(r"\\?\UNC\server\share\a.txt")),
+            Path::new(r"\\server\share\a.txt")
+        );
+        // Other verbatim forms (device paths) are left alone.
+        assert_eq!(
+            key(Path::new(r"\\?\Volume{0}\a.txt")),
+            Path::new(r"\\?\Volume{0}\a.txt")
+        );
+        // A real canonicalized file matches its plain spelling.
+        let dir = tempfile::tempdir().unwrap();
+        let file = dir.path().join("a.txt");
+        std::fs::write(&file, "x").unwrap();
+        assert_eq!(key(&file.canonicalize().unwrap()), key(&file));
     }
 }

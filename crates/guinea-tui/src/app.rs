@@ -821,7 +821,8 @@ impl App {
         let mut session = self.session.take().expect("checked above");
         if let Some(active) = session.take_active()
             && let Some(index) = self.tabs.iter().position(|t| {
-                t.review_source.is_none() && t.document.path.as_deref() == Some(active.as_path())
+                t.review_source.is_none()
+                    && t.document.path.as_deref().map(crate::session::key) == Some(active.clone())
             })
         {
             self.active = index;
@@ -1867,8 +1868,14 @@ mod tests {
         a.session = Some(restore);
         drain_jobs(&mut a);
         assert!(a.session.is_none(), "every queued file was handled");
-        let paths: Vec<_> = a.tabs.iter().map(|t| t.document.path.clone()).collect();
-        assert_eq!(paths, vec![Some(a_path.clone()), Some(b_path.clone())]);
+        // Opened documents carry canonical paths (`\\?\C:\…` on Windows).
+        let paths: Vec<_> = a
+            .tabs
+            .iter()
+            .map(|t| t.document.path.as_deref().map(crate::session::key))
+            .collect();
+        let expected = [&a_path, &b_path].map(|p| Some(crate::session::key(p)));
+        assert_eq!(paths, expected);
         assert_eq!(a.active, 1, "b.rs was the active file tab");
         assert_eq!(a.tabs[0].document.position(), (1, 6), "grapheme caret kept");
         assert_eq!(
