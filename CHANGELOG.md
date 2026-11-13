@@ -66,5 +66,7 @@ First public release, published as a GitHub pre-release.
 - Public repository with a Code of Conduct (Contributor Covenant 2.1),
   contributing guide, security policy (private vulnerability reports),
   support page, issue forms and a pull request template.
+- README rewritten for the public repository, with the Guinea Note banner;
+  mascot icons (PNG, ICO, SVG) in `icon/`.
 
 [0.1.0]: https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.0

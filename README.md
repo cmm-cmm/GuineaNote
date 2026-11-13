@@ -1,51 +1,91 @@
+<p align="center">
+  <img src="icon/banner/guineanote-readme-1600x500.png" alt="Guinea Note — a terminal text editor in Rust" width="800">
+</p>
+
+<p align="center">
+  <a href="https://github.com/cmm-cmm/GuineaNote/releases"><img alt="Release" src="https://img.shields.io/github/v/release/cmm-cmm/GuineaNote?include_prereleases&label=release"></a>
+  <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-22C55E"></a>
+  <img alt="Windows x64 and Linux x64" src="https://img.shields.io/badge/platform-Windows%20x64%20%7C%20Linux%20x64-153A34">
+  <img alt="Rust 1.98+" src="https://img.shields.io/badge/rust-1.98%2B-C97A45">
+</p>
+
 # Guinea Note
 
-**A Notepad++-style text editor for the terminal**, written in Rust with
-[Ratatui](https://ratatui.rs), [Crossterm](https://github.com/crossterm-rs/crossterm)
-and [Ropey](https://github.com/cessen/ropey). Tabs, one Find/Replace panel
-with regular expressions, line tools, bookmarks, session restore, read-only
-formatted previews and saves that keep your bytes exactly as they were.
+**Guinea Note** is a Notepad++-style text editor for the terminal, written in
+Rust. It opens files in tabs and gives you one Find/Replace panel with regular
+expressions, line tools, bookmarks and session restore. Saves keep your bytes
+exactly as they were: BOM, LF/CRLF/mixed newlines and every untouched
+character stay the same.
 
-> **Status: 0.1.0 preview.** Release targets are **Windows x64** and
-> **Linux x64** (static musl, any distribution). macOS is not released.
-> Interfaces are in English and Vietnamese (`--language vi`).
+It is built with [Ratatui](https://ratatui.rs),
+[Crossterm](https://github.com/crossterm-rs/crossterm) and
+[Ropey](https://github.com/cessen/ropey). The interface is in English and
+Vietnamese.
+
+> **Status: 0.1.0 preview.** Releases target **Windows x64** and **Linux x64**
+> (static binaries for any distribution). macOS is not released.
+
+## Contents
+
+- [Features](#features)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Keyboard essentials](#keyboard-essentials)
+- [Working with files](#working-with-files)
+- [Find and Replace](#find-and-replace)
+- [Previews](#previews)
+- [Configuration](#configuration)
+- [Agent access (CLI and MCP)](#agent-access-cli-and-mcp)
+- [Platforms and limits](#platforms-and-limits)
+- [Documentation](#documentation)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- **Tabs like Notepad++** — one-row tab bar, tab manager (F12 / Ctrl+P),
-  session restore of open files, carets and the active tab.
-- **Find/Replace** — one panel (Ctrl+F / Ctrl+H), match case, whole word,
-  linear-time regular expressions with `$1` / `${name}` replacements, Mark
-  All, bookmarks; Replace all is a single Undo step.
-- **Editing tools** — word motion, auto-indent, block indent, duplicate and
-  move lines, sort / remove duplicate or empty lines / trim, case changes and
-  per-language line comments from the F2 action list.
-- **Exact files** — strict UTF-8 with BOM and LF/CRLF/mixed newlines
-  preserved, atomic saves with external-change conflict checks, checksummed
-  crash-recovery drafts.
-- **Responsive on large files** — long lines are indexed and large tools run
-  on workers; typing during a background job is queued, never dropped; Esc
-  cancels large tools. Every interaction above 50 ms is investigated.
-- **Previews** — Markdown (with contents sidebar), JSON, CSV/TSV, XML, TOML,
-  YAML, INI/ENV, notebooks, as a split or a linked read-only tab.
-- **Keyboard first** — every mouse action has a key; key labels on screen
-  are generated from the keymap. Optional mouse support.
-- **Opt-in Agent access** — `guineanote-agent` (JSON CLI) and
-  `guineanote-mcp` (MCP stdio server) edit live documents at an expected
-  revision under a read-only lease. See the [Agent guide](docs/AGENT_USAGE.md)
-  (Vietnamese).
+- **Tabs like Notepad++.** A one-row tab bar, a tab manager (F12 / Ctrl+P) to
+  filter, switch, save and close tabs, and session restore of open files,
+  carets and the active tab.
+- **One Find/Replace panel** (Ctrl+F / Ctrl+H). Match case, whole word and
+  linear-time regular expressions with `$1` / `${name}` replacements. Also
+  Mark All, bookmarks for marked lines, and Replace all as a single Undo step.
+- **Line and text tools** in the F2 action list:
+  - sort ascending or descending;
+  - remove duplicate or empty lines, trim trailing whitespace;
+  - UPPER / lower / Title case;
+  - line comments for each language.
+
+  Indent, duplicate and move lines from the keyboard.
+- **Exact files.** Strict UTF-8 with BOM and newline style preserved, atomic
+  saves, conflict checks when another program changed the file, and
+  checksummed crash-recovery drafts.
+- **Responsive on big files:**
+  - long lines are indexed and large tools run in the background;
+  - keys typed meanwhile are queued, never dropped;
+  - Esc cancels a large tool;
+  - Quit or Close pressed during a save waits for the save.
+- **Readable previews** for Markdown (with a contents sidebar), JSON, CSV/TSV,
+  XML, TOML, YAML, INI/ENV and notebooks, as a split view or a linked
+  read-only tab.
+- **Keyboard first.** Every mouse action has a key, and the key labels on
+  screen come from the keymap itself. Mouse support is optional.
+- **Opt-in Agent access.** A JSON CLI and an MCP server let a local coding
+  agent read and edit open documents safely.
 
 ## Installation
 
-### Download
+### Download a release
 
-Each [GitHub Release](https://github.com/cmm-cmm/GuineaNote/releases) has a
-`.zip` for Windows and a `.tar.gz` for Linux with `guinea`,
-`guineanote-agent`, `guineanote-mcp`, `LICENSE` and
-`THIRD_PARTY_NOTICES.txt`, plus `SHA256SUMS`:
+Every [release](https://github.com/cmm-cmm/GuineaNote/releases) has one archive
+per platform, plus `SHA256SUMS` and `release-manifest.json`. Each archive
+contains:
+- `guinea`, the editor;
+- `guineanote-agent` and `guineanote-mcp`, for Agent access;
+- `LICENSE` and `THIRD_PARTY_NOTICES.txt`.
+
+**Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others):
 
 ```sh
-# Linux x64 (static: Debian 11+, Ubuntu 22.04+, Alpine, ...)
 curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
 curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
@@ -53,17 +93,26 @@ tar -xzf guinea-0.1.0-x86_64-unknown-linux-musl.tar.gz
 install -m 755 guinea-0.1.0-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 ```
 
-On Windows, unpack `guinea-0.1.0-x86_64-pc-windows-msvc.zip` and put
-`guinea.exe` on your `PATH` (no Visual C++ redistributable needed). Check the
-download with `Get-FileHash -Algorithm SHA256`. Binaries are not code-signed
-yet, so SmartScreen may warn about a browser download. winget and npm
-packages are planned ([release plan](docs/RELEASE.md)).
+**Windows x64** (PowerShell; no Visual C++ redistributable needed):
+
+```powershell
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.0/guinea-0.1.0-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
+Get-FileHash -Algorithm SHA256 guinea.zip    # compare with SHA256SUMS
+Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
+# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.0-x86_64-pc-windows-msvc to your PATH
+```
+
+The binaries are not code-signed yet, so SmartScreen may warn about a browser
+download. winget (`cmm-cmm.GuineaNote`) and npm (`npx guinea-note`) packages
+are planned; see the [release plan](docs/RELEASE.md).
 
 ### Build from source
 
-Rust 1.98+ (MSVC build tools on Windows):
+You need Rust 1.98 or newer; Windows also needs the MSVC build tools.
 
 ```sh
+git clone https://github.com/cmm-cmm/GuineaNote.git
+cd GuineaNote
 # Windows: the C runtime is linked statically (.cargo/config.toml)
 cargo build --workspace --release --locked
 # Linux: static musl binaries that run on any distribution
@@ -71,24 +120,189 @@ rustup target add x86_64-unknown-linux-musl   # plus musl-tools on Debian/Ubuntu
 cargo build --workspace --release --locked --target x86_64-unknown-linux-musl
 ```
 
-Copy `guinea` (plus `guineanote-agent` / `guineanote-mcp` for Agent access)
-onto your `PATH`. Runtime needs neither Rust nor Node.js. On Linux the system
-clipboard uses `wl-clipboard`, `xclip` or `xsel` when present (otherwise an
-internal clipboard; OSC 52 is opt-in).
+Copy `guinea` (and `guineanote-agent` / `guineanote-mcp` if you want Agent
+access) onto your `PATH`. Running the editor needs neither Rust nor Node.js.
 
 ## Quick start
 
 ```sh
-guinea notes.md               # open (or create on save) a file
-guinea a.txt b.txt            # several tabs
-guinea                        # reopen the previous session
-guinea --language vi file.txt # Vietnamese interface
-guinea --readonly log.txt     # no edits or saves
+guinea notes.md                # open a file; a missing path is created on save
+guinea a.txt b.txt             # one tab per file
+guinea                         # reopen the previous session (or the welcome screen)
+guinea --language vi notes.md  # Vietnamese interface
+guinea --readonly server.log   # no edits or saves
+guinea --config guineanote.example.toml
 guinea --help
 ```
 
-Ctrl+S saves, Ctrl+Q quits, F1 shows the keyboard guide and F2 lists every
-action with its key. Recommended terminal size: 100×28 or larger.
+Inside the editor:
+- **F1** shows the keyboard guide.
+- **F2** lists every action with its key, or with the reason it is unavailable
+  right now.
+- **Ctrl+S** saves and **Ctrl+Q** quits.
+
+Folders are not opened; use Ctrl+O to pick a file. The recommended terminal
+size is 100×28 or larger, and the layout still works down to small windows.
+
+## Keyboard essentials
+
+| Keys | Action |
+| --- | --- |
+| Ctrl+N / Ctrl+O / Ctrl+S | New tab / open (file picker) / save |
+| Alt+S or Ctrl+Shift+S | Save to a new path |
+| Ctrl+W / Ctrl+Q | Close tab / quit (unsaved changes are confirmed) |
+| Ctrl+Z / Ctrl+Y | Undo / redo |
+| Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste (system clipboard) |
+| Ctrl+Left / Ctrl+Right, Ctrl+Backspace / Ctrl+Delete | Move / delete by word |
+| Tab / Shift+Tab, Ctrl+D, Alt+Up / Alt+Down | Indent / outdent, duplicate, move lines |
+| Ctrl+F / Ctrl+H, F3 | Find/Replace panel, next match |
+| Ctrl+L or Ctrl+G | Go to line[:column] |
+| Ctrl+F2, Alt+F2 / Shift+F2 | Toggle bookmark, next / previous bookmark |
+| F6 / F7, Ctrl+PageUp / Ctrl+PageDown | Previous / next tab |
+| F12 or Ctrl+P | Tab manager |
+| F8 | Split preview or linked review tab |
+| F9 / F10 | File details / Settings (language) |
+| F11 or Shift+F11 | Focus mode |
+| F1 / F2 | Keyboard guide / action list |
+| Esc | Close a dialog, cancel a large tool |
+
+Typing groups into one Undo step until you pause or move the caret, and Enter
+keeps the indentation. Ctrl+C or Ctrl+X without a selection copies or cuts the
+whole line.
+
+The complete keymap, terminal conflicts and alternatives are in
+[docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md).
+
+**Mouse** (optional):
+- click tabs, buttons and the text;
+- drag or Shift-click to select;
+- the wheel scrolls, and Shift+wheel scrolls sideways;
+- middle-click closes a tab.
+
+## Working with files
+
+- **Encoding and newlines.** Only UTF-8 is edited. The BOM and the original
+  LF/CRLF/mixed newline bytes are preserved, and Enter uses CRLF only in files
+  that use CRLF throughout.
+- **Refused files.** Invalid encodings, binary/NUL content and symlinked files
+  are refused rather than damaged.
+- **Safe saves.**
+  - Saves are atomic.
+  - If another program changed the file, saving stops with a conflict. You can
+    then reload (F2 → `reload`), save to a new path or cancel.
+  - Saving runs in the background, so you can keep typing.
+- **Crash recovery.** Unsaved tabs are checkpointed about once per second
+  into a private local store and come back as drafts after a crash. Drafts
+  never overwrite the source file. Set `recovery = false` to turn this off.
+- **Session restore.** A normal exit records the open file tabs, each caret
+  and the active tab. Running `guinea` without files reopens them. Set
+  `session = false` to turn this off.
+- **Large files.** Opening a file above 10 MiB asks first. Long lines, file
+  I/O, full-document search and big line tools run on background workers.
+- **Undo history.** History keeps up to 2,048 steps and 64 MiB of edit data.
+  Old steps are trimmed with a notice, and F9 shows the counts.
+
+Details: [file safety](docs/FILE_SAFETY.md) and
+[editor behavior](docs/EDITOR_BEHAVIOR.md).
+
+## Find and Replace
+
+Ctrl+F and Ctrl+H open the same panel, with both the Find and Replace fields
+visible.
+- **Options:** Alt+C toggles match case, Alt+W whole word and Alt+R regular
+  expressions. Regex uses the linear-time Rust `regex` engine, and
+  replacements accept `$1` and `${name}`.
+- **Navigation:** Enter / Shift+Enter jump to the next / previous match.
+  Results are listed with line numbers, 200 per page.
+- **Replace:** Ctrl+R replaces the current match and Alt+A replaces all. Each
+  operation is a single Undo step.
+- **Background:** scanning and replacing run on cancellable workers. Closing
+  the panel cancels work that has not been applied.
+
+Read-only documents and documents an Agent is editing cannot be replaced. See
+the [search guide](docs/SEARCH_REPLACE.md).
+
+## Previews
+
+F8 shows a formatted, read-only preview beside the source (split) or in a
+linked review tab. Esc returns to the source, and the preview follows
+your edits.
+- **Markdown:** headings, tables, task lists, callouts, numbered code blocks
+  and a contents sidebar (Alt+M).
+- **Data files:** JSON / JSONL / JSON5, CSV / TSV, XML / SVG, TOML, YAML
+  (multi-document), INI / ENV / properties and Jupyter notebooks (shown, never
+  run).
+- **Any other UTF-8 file:** a syntax-colored source review.
+
+Previews never write formatted content back to the file. See
+[formats](docs/FORMATS.md).
+
+## Configuration
+
+Settings come from a TOML file passed with `--config` (see
+[guineanote.example.toml](guineanote.example.toml)):
+
+```toml
+language = "en"                  # "en" or "vi"; --language overrides it
+tab_width = 4                    # 1-16
+large_file_warning_bytes = 10485760
+syntax = true
+mouse = true
+basic_colors = false             # 256-color theme for terminals without true color
+ansi_colors = false              # 16-color palette (auto for TERM=linux/vt100)
+clipboard = "auto"               # "auto", "system", "osc52" or "internal"
+recovery = true
+session = true
+```
+
+- **Language.** F10 opens Settings to switch the language and remembers it.
+  Preferences are saved to `%APPDATA%\GuineaNote\preferences.toml` on Windows,
+  or `$XDG_CONFIG_HOME/guineanote/preferences.toml` (default
+  `~/.config/guineanote/`) on Linux.
+- **Clipboard.**
+  - Locally, the system clipboard is used: the Windows API, or `wl-clipboard`,
+    `xclip` or `xsel` on Linux.
+  - Over SSH the editor falls back to an internal clipboard. OSC 52 is
+    opt-in (`clipboard = "osc52"`).
+  - `GUINEANOTE_CLIPBOARD` overrides the mode for one run.
+- **Colors.** The theme uses true color where the terminal supports it.
+  `NO_COLOR` is honored, and no Nerd Font is needed.
+
+## Agent access (CLI and MCP)
+
+Agent access is off unless you start the editor with `--agent`. Add
+`--agent-write` to allow edits and saves. Sensitive paths such as `.env` stay
+blocked unless you add `--agent-secrets`.
+
+```sh
+guinea --agent --agent-write notes.md
+guineanote-agent sessions          # JSON CLI
+guineanote-mcp                     # MCP stdio server for an MCP host
+```
+
+Agents read live, unsaved buffers. Their changes apply only at the document
+revision they planned against. While an Agent works on a document, that tab
+and its linked review are read-only to you and marked **AI**; other tabs stay
+editable. See the [Agent guide](docs/AGENT_USAGE.md) (Vietnamese) and
+[implementation notes](docs/AGENT_IMPLEMENTATION.md).
+
+## Platforms and limits
+
+| Platform | Status |
+| --- | --- |
+| Windows x64 (Windows Terminal, conhost) | Released; verified on Windows 11 with ConPTY |
+| Linux x64 (static musl) | Released; verified in a Debian 12 container, runs on Debian 11/12, Ubuntu 22.04, Alpine 3.20 |
+| macOS | Not released and not verified |
+| ARM64, real Linux terminal emulators, Wayland clipboard, SSH/tmux | Not yet verified |
+
+- **Responsiveness.** Every measured interaction above 50 ms is investigated
+  before a release; the targets are p50 ≤ 10 ms, p95 ≤ 20 ms and
+  p99 ≤ 50 ms ([latency targets](docs/performance/INTERACTION_LATENCY_TARGETS.md)).
+- **Memory.** Files live in memory (Ropey), and Undo history and search
+  snapshots add to that.
+- **Not included:** bounded-memory editing of huge files, LSP, plugins, Git
+  integration and folder browsing (removed on purpose to keep the editor
+  simple).
 
 ## Documentation
 
@@ -97,224 +311,25 @@ action with its key. Recommended terminal size: 100×28 or larger.
 | Keyboard shortcuts (keymap v1) | [docs/KEYBOARD_SHORTCUTS.md](docs/KEYBOARD_SHORTCUTS.md) |
 | Editing rules | [docs/EDITOR_BEHAVIOR.md](docs/EDITOR_BEHAVIOR.md) |
 | Find/Replace | [docs/SEARCH_REPLACE.md](docs/SEARCH_REPLACE.md) |
-| File safety, recovery | [docs/FILE_SAFETY.md](docs/FILE_SAFETY.md) |
+| File safety and recovery | [docs/FILE_SAFETY.md](docs/FILE_SAFETY.md) |
 | Preview formats | [docs/FORMATS.md](docs/FORMATS.md) |
 | Terminal workflow and limits | [docs/TERMINAL_WORKFLOW.md](docs/TERMINAL_WORKFLOW.md) |
 | Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
 | Implementation status | [docs/IMPLEMENTATION_STATUS.md](docs/IMPLEMENTATION_STATUS.md) |
-| Test plan, performance | [docs/TEST_PLAN.md](docs/TEST_PLAN.md), [docs/PERFORMANCE.md](docs/PERFORMANCE.md) |
+| Test plan and performance | [docs/TEST_PLAN.md](docs/TEST_PLAN.md), [docs/PERFORMANCE.md](docs/PERFORMANCE.md) |
 | Release plan | [docs/RELEASE.md](docs/RELEASE.md) |
 | Changes | [CHANGELOG.md](CHANGELOG.md) |
 
-The product is **Guinea Note** and the command is **guinea**; crate names,
-config paths and `GUINEANOTE_*` variables keep the older spelling
-([migration policy](docs/CLI_MIGRATION.md)). Research documents under
-`docs/research/` describe older baselines.
-
-## Reference
-
-Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
-show the welcome screen. A folder argument is rejected with a message before the
-terminal starts; use Ctrl+O to pick a file.
-
-The window has a one-row tab bar, the file path and context in the editor
-border, syntax colors, current-line highlighting and a status/shortcut bar. Click tabs or toolbar actions, or place
-the editor caret, when mouse support is enabled. Every key label on buttons,
-the tab toolbar and the footer is generated from the keymap, so labels always
-match the active bindings. Recommended size: 100×28 or larger.
-
-Open several files with `guinea a.txt b.txt`. Missing paths become buffers;
-files are created only on save. Use `--readonly` to prevent edits and saves,
-`--config guineanote.example.toml` for explicit TOML configuration, and
-`--help` / `--version` without entering the terminal UI. An interactive terminal
-is required to edit. Folder browsing, added after the original MVP scope
-([redesign notes](docs/UI_REDESIGN.md)), was removed again on 12/11/2026.
-
-| Keys | Action |
-| --- | --- |
-| Ctrl+N / Ctrl+O / Ctrl+S | New / open / save |
-| Alt+S / Ctrl+Shift+S | Save to a new path |
-| Ctrl+W / Ctrl+Q | Close tab / quit (dirty buffers require confirmation) |
-| Ctrl+Z / Ctrl+Y | Undo / redo |
-| Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste (system clipboard) |
-| Ctrl+Left / Ctrl+Right, Ctrl+Backspace / Ctrl+Delete | Move / delete by word (Alt+B/F, Alt+Backspace, Alt+D also work) |
-| Tab / Shift+Tab, Ctrl+D, Alt+Up / Alt+Down | Indent/outdent lines, duplicate line or selection, move lines |
-| Ctrl+F / Ctrl+H | One Find/Replace panel with both fields visible |
-| F3 | Next match; Shift+F3 goes back inside the search panel |
-| Ctrl+L / Ctrl+G | Go to line[:grapheme column], 1-based |
-| Arrows, Home/End, PageUp/PageDown | Navigate; Shift extends selection |
-| Ctrl+Home / Ctrl+End | Document start / end |
-| F6 / F7 | Previous / next tab; Alt+Left / Alt+Right and Ctrl+Tab remain alternatives |
-| Ctrl+P / F12 | All tabs: type to filter, arrows or Tab/Shift+Tab select, Enter switch, Ctrl+S save, Ctrl+W close |
-| Ctrl+T, Ctrl+PageUp / Ctrl+PageDown | New blank tab, previous / next tab |
-| F8 | Choose split view or open a linked review tab (any UTF-8 file) |
-| F10 | Settings: choose Vietnamese / English, Apply or Cancel |
-| F9 | File details: metadata, text statistics and last verified fingerprint |
-| Alt+M | Show/hide Markdown contents; Tab focuses the visible outline |
-| F1 / F2 | Scrollable keyboard guide / action list navigable with arrows and Enter |
-
-Keymap v1, terminal conflicts and alternatives: [shortcut reference](docs/KEYBOARD_SHORTCUTS.md).
-Typing coalesces into one Undo step until a pause or caret move; Enter keeps
-indentation; Ctrl+C/Ctrl+X without a selection copy/cut the whole line.
-
-Prompts use Enter or the Submit button; Esc or the top-right `x` cancels.
-Confirmations show the affected file and consequences, with Keep working
-selected initially. Click a decision, or use Tab/Left/Right then Enter. Y also
-confirms; N/Esc cancels. Save first, then close/quit, to keep edits. Copy/cut/
-paste use the system clipboard locally (`clipboard = "auto"`), the internal
-clipboard over SSH, or OSC 52 with `clipboard = "osc52"`; see the example config.
-Terminal paste (bracketed paste) also works. File operations
-and full-document search/replace run in the background. Open/search/replace
-temporarily pause edits with visible feedback. Saving allows continued editing;
-completion marks the committed snapshot saved and keeps later edits dirty.
-All actions also work without a mouse. Drag or Shift-click selects text;
-the mouse wheel scrolls without moving the caret. Shift+wheel or a horizontal
-wheel scrolls sideways. Keyboard navigation resumes following the caret.
-Middle-click closes a tab with the same unsaved-change protection. Double-click
-a file-picker or tab-manager row to open/switch; one click selects it.
-
-Ctrl+F and Ctrl+H open a shared search panel with clickable input fields,
-line-numbered context, a match count, Previous/Next and Go to match buttons.
-Search is literal and case-sensitive by default, with Unicode grapheme
-boundaries; Alt+C toggles case-insensitive and Alt+W whole-word matching.
-Enter/Shift+Enter selects the next/previous match in the fields; Tab/Shift+Tab
-cycles both fields, results and every button. Enter or Space activates a focused
-button; Enter in results returns to the editor. Ctrl+R replaces the current match;
-Alt+A replaces all (Ctrl+Shift+R remains an alternative when delivered by the
-terminal). An empty replacement deletes matches. Each replacement
-operation has one Undo step and is saved separately with Ctrl+S. Read-only and
-AI-owned documents cannot be replaced. Results are paged in groups of 200;
-navigation wraps through all matches. Scanning/replacement runs in cancellable
-workers; closing the panel cancels uncommitted work. See the
-[search guide](docs/SEARCH_REPLACE.md) for details and limits.
-
-The tab bar is one row below the menu rule: numbered tabs on the left, then
-the active position and total count with New, Save, Close, previous/next and
-All tabs buttons on the right. Like Notepad++, tabs take priority: the button
-labels shorten (down to `+ < > F12`) when that lets every tab show, and `‹` /
-`›` mark tabs scrolled out of view. Click a numbered tab to switch
-or its `x` to close. Blank tabs have stable numbered names; `●` marks unsaved
-changes and review tabs have a distinct label. Closing an inactive tab preserves
-the current tab. Closing a linked review returns to its source; closing the last
-tab leaves a blank document. Closing never deletes a file from disk.
-When the strip overflows, Ctrl+P lists every tab with its full path and state;
-type to filter, use arrows and Enter to switch, Ctrl+S to save, Ctrl+W to close,
-or Ctrl+N to create. Unsaved source changes require confirmation before discard.
-Narrow windows retain compact controls and keyboard access. See the
-[tab improvement plan](docs/TAB_MANAGEMENT_PLAN.md) and
-[Agent CLI/MCP implementation](docs/AGENT_IMPLEMENTATION.md).
-The slightly darker navy backgrounds use green, honey-amber and warm-white details
-and content. The theme uses true color on Windows and terminals reporting true
-color; `basic_colors = true` selects a 256-color fallback. `NO_COLOR` is honored.
-No Nerd Font is required. Use a tall terminal for the complete F1 guide.
-
-The editor (or full review) border shows the file path after its title and,
-on the right, the unsaved-tab count plus source/split/review mode, format and
-buffer size; long paths keep the filename visible. During AI work it shows the current
-operation in Vietnamese or English. Locked tabs have a muted close indicator,
-and navigation/copy/other-tab shortcuts remain visible. Ctrl+P includes cached
-file format, size, line count and AI activity. Wide status bars show selection
-size (Unicode scalars) and caret progress without hiding save status. Format,
-encoding and newline information is aligned to the right.
-
-Local Agent access is opt-in: `cargo build --workspace`, then
-`cargo run -- --agent --agent-write .` during development. Separate native
-`guineanote-agent` JSON CLI and `guineanote-mcp` stdio binaries can read live
-unsaved buffers, manage tabs and plan/apply/save revision-checked changes.
-While an Agent owns a document, its source and linked review tabs show **AI**
-and become read-only to the user; other tabs remain editable. Completion,
-failure or cancellation restores the original access state after safe cleanup.
-See the [Vietnamese CLI/MCP guide](docs/AGENT_USAGE.md) for session selection,
-permissions, patch examples and MCP host configuration.
-
-Use `--language vi` / `--language en`, or `language = "vi"` / `"en"` in the
-configuration, for Vietnamese / English. The default is English. F10 opens
-Settings; Enter applies the selected language, while Esc cancels. Applied
-preferences are saved for the next launch in `%APPDATA%/GuineaNote/preferences.toml`
-on Windows, or `$XDG_CONFIG_HOME/guineanote/preferences.toml` (otherwise
-`~/.config/guineanote/preferences.toml`) on Unix. An explicit config language
-overrides preferences, and `--language` overrides both. F2 commands
-`language-vi` and `language-en` change only the current session.
-Document contents and filenames remain unchanged. Parser/OS diagnostics may
-retain their original technical details.
-
-Ctrl+O opens a file picker with an asynchronously loaded directory listing.
-Type to filter, use arrows to select, Tab to complete, and Enter to open a file
-or navigate a folder. Alt+Up returns to the parent; Ctrl+U clears the query.
-Full paths and new filenames also work. F9 opens details for the active file,
-including buffer versus disk size, encoding/newlines, UTC timestamps and the
-last verified SHA-256 fingerprint. Text statistics run in the background.
-
-F8 offers split view and a separate linked, read-only review tab. F6/F7 switch
-tabs; Esc returns from review to its editable source. Markdown includes a
-contents sidebar, heading hierarchy, reading/task statistics, callout cards,
-aligned tables, numbered syntax-colored code blocks and link references.
-The sidebar appears in a full-width reader with enough space; Alt+M toggles it,
-Tab focuses it, and Enter jumps to the selected heading. JSON/JSONL/NDJSON
-is formatted with key/value colors; XML/SVG displays element structure;
-CSV/TSV displays numbered rows and header columns, including quoted/multiline
-fields. CSV/TSV treats the first record as the header; Left/Right in full review
-browses further columns. TOML, YAML (including multiple documents), and JSON5/JSONC have formatted
-views. ENV/INI/Properties show sections, fields and line numbers with literal
-values. Common config files infer XML/JSON5/YAML/INI and retain source review
-for unfamiliar dialects. Notebook `.ipynb` renders Markdown/code cells and saved
-text outputs without running them. All UTF-8 programming files also support
-source review, including unknown extensions via a generic lexer. F2 `source`
-or `split` selects a mode directly; `review` / `review-tab` opens the linked tab.
-In full review, arrows/PageUp/PageDown/Home/End and the mouse wheel scroll;
-Esc returns to source. Source and review have independent scroll positions.
-Review is read-only and refreshes after source edits, saves and reloads.
-Closing a review tab preserves the source and its undo history. It never saves formatted
-content over the source. HTML in Markdown is literal text and links are inert.
-Review output is capped at 100,000 display rows with an explicit notice; all
-source data remains available in the editor. See [formats](docs/FORMATS.md).
-
-UTF-8 editing only; BOM and original LF/CRLF/mixed bytes are preserved. Enter
-uses CRLF for exclusively CRLF files and LF otherwise. Invalid encodings,
-NUL/binary content, symlink files, and unrelated existing save-as destinations
-are refused. External modifications cause an error: use F2 → `reload` with
-confirmation, save to a new path, or cancel. Read the
-[file safety policy](docs/FILE_SAFETY.md) before relying on filesystem guarantees.
-
-Ropey keeps content in resident memory; history and search snapshots add memory.
-Files above 10 MiB trigger confirmation by default. Long lines and full-document
-operations can be expensive. The 100 ms interaction budget is measured on the
-local 10 MiB corpus, with full I/O/parse completion reported separately; it is
-not a universal timing guarantee. Syntax distinguishes functions, types,
-constants, properties, attributes, escapes, operators and punctuation, with
-italic comments and separate semantic colors. It is a lightweight lexer that carries
-block comments, Python triple-quoted strings, JS/TS template literals and
-`<!-- -->` comments across lines (state is recomputed from the edited line, within
-a per-frame budget; lines whose state is not yet known render plain, never
-mis-colored). Horizontally-scrolled lines use real line-origin context up to a
-bounded prefix, then plain text. No bounded-memory large-file support,
-LSP, plugin runtime or Git integration. On Linux, `xclip` under X11 is
-verified; `wl-copy` (Wayland) and `xsel` are not yet runtime-verified.
-
-Crash recovery is enabled by default. Dirty tabs are checkpointed by a separate
-worker about once per second and reopen after a crash as independent unsaved
-drafts. Use Save As to keep a recovered draft; the source file is never overwritten
-automatically. Set `recovery = false` in TOML to disable it. Drafts are private
-local plaintext with quotas; the last uncheckpointed edits can still be lost.
-See [file safety](docs/FILE_SAFETY.md) for storage paths and limits.
-
-Like Notepad++'s "remember current session", a normal exit records the open
-file tabs, each caret (line and grapheme column) and the active tab. Running
-`guinea` without file arguments reopens them; files named on the command line
-open instead, missing or unreadable files are skipped with a status message, and untitled or
-review tabs are not recorded (unsaved text stays with recovery drafts). Set
-`session = false` in TOML to neither restore nor record it.
-
-History defaults to 2048 Undo/Redo transactions and 64 MiB charged edit payload,
-retaining the nearest transaction even if oversized. Old steps are trimmed with
-feedback; F9 reports their counts. This is not a process-RAM limit. The
-[risk mitigation report](docs/RISK_MITIGATION.md) records all five research risks,
-implemented controls, verification and remaining uncertainty.
+**Naming.** The product is *Guinea Note* and the command is `guinea`. Crate
+names, config paths and `GUINEANOTE_*` variables keep the older spelling (see
+the [migration policy](docs/CLI_MIGRATION.md)). Documents in `docs/research/`
+describe older baselines.
 
 ## Contributing
 
-Bug reports, ideas and pull requests are welcome; read
-[CONTRIBUTING.md](CONTRIBUTING.md) first. The required local checks are:
+Bug reports, ideas and pull requests are welcome. Please read
+[CONTRIBUTING.md](CONTRIBUTING.md) first. There is no CI, so these checks run
+locally:
 
 ```sh
 cargo fmt --all -- --check
@@ -323,14 +338,18 @@ cargo test --workspace
 cargo build --workspace --release
 ```
 
-There is no CI: checks and the PTY probes in the [test plan](docs/TEST_PLAN.md)
-run locally on Windows and in a Linux container. Please follow the
-[Code of Conduct](CODE_OF_CONDUCT.md), report vulnerabilities privately as
-described in [SECURITY.md](SECURITY.md), and see [SUPPORT.md](SUPPORT.md) for
-help.
+Terminal behavior is also checked with PTY probes from the
+[test plan](docs/TEST_PLAN.md):
+- `bash scripts/windows/verify.sh` on Windows;
+- `bash scripts/linux/run.sh` in a Linux container.
+
+Please also:
+- follow the [Code of Conduct](CODE_OF_CONDUCT.md);
+- report vulnerabilities privately as described in [SECURITY.md](SECURITY.md);
+- see [SUPPORT.md](SUPPORT.md) for help.
 
 ## License
 
-[MIT](LICENSE) for the project code. Dependencies keep their own licenses;
-release archives include `THIRD_PARTY_NOTICES.txt`
-(`python -X utf8 scripts/release/notices.py`).
+Guinea Note is released under the [MIT License](LICENSE). Dependencies keep
+their own licenses, and release archives include `THIRD_PARTY_NOTICES.txt`.
+The mascot and icons are in [`icon/`](icon/).
