@@ -1,5 +1,30 @@
 # Đối chiếu quyết định Notion — 10/11/2026
 
+## Cập nhật 13/11/2026 — hợp nhất và dọn dẹp Notion
+
+Cấu trúc Notion hiện hành (dọn dẹp ngày 13/11). Nội dung cũ được lưu nguyên
+văn, không xóa trang nào.
+
+| Trang | Vai trò |
+| --- | --- |
+| [Guinea Note](https://app.notion.com/p/41127da1dc088160b076e368c4858aad) (Projects) | Trang chính. Gồm: cài đặt, định hướng, bảng quyết định đã chốt, trạng thái hiện tại, lịch sử tóm tắt, lộ trình, quyết định còn mở, mục lục tài liệu. Icon và banner là logo dự án |
+| [Kế hoạch phát hành Guinea Note (Windows/Linux)](https://app.notion.com/p/41627da1dc0881dfab31d15c68def688) | Kế hoạch phát hành duy nhất, bản sao của `docs/RELEASE.md`: kênh, D1–D6, runbook, cổng nghiệm thu, cách xử lý khi có lỗi, lịch sử phát hành. Bản cũ lưu ở trang con “Lưu trữ — Kế hoạch phát hành trước khi hợp nhất” |
+| Docs: Tổng quan, Bảng phím v1, Thao tác soạn thảo (M6), Lập chỉ mục dòng dài, Gỡ chức năng thư mục | Tài liệu tham chiếu, đối chiếu ngày 13/11. Bảng phím v1 được viết lại thành một bản đặc tả hiện hành |
+| Nghiên cứu và đề xuất (01–09) | 01–08 là lịch sử (baseline 10/11); báo cáo 09 còn đề xuất P7; báo cáo 06 đã được thay bằng kế hoạch phát hành |
+| Định hướng Notepad++, Performance & Latency | Còn hiệu lực; đầu trang có ghi chú những gì đã đổi từ ngày viết |
+| [Lưu trữ lịch sử Guinea Note](https://app.notion.com/p/41727da1dc08811382f4dd1c28076607) | Gồm các trang không cập nhật thêm: M0–M4, kế hoạch G0–G4, trang dự án cũ 11/11, workstream độ trễ, nhật ký checkpoint 12–13/11 |
+
+Quyết định mới được ghi trên Notion và trong repo:
+- Chỉ phát hành Windows x64 và Linux x64.
+- Kênh phát hành:
+  - đã có: GitHub Releases và `cargo install --git`;
+  - tiếp theo: winget và npm/npx (gói nền tảng không scope);
+  - Homebrew hoãn; Scoop và AUR không làm.
+- v0.1.1 là bản *Latest* (v0.1.0 vẫn là pre-release).
+- Hộp thoại không có dấu x ở góc; Esc đóng mọi hộp thoại.
+
+Chi tiết: [RELEASE.md](RELEASE.md), [trạng thái](IMPLEMENTATION_STATUS.md).
+
 ## Cập nhật 12/11/2026
 
 - Notion: dự án chỉ còn **một** dòng "Guinea Note" trong Projects; workstream độ

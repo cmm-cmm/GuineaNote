@@ -36,6 +36,12 @@ Evidence: [release-0.1.1-gate](diagnostics/release-0.1.1-gate/manifest.json),
 [release-0.1.1](diagnostics/release-0.1.1/manifest.json).
 Next: winget PR, npm publish (owner's login).
 
+Notion was consolidated and cleaned up on 13/11. The project page and the
+release plan are now single current pages. Superseded content was copied
+verbatim to archive pages, and historical pages moved under "Lưu trữ lịch sử
+Guinea Note". The new structure is described in
+[NOTION_ALIGNMENT.md](NOTION_ALIGNMENT.md).
+
 ## Checkpoint 13/11/2026 (10) — public repository and v0.1.0 release
 
 Owner decisions 13/11: D1 public repository, D2 builds by hand (no GitHub
