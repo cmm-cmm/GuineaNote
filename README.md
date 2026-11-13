@@ -29,14 +29,33 @@ cargo run --release -- --language vi notes.md
 cargo run -- --help
 ```
 
-On Windows use `target\release\guinea.exe`; on Linux/macOS use
+On Windows use `target\release\guinea.exe`; on Linux use
 `target/release/guinea`. Runtime does not require Rust or Node.js.
 Build with current stable Rust and the native platform toolchain (MSVC build
 tools on Windows). During development checks run locally; GitHub Actions/CI
 is intentionally not configured. Linux x86_64 was verified natively in a
 Debian 12 container (tests, release build, all PTY probes, X11 clipboard);
-macOS, ARM, real Linux terminal emulators, Wayland and SSH/tmux remain
-unverified. No package has been published.
+ARM, real Linux terminal emulators, Wayland and SSH/tmux remain unverified.
+
+### Installation
+
+Release targets are **Windows x64 and Linux x64 only**; macOS is not
+released (decision of 13/11/2026). No package has been published yet; the
+planned channels are GitHub Releases, winget (`cmm-cmm.GuineaNote`) and npm
+(`npx guinea-note`), see `docs/RELEASE.md`. Until then build from source:
+
+```sh
+# Windows (PowerShell): static C runtime from .cargo/config.toml, no VC++ redistributable needed
+cargo build --workspace --release --locked
+# Linux: static musl binaries that run on any distribution (Debian 11+, Ubuntu 22.04+, Alpine)
+rustup target add x86_64-unknown-linux-musl   # plus musl-tools on Debian/Ubuntu
+cargo build --workspace --release --locked --target x86_64-unknown-linux-musl
+```
+
+Copy `guinea` (plus `guineanote-agent` / `guineanote-mcp` for Agent access)
+onto your PATH. Release archives will ship `LICENSE` and
+`THIRD_PARTY_NOTICES.txt` (`python -X utf8 scripts/release/notices.py`).
+Changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 Open files with `guinea file.txt` (or `cargo run -- file.txt`). No arguments
 show the welcome screen. A folder argument is rejected with a message before the

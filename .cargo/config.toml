@@ -1,0 +1,9 @@
+# Windows binaries link the C runtime statically so they run on a clean
+# machine without the VC++ Redistributable (release plan R0.4; winget then
+# needs no dependency entry). Linux release builds use the musl target, see
+# scripts/release/linux-musl.sh.
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]
+
+[target.aarch64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+crt-static"]

@@ -29,7 +29,12 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 rust-version.workspace = true
-description = "A Unicode-aware terminal text editor"
+description = "Notepad++-style terminal text editor: tabs, Find/Replace with regex, line tools, bookmarks, session restore and exact-byte saves"
+repository = "https://github.com/cmm-cmm/GuineaNote"
+homepage = "https://github.com/cmm-cmm/GuineaNote"
+readme = "README.md"
+keywords = ["editor", "text-editor", "terminal", "tui", "notepad"]
+categories = ["command-line-utilities", "text-editors"]
 
 [[bin]]
 name = "guinea"

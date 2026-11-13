@@ -63,4 +63,7 @@ step navigation-unprepared-2cpu $P scripts/pty_navigation.py --trace --record-on
 report navigation navigation-unprepared-2cpu
 step navigation-unprepared-1cpu $P scripts/pty_navigation.py --trace --record-only --fixtures $F --affinity 0
 report navigation navigation-unprepared-1cpu
+# Static musl release binaries (R0.3): build, then the smoke probe with them.
+step musl-build bash scripts/release/linux-musl.sh
+step musl-smoke $P scripts/pty_smoke.py --binary target/x86_64-unknown-linux-musl/release/guinea
 echo done >> "$OUT/summary.txt"

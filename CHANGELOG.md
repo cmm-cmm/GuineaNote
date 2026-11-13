@@ -1,0 +1,57 @@
+# Changelog
+
+All notable changes. Versions follow [Semantic Versioning](https://semver.org/);
+nothing has been released yet. Release targets: Windows x64 and Linux x64
+(static musl). macOS is not released.
+
+## [Unreleased] — 0.1.0 preview
+
+### Editor
+- Tabs with a one-row tab bar and tab manager (F12 / Ctrl+P), Ctrl+O file
+  picker, Settings (F10, Vietnamese/English), file details (F9), F1 guide and
+  F2 searchable action list showing each action's key or why it is unavailable.
+- Find/Replace panel (Ctrl+F / Ctrl+H) with Match case (Alt+C), Whole word
+  (Alt+W) and regular expressions (Alt+R, linear-time `regex`, `$1`/`${name}`
+  replacements); Replace all is one Undo step. Mark All and bookmarks of
+  marked lines.
+- Editing: typing Undo groups, word motion/deletion, auto-indent, block
+  indent/outdent, duplicate, move lines, whole-line cut/copy, bracketed paste;
+  sort, remove duplicate/empty lines, trim trailing whitespace, UPPER/lower/
+  Title case and per-language line comments from F2.
+- Bookmarks (Ctrl+F2, Alt+F2 / Shift+F2, gutter click), smart highlighting of
+  the selected word, bracket pair highlight, go to line (Ctrl+L / Ctrl+G).
+- Session restore of open files, carets and the active tab
+  (`session = false` disables it).
+- Read-only formatted previews (Markdown, JSON, CSV, XML, TOML, YAML, …) as a
+  split or a linked tab; multi-line syntax highlighting.
+- System clipboard (Windows API; xclip/xsel/wl-clipboard on Linux), opt-in
+  OSC 52, internal fallback. Optional mouse with keyboard alternatives.
+- Opt-in Agent CLI (`guineanote-agent`) and MCP server (`guineanote-mcp`)
+  editing live documents at an expected revision under a read-only lease.
+
+### Data safety
+- Strict UTF-8 with BOM, LF/CRLF/mixed newlines and untouched bytes
+  preserved; atomic saves with external-change conflict checks; checksummed
+  crash-recovery drafts (offered once even after a crash during handoff).
+
+### Responsiveness
+- Long lines indexed on a worker; large line/case/comment tools run on a
+  worker and Esc cancels them with text and history unchanged.
+- Keys and pastes typed while a file opens or a tool runs are queued and
+  applied in order (bounded, refused loudly when full) instead of dropped;
+  a job pauses only its own tab.
+- Undo charged by the memory each step adds: six whole-file steps of a
+  10 MiB file fit the 64 MiB history budget.
+- Latency gate: every measured interaction above 50 ms is investigated;
+  verified natively on Windows/ConPTY and Linux x86_64 (container).
+
+### Fixed during verification
+- Session restore on Windows lost carets and the active tab (verbatim
+  `\\?\` paths never matched).
+- Whole-document line tools selected the whole result (the next key replaced
+  the file) and sorted the empty line after a final newline to the top.
+
+### Packaging
+- Windows binaries link the C runtime statically; Linux release binaries
+  are static musl executables; `scripts/release/notices.py` generates
+  `THIRD_PARTY_NOTICES.txt`.
