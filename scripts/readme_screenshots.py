@@ -266,6 +266,9 @@ def scenes(root):
         # 5. Vietnamese interface with the tab manager.
         ui = launch(root, [main_rs, notes, config], language="vi")
         ui.wait("word_counts")
+        # Files open one after another; wait for the last tab.
+        ui.wait("guinea.toml")
+        ui.wait("3/3")
         ui.send(F12)
         settle(ui)
         render(ui, "tabs-vietnamese")
