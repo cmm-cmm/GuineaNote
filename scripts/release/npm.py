@@ -7,7 +7,7 @@ so npm users run byte-identical files (the SHA-256 is checked). The launcher
     python -X utf8 scripts/release/npm.py --tag v0.1.0 --dist target/dist/v0.1.0
     # -> target/npm/v0.1.0/*.tgz and npm-manifest.json
 
-Publish (owner's npm login, `@guinea-note` scope): platform packages first,
+Publish (owner's npm login with 2FA; unscoped names): platform packages first,
 then the launcher, each with `npm publish <tgz> --access public`.
 """
 import argparse
@@ -73,7 +73,7 @@ def main():
     packed = {}
     optional = {}
     for suffix, os_name, cpu, target, extension, exe in PLATFORMS:
-        name = f"@guinea-note/{suffix}"
+        name = f"guinea-note-{suffix}"
         folder = f"guinea-{version}-{target}"
         entry = release["targets"][target]
         archive = args.dist / entry["archive"]

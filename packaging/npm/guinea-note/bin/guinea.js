@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Launcher of the guinea-note npm package: runs the native `guinea` binary
-// from the platform package npm installed (@guinea-note/<platform>-<arch>).
+// from the platform package npm installed (guinea-note-<platform>-<arch>).
 // The binary is the same file as in the GitHub Release archive.
 "use strict";
 const { spawnSync } = require("node:child_process");
@@ -8,8 +8,8 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const PLATFORMS = {
-  "win32-x64": { pkg: "@guinea-note/win32-x64", exe: "guinea.exe" },
-  "linux-x64": { pkg: "@guinea-note/linux-x64", exe: "guinea" },
+  "win32-x64": { pkg: "guinea-note-win32-x64", exe: "guinea.exe" },
+  "linux-x64": { pkg: "guinea-note-linux-x64", exe: "guinea" },
 };
 const key = `${process.platform}-${process.arch}`;
 const target = PLATFORMS[key];
