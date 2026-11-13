@@ -24,7 +24,8 @@ Gate on 1bc0998 (sequential):
 - Correction: the v0.1.0 record says 32 Linux steps; the suite has 29.
 
 Release:
-- **GitHub pre-release v0.1.1**: both archives checked unpacked (Windows
+- **GitHub release v0.1.1** (published as a pre-release, then made the full
+  *Latest* release at the owner's request on 13/11): both archives checked unpacked (Windows
   system-DLL imports and PTY smoke; Linux static-pie, PTY smoke and four
   distributions), anonymous download re-verified.
 - **`cargo install --git --tag v0.1.1`** verified in a clean Linux container

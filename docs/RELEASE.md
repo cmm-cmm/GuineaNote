@@ -12,7 +12,7 @@ planned.
 
 | Channel | Status |
 | --- | --- |
-| GitHub Releases | **v0.1.1 published** (pre-release, tag on `6b698d9`): [v0.1.1](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1); anonymous download re-checked against `SHA256SUMS`. v0.1.0 (pre-release, `8120df7`) remains |
+| GitHub Releases | **v0.1.1 published**, marked **Latest** (full release since 13/11; published first as a pre-release), tag on `6b698d9`: [v0.1.1](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1); anonymous download re-checked against `SHA256SUMS`. v0.1.0 (pre-release, `8120df7`) remains |
 | `cargo install --git` | **Available from v0.1.1**: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote` (plus `guinea-agent`); verified from the tag in a clean `rust:1.98-bookworm` container and from GitHub on Windows. Git installs use the user's toolchain defaults (dynamic VC runtime on Windows, glibc on Linux) |
 | winget `cmm-cmm.GuineaNote` | **Next.** Generator `scripts/release/winget.py`; the 0.1.0 manifest validated but was never submitted |
 | npm / npx `guinea-note` | **Next.** Unscoped platform packages `guinea-note-win32-x64` / `guinea-note-linux-x64`; staging and tarball tests ready (`scripts/release/npm.py`); needs the owner's `npm login` |
