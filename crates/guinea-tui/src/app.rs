@@ -242,6 +242,9 @@ pub struct App {
     pub exit: bool,
     pub redraw: bool,
     pub page_height: usize,
+    /// Columns the editor panes had in the last frame; `u16::MAX` until one
+    /// is drawn, so nothing is treated as hidden before the layout is known.
+    pub pane_width: u16,
     /// Default file-picker location and Agent workspace scope (see `new`).
     pub root: PathBuf,
     pub hits: HitRegions,
@@ -299,6 +302,10 @@ pub struct App {
     deferred_full: bool,
 }
 
+/// Split shows source and review side by side from this many columns; a
+/// narrower layout shows the review alone (see `App::reading`).
+pub(crate) const SPLIT_MIN_WIDTH: u16 = 76;
+
 /// Bounds of the typing queue kept while a background job pauses edits.
 const MAX_DEFERRED_EVENTS: usize = 1024;
 const MAX_DEFERRED_PASTE_BYTES: usize = 4 * 1024 * 1024;
@@ -329,6 +336,7 @@ impl App {
             exit: false,
             redraw: true,
             page_height: 20,
+            pane_width: u16::MAX,
             root,
             hits: HitRegions::default(),
             preferences: Preferences::default(),
@@ -418,6 +426,17 @@ impl App {
         &mut self.tabs[self.active].document
     }
 
+    /// The review is the only pane on screen: a full review, or a split view
+    /// in a layout too narrow for two panes. Keys then scroll the review and
+    /// Esc returns to the source; a source that is not shown is never edited.
+    pub(crate) fn reading(&self) -> bool {
+        match self.tabs[self.active].review.mode {
+            ViewMode::Review => true,
+            ViewMode::Split => self.pane_width < SPLIT_MIN_WIDTH && !self.welcome(),
+            ViewMode::Source => false,
+        }
+    }
+
     fn prompt(&mut self, kind: InputKind) {
         self.palette_index = 0;
         self.modal = Some(Modal::Input {
@@ -431,7 +450,7 @@ impl App {
             self.message = "AI is working in this tab; read-only until it finishes".into();
             return;
         }
-        if self.tabs[self.active].review.mode == ViewMode::Review {
+        if self.reading() {
             self.message = "Review is read-only; F8 or Esc returns to source".into();
             return;
         }
@@ -1015,7 +1034,7 @@ impl App {
         self.redraw = true;
     }
 
-    fn input_paused(&self) -> bool {
+    pub(crate) fn input_paused(&self) -> bool {
         if !self.busy() || self.saving {
             return false;
         }
@@ -1128,6 +1147,8 @@ impl App {
                 self.pending_indent = None;
                 self.redraw = true;
                 if let Some(Modal::Input { value, .. }) = self.modal.as_mut() {
+                    // The filter changed: the F2 highlight restarts at the top.
+                    self.palette_index = 0;
                     if value.len().saturating_add(text.len()) <= 4096 {
                         value.extend(text.chars().filter(|c| !c.is_control()));
                     } else {
@@ -1141,9 +1162,8 @@ impl App {
                     search.paste(&text);
                     self.search = search.query.clone();
                     self.replacement = search.replacement.clone();
-                } else if self.modal.is_none()
-                    && self.tabs[self.active].review.mode != ViewMode::Review
-                {
+                } else if self.modal.is_none() {
+                    // `edit` refuses (and says why) while only a review shows.
                     self.edit(|d| d.insert(&text));
                 }
             }
@@ -1152,7 +1172,7 @@ impl App {
                 self.pending_indent = None;
                 self.last_modal_click = None;
                 if self.modal.is_none()
-                    && self.tabs[self.active].review.mode == ViewMode::Review
+                    && self.reading()
                     && !key.modifiers.contains(KeyModifiers::CONTROL)
                     && !(key.modifiers == KeyModifiers::ALT
                         && matches!(key.code, KeyCode::Char('m' | 'M')))
@@ -1228,7 +1248,7 @@ impl App {
         }
         let ctrl = key.modifiers.contains(KeyModifiers::CONTROL);
         let shift = key.modifiers.contains(KeyModifiers::SHIFT);
-        let review = self.tabs[self.active].review.mode == ViewMode::Review;
+        let review = self.reading();
         if ctrl && review && matches!(key.code, KeyCode::Home | KeyCode::End) {
             if key.code == KeyCode::Home {
                 self.tabs[self.active].review.top = 0;
@@ -1676,6 +1696,61 @@ mod tests {
             assert!(a.message.contains("Unknown command"), "{removed}");
         }
         assert_eq!(a.document().text(), "draft");
+    }
+
+    #[test]
+    fn palette_enter_runs_the_highlighted_action_and_exact_ids_rank_first() {
+        let mut a = app();
+        a.handle(key(KeyCode::F(2)));
+        a.handle(Event::Paste("find".into()));
+        // Move the highlight to find-next, wherever the ranking puts it.
+        let target = crate::commands::suggestions("find", Locale::En)
+            .iter()
+            .position(|c| c.id == "find-next")
+            .unwrap();
+        assert!(target > 0);
+        for _ in 0..target {
+            a.handle(key(KeyCode::Down));
+        }
+        a.handle(key(KeyCode::Enter));
+        assert!(
+            a.modal.is_none(),
+            "Enter ran the typed `find` instead of the highlighted find-next"
+        );
+        drain_jobs(&mut a);
+        // A typed action name is the first, highlighted row in both languages.
+        for locale in [Locale::En, Locale::Vi] {
+            for id in [
+                "copy", "source", "replace", "cut", "next", "prev", "indent", "find", "save",
+            ] {
+                assert_eq!(crate::commands::suggestions(id, locale)[0].id, id);
+            }
+            assert_eq!(
+                crate::commands::suggestions("", locale).len(),
+                crate::commands::COMMANDS.len()
+            );
+        }
+        // Aliases that are not listed still run as typed.
+        a.handle(key(KeyCode::F(2)));
+        a.handle(Event::Paste("open-path".into()));
+        a.handle(key(KeyCode::Enter));
+        assert!(matches!(
+            a.modal,
+            Some(Modal::Input {
+                kind: InputKind::Open,
+                ..
+            })
+        ));
+        a.handle(key(KeyCode::Esc));
+        // Pasting or clearing the filter restarts the highlight at the top.
+        a.handle(key(KeyCode::F(2)));
+        a.handle(key(KeyCode::Down));
+        a.handle(key(KeyCode::Down));
+        a.handle(Event::Paste("quit".into()));
+        assert_eq!(a.palette_index, 0);
+        a.handle(key(KeyCode::Down));
+        a.handle(keym(KeyCode::Char('u'), KeyModifiers::CONTROL));
+        assert_eq!(a.palette_index, 0);
     }
 
     #[test]

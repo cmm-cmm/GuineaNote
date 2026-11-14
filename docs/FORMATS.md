@@ -1,8 +1,9 @@
 # Source formats and read-only review
 
 F8 offers Split or a linked, read-only Review tab. Split uses two panes from
-76 available columns; narrower areas show review full-width. F6/F7 switch tabs;
-Esc returns from review to its source. F2 accepts `source`, `split`,
+76 available columns; narrower areas show review full-width and read-only (the
+source is not on screen, so it is not edited) until the layout is wide again.
+F6/F7 switch tabs; Esc returns from review to its source. F2 accepts `source`, `split`,
 `review` / `review-tab`, and `preview` (chooser). F10 opens language Settings
 with Apply/Cancel and persisted preferences; an explicit config language takes
 precedence, and `--language vi` / `--language en` overrides both.

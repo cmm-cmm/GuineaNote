@@ -196,7 +196,11 @@ impl App {
                             }
                             self.palette_index = 0;
                         }
-                        KeyCode::Enter if !commands.iter().any(|c| c.id == value.trim()) => {
+                        // Enter runs the highlighted row. A typed name ranks
+                        // first, so it runs unless the arrows chose another;
+                        // text that matches no row (unlisted aliases such
+                        // as open-path) runs as typed.
+                        KeyCode::Enter => {
                             if let Some(command) = commands.get(self.palette_index) {
                                 value = command.id.into();
                             }

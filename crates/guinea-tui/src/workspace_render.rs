@@ -666,9 +666,10 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         tabs(frame, app, regions[0], theme);
     }
     let mut editor_area = regions[1];
+    app.pane_width = editor_area.width;
     let mode = app.tabs[app.active].review.mode;
     if mode != ViewMode::Source && !app.welcome() {
-        if mode == ViewMode::Split && editor_area.width >= 76 {
+        if mode == ViewMode::Split && editor_area.width >= crate::app::SPLIT_MIN_WIDTH {
             let halves =
                 Layout::horizontal([Constraint::Percentage(50), Constraint::Percentage(50)])
                     .split(editor_area);
@@ -697,7 +698,9 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         welcome(frame, app, body, theme);
         return;
     }
-    let busy = app.busy();
+    // The caret hides only while this tab's input is paused; a save, or a
+    // job working on another tab, leaves it editable and the caret in place.
+    let paused = app.input_paused();
     let tab_width = app.config.tab_width;
     let caret_pending = app.caret_layout_pending();
     let tab = &mut app.tabs[app.active];
@@ -860,7 +863,7 @@ fn editor(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) {
         );
     }
     if app.modal.is_none()
-        && !busy
+        && !paused
         && (tab.top..tab.top + body.height as usize).contains(&cursor_line)
     {
         let column = match (cursor_cell, &caret_window) {
@@ -888,7 +891,7 @@ fn review_panel(frame: &mut Frame<'_>, app: &mut App, area: Rect, theme: Theme) 
     let body = block.inner(area);
     frame.render_widget(block, area);
     // Full review has no editor panel: its border carries the file context.
-    if app.tabs[app.active].review.mode == ViewMode::Review {
+    if app.reading() {
         border_info(frame, app, area, &title, theme);
     }
     if body.width < 4 || body.height < 3 {
@@ -1096,7 +1099,7 @@ fn status(frame: &mut Frame<'_>, app: &mut App, areas: &[Rect], theme: Theme) {
         " REVIEW "
     } else if document.readonly {
         " READ ONLY "
-    } else if app.tabs[app.active].review.mode == ViewMode::Review {
+    } else if app.reading() {
         " REVIEW "
     } else {
         " EDIT "

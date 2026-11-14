@@ -637,9 +637,13 @@ fn scan(
         line += text[previous..byte].bytes().filter(|&b| b == b'\n').count();
         previous = byte;
         if total >= offset && entries.len() < PAGE {
+            // Context stays on the match's own line: the row is labelled with
+            // that line number, so neighbouring lines would read as part of it.
+            let line_break = |c: &char| matches!(c, '\r' | '\n');
             let before = text[..byte]
                 .chars()
                 .rev()
+                .take_while(|c| !line_break(c))
                 .take(24)
                 .collect::<Vec<_>>()
                 .into_iter()
@@ -647,6 +651,7 @@ fn scan(
                 .collect::<String>();
             let after = text[byte + matched.len()..]
                 .chars()
+                .take_while(|c| !line_break(c))
                 .take(32)
                 .collect::<String>();
             let before = before.replace(['\r', '\n', '\t'], " ");
@@ -689,6 +694,24 @@ mod tests {
             std::thread::sleep(Duration::from_millis(2));
         }
     }
+    #[test]
+    fn result_previews_show_only_the_line_of_the_match() {
+        let text = "previous line\r\n\tlet name = 1; // tail\nnext line";
+        let found = scan(
+            text,
+            "name",
+            SearchOptions::default(),
+            0,
+            &AtomicBool::new(false),
+        )
+        .unwrap();
+        assert_eq!(found.entries.len(), 1);
+        let entry = &found.entries[0];
+        assert_eq!(entry.line, 1);
+        assert_eq!(entry.preview, " let [name] = 1; // tail");
+        assert_eq!(&entry.preview[entry.highlight.clone()], "name");
+    }
+
     #[test]
     fn unified_fields_buttons_and_portable_replace_all_are_keyboard_reachable() {
         let document = Document::from_text("Việt Việt");

@@ -4,6 +4,23 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
+## [Unreleased]
+
+### Fixed
+- F2 action list: Enter runs the highlighted row. Typing a name that was
+  also an action name (`find`, then arrows to `find-next`) ran the typed
+  action instead of the highlighted one. A typed name is now the first row,
+  ahead of names that start with or contain it and of description matches;
+  pasting into the filter restarts the highlight at the top.
+- Split view below 76 editor columns shows the review alone, as before, but
+  is now read-only like a full review and Esc returns to the source. Typing
+  used to edit the source that was not on screen while the status bar said
+  EDIT.
+- The caret stays visible while a save runs, or while a job works on another
+  tab; it hid although typing was still accepted.
+- Find/Replace result rows show context from the match's own line only; text
+  of the neighbouring lines no longer appears beside its line number.
+
 ## [0.1.1] — 2026-11-13
 
 ### Install

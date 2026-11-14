@@ -397,7 +397,7 @@ impl App {
             self.message = "AI is working in this tab; read-only until it finishes".into();
             return;
         }
-        if self.tabs[self.active].review.mode == ViewMode::Review {
+        if self.reading() {
             self.message = "Review is read-only; F8 or Esc returns to source".into();
             return;
         }

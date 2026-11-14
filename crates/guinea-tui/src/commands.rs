@@ -606,12 +606,31 @@ pub fn hint_parts(items: &[(&str, &str)], locale: Locale) -> Vec<(String, String
         .collect()
 }
 
+/// Actions matching the F2 filter, best match first: the typed name itself,
+/// then names starting with it, names containing it, and descriptions. The
+/// first row is the highlighted one, so a typed name runs what it names.
+/// Equal ranks keep the keymap order (an empty filter lists every action).
 pub fn suggestions(query: &str, locale: Locale) -> Vec<&'static Command> {
     let query = query.trim().to_lowercase();
-    COMMANDS
+    let mut matches = COMMANDS
         .iter()
-        .filter(|c| c.id.contains(&query) || description(c, locale).to_lowercase().contains(&query))
-        .collect()
+        .filter_map(|command| {
+            let rank = if command.id == query {
+                0
+            } else if command.id.starts_with(&query) {
+                1
+            } else if command.id.contains(&query) {
+                2
+            } else if description(command, locale).to_lowercase().contains(&query) {
+                3
+            } else {
+                return None;
+            };
+            Some((rank, command))
+        })
+        .collect::<Vec<_>>();
+    matches.sort_by_key(|(rank, _)| *rank);
+    matches.into_iter().map(|(_, command)| command).collect()
 }
 
 pub fn description(command: &Command, locale: Locale) -> String {

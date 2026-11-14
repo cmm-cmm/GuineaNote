@@ -353,6 +353,84 @@ mod tests {
         }
     }
     #[test]
+    fn caret_stays_visible_while_a_save_runs_and_typing_is_allowed() {
+        use crossterm::event::Event;
+        let dir = tempfile::tempdir().unwrap();
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0].document.insert("draft").unwrap();
+        app.tabs[0].document.path = Some(dir.path().join("note.txt"));
+        let mut terminal = Terminal::new(TestBackend::new(80, 24)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        let before = terminal.get_cursor_position().unwrap();
+        // The save is announced but its worker has not started: edits continue.
+        app.command("save");
+        assert!(app.busy());
+        app.handle(Event::Paste("xy".into()));
+        assert_eq!(app.document().text(), "draftxy");
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        let after = terminal.get_cursor_position().unwrap();
+        assert_eq!(
+            (after.x, after.y),
+            (before.x + 2, before.y),
+            "the caret must follow typing during a save"
+        );
+    }
+
+    #[test]
+    fn split_without_room_for_two_panes_is_read_only_until_it_fits_again() {
+        use crossterm::event::{Event, KeyCode, KeyEvent, KeyModifiers};
+        let key = |code| Event::Key(KeyEvent::new(code, KeyModifiers::NONE));
+        let screen = |terminal: &Terminal<TestBackend>| {
+            terminal
+                .backend()
+                .buffer()
+                .content()
+                .iter()
+                .map(|cell| cell.symbol())
+                .collect::<String>()
+        };
+        let mut app = App::new(vec![], false, Config::default());
+        app.tabs[0].document.insert("# Title").unwrap();
+        app.tabs[0].document.path = Some("note.md".into());
+        app.command("split");
+        // Before the first frame the layout is unknown: split stays editable.
+        app.handle(Event::Paste("!".into()));
+        assert_eq!(app.document().text(), "# Title!");
+        let mut terminal = Terminal::new(TestBackend::new(70, 24)).unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert!(app.hits.editor_text.is_empty() && !app.hits.review.is_empty());
+        app.handle(Event::Paste("blind".into()));
+        app.handle(key(KeyCode::Char('x')));
+        app.handle(key(KeyCode::Backspace));
+        app.handle(key(KeyCode::Enter));
+        app.command("undo");
+        assert_eq!(
+            app.document().text(),
+            "# Title!",
+            "typing must not edit a source that is not on screen"
+        );
+        assert!(app.message.contains("read-only"), "{}", app.message);
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert!(screen(&terminal).contains(" REVIEW "));
+        assert!(!screen(&terminal).contains(" EDIT "));
+        // The hint on screen says Esc returns to the source; it must.
+        app.handle(key(KeyCode::Esc));
+        assert_eq!(app.tabs[0].review.mode, crate::review::ViewMode::Source);
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        app.handle(Event::Paste("?".into()));
+        assert_eq!(app.document().text(), "# Title!?");
+        // With room for both panes, split is an editor again.
+        app.command("split");
+        terminal.backend_mut().resize(120, 30);
+        terminal.autoresize().unwrap();
+        terminal.draw(|frame| draw(frame, &mut app)).unwrap();
+        assert!(!app.hits.editor_text.is_empty() && !app.hits.review.is_empty());
+        app.handle(Event::Paste(" ok".into()));
+        assert_eq!(app.document().text(), "# Title!? ok");
+        assert!(screen(&terminal).contains(" EDIT "));
+    }
+
+    #[test]
     fn ansi_palette_project_and_command_dialogs_fit_small_viewports() {
         for size in [(80, 24), (40, 12), (30, 9)] {
             let mut app = App::new(
