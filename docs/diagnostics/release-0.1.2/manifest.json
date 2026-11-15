@@ -1,0 +1,40 @@
+{
+  "created": "2026-11-15",
+  "release": "v0.1.2 (tag on c5d5f99), Windows x64 only; GitHub Release marked Latest.",
+  "github_release": "https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2 with guinea-0.1.2-x86_64-pc-windows-msvc.zip, SHA256SUMS and release-manifest.json. Built with --locked in a clean worktree of the tag; downloaded anonymously and SHA256SUMS re-checked (OK); release-manifest.json identical to the local one.",
+  "windows_archive_checks": "windows-check.txt: DLL imports of the three archived executables (system DLLs only, same list as v0.1.1) and --version 0.1.2. objdump was not installed, so pe_imports.py (standard library PE import reader) produced the list; it matched the recorded v0.1.1 objdump output exactly for guinea.exe. windows-smoke.txt: pty_smoke.py on the archived guinea.exe, PASS.",
+  "linux": "No Linux archive: Docker/WSL and the Linux build checks are paused by the owner (15/11/2026); Linux x64 stays on v0.1.1. The new CI workflow passed fmt, Clippy and tests on ubuntu-latest for c5d5f99 (run 43665753248); that is not a Linux release gate.",
+  "npm": "npm-manifest.json: guinea-note-win32-x64@0.1.2 (binary SHA-256 equals guinea.exe in the release archive) and the guinea-note@0.1.2 launcher listing only win32-x64, staged by scripts/release/npm.py at 92c543f from the downloaded release assets. Installed from the tarballs on Windows: guinea --version 0.1.2; non-interactive run exits 1 with the terminal error; on a simulated linux-x64 the launcher reports that 0.1.2 has no Linux binary. Not yet published: the registry requires an authentication step from the owner before publishing.",
+  "winget": "packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.2 (schema 1.28.0, required by the winget-pkgs PR template), winget validate succeeded (winget v1.29.380). Local winget install --manifest not run: LocalManifestFiles is an admin setting and is disabled here. Submitted as https://github.com/microsoft/winget-pkgs/pull/480530 from the cmm-cmm fork (branch cmm-cmm.GuineaNote-0.1.2, commit f3d48ec); winget-pr-body.md is its description. Pending: Microsoft CLA (owner) and moderator review.",
+  "ci": "GitHub Actions re-enabled (GitHub-owned actions only, read-only default token). Run 43665753248 on c5d5f99: ubuntu-latest passed; windows-latest failed 17 guinea-io tests with 'Recovery path belongs to another user': the elevated runner makes BUILTIN\\Administrators the owner of new files and platform::private() requires the user SID. The same check guards every save (lib.rs save -> platform::private on the temp file), so saving from an elevated session can fail; also present in v0.1.1. Listed as a known issue in the release notes; not verified on a real elevated desktop session.",
+  "files": {
+    "npm-manifest.json": {
+      "sha256": "f2f3bcd5d318ccc1cee47374a345e49576df91adad02b3b03a4626ab6f410f50",
+      "bytes": 526
+    },
+    "pe_imports.py": {
+      "sha256": "d2cf084f4defb50e37a1e3eaf3e9f9d32060951768150c98773820b1b0005450",
+      "bytes": 1766
+    },
+    "release-manifest.json": {
+      "sha256": "d84607fc751b052eda3cb53310ad450a7dfc534251a68d843d22f8b682acd4e0",
+      "bytes": 1421
+    },
+    "SHA256SUMS": {
+      "sha256": "b8204cba7071368fbca999913828d904d0975593bd7ff4632e4ce0e3b5ecfc56",
+      "bytes": 106
+    },
+    "windows-check.txt": {
+      "sha256": "4fd92f6c4a672de74f2c595d7ac7db3d566cb5dfaf9484c3bd5639fa6836c6a6",
+      "bytes": 634
+    },
+    "windows-smoke.txt": {
+      "sha256": "64df691fdc4b0e371eb292bc5edfe010d1769f5433f6b9e73ad563e90b8e9392",
+      "bytes": 154
+    },
+    "winget-pr-body.md": {
+      "sha256": "cb9f58a70e25d38a3b1472534c4a1df906fbc9bc57d2aed95afacc37393459e7",
+      "bytes": 1485
+    }
+  }
+}

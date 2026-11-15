@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 IDENTIFIER = "cmm-cmm.GuineaNote"
 REPO = "https://github.com/cmm-cmm/GuineaNote"
 TARGET = "x86_64-pc-windows-msvc"
-SCHEMA = "1.9.0"
+SCHEMA = "1.28.0"
 
 
 def main():

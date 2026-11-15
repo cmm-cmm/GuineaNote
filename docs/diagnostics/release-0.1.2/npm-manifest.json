@@ -1,0 +1,17 @@
+{
+  "version": "0.1.2",
+  "tag": "v0.1.2",
+  "packages": {
+    "guinea-note-win32-x64": {
+      "tarball": "guinea-note-win32-x64-0.1.2.tgz",
+      "sha256": "d7999fce4b127eff991f262be63ee0c596a9404399316d8716b9f7366512600c",
+      "bytes": 3234576,
+      "binary_sha256": "b7a2ef9f8835dbd45de0ef843cff124c8e7f2d854970ad8f5cc9e02cf8b8aa0d"
+    },
+    "guinea-note": {
+      "tarball": "guinea-note-0.1.2.tgz",
+      "sha256": "36ddf999b0d571c7deca8dd11e64b38b46c632198ae0ffbc572dff0c6482260c",
+      "bytes": 2396
+    }
+  }
+}

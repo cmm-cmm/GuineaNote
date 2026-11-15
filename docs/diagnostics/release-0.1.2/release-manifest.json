@@ -1,0 +1,43 @@
+{
+  "name": "guinea",
+  "version": "0.1.2",
+  "tag": "v0.1.2",
+  "commit": "c5d5f99b80bfdd3856e665df433fbfe2588e86c0",
+  "source_date": "2026-11-15T02:00:34Z",
+  "rustc": {
+    "x86_64-pc-windows-msvc": "rustc 1.98.1 (48a229cea 2026-09-01)"
+  },
+  "targets": {
+    "x86_64-pc-windows-msvc": {
+      "archive": "guinea-0.1.2-x86_64-pc-windows-msvc.zip",
+      "sha256": "8a637f6a37713e7d12fdefc3e0d11c672bb466d66ab0ada85d4edaa3a7c92ce0",
+      "bytes": 6197623,
+      "contents": {
+        "LICENSE": {
+          "sha256": "36540cd3854321213a5736e9be6988326a37f424f341e4d445425005262aeb5e",
+          "bytes": 1080
+        },
+        "README.md": {
+          "sha256": "b4da513b131d64473d8e79bac6bd27d63426d30f0c47f45273635b1e99934671",
+          "bytes": 17724
+        },
+        "THIRD_PARTY_NOTICES.txt": {
+          "sha256": "346fbc6df6012f6c3399a39e4a944fc7ab90e3cf5b23db772c5ae81e2defdc79",
+          "bytes": 418338
+        },
+        "guinea.exe": {
+          "sha256": "b7a2ef9f8835dbd45de0ef843cff124c8e7f2d854970ad8f5cc9e02cf8b8aa0d",
+          "bytes": 8028672
+        },
+        "guineanote-agent.exe": {
+          "sha256": "d7dfb0002e06c839abb7ce8d936ec177537d7ac77a7f9da0f69b0a4d59767af0",
+          "bytes": 2811392
+        },
+        "guineanote-mcp.exe": {
+          "sha256": "279076ee6bed3417a1d69a7abba1c58768a6e0b89ca8a212ec74f135df887ea8",
+          "bytes": 5623808
+        }
+      }
+    }
+  }
+}
