@@ -4,7 +4,7 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
-## [0.1.2] — unreleased
+## [0.1.2] — 2026-11-15
 
 ### Changed
 - README: the release archives are the default installation and need no
