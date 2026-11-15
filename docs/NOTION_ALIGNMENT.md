@@ -1,5 +1,24 @@
 # Đối chiếu quyết định Notion — 10/11/2026
 
+## Cập nhật 15/11/2026 — website, việc cần làm và dọn dẹp Notion
+
+- Website https://guineanote.konexforge.com/ (song ngữ: `/` tiếng Anh, `/vi/`
+  tiếng Việt) từ `site/`; trang Notion chính và trang kế hoạch phát hành có link.
+- Việc cần làm chuyển vào database **Tasks** (gắn với project Guinea Note):
+  - In progress: winget — ký CLA và hoàn tất duyệt PR #480530.
+  - Up next: gửi sitemap lên Google Search Console và Bing Webmaster Tools;
+    thêm Trusted Publisher npm cho hai gói (trước bản 0.1.4).
+  - Not started: liên kết website từ konexforge.com; secret `WINGET_TOKEN`;
+    (tùy chọn) secret Cloudflare để workflow tự deploy website; nối lại build
+    và kiểm tra Linux.
+  - Done: phát hành v0.1.3 (GitHub, npm); workflow tự phát hành; website.
+- Dọn dẹp: phần "Tạm dừng 10/11" ở đầu trang chính chuyển nguyên văn sang
+  trang con "Lưu trữ — Ghi chú tạm dừng phát triển (10/11/2026)" trong Lưu trữ
+  lịch sử; callout v0.1.2 của trang kế hoạch chuyển sang trang lưu trữ kế hoạch;
+  các ghi chú "GitHub Actions tắt/build tay" đã lỗi thời được đánh dấu thay thế.
+- Thuộc tính project: Stage giữ **In Progress** (còn winget, Linux, M9),
+  Tình trạng kỹ thuật **CI đạt**, Phiên bản source `4d3718d`, Đối chiếu 15/11.
+
 ## Cập nhật 15/11/2026 — v0.1.3, npm, tự động phát hành
 
 - **v0.1.3** (chỉ Windows x64, tag trên `8d0daa8`): sửa lỗi lưu file khi chạy
