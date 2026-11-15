@@ -1,0 +1,1 @@
+{"typeahead": {"open_rounds": 3, "open_queued": 3, "sort_queued": true, "esc_cancelled": 3, "quit_waited_for_save": 3, "exact_bytes": true}}

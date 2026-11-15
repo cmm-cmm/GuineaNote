@@ -1,0 +1,81 @@
+{
+  "created": "2026-11-15",
+  "purpose": "Release gate for v0.1.3 on commit 7353f42 (elevated-save owner fix, 8.3 session paths, npm README from GitHub, packages table): scripts/windows/verify.sh. Windows-only release.",
+  "windows": "Windows 11 x64 MSVC static CRT, ConPTY via pywinpty; 21/21 steps with the real clipboard (restored); clean working tree. PTY max 48.981/45.403 ms (trace on/off), search 21.7 ms, tabs 28.6 ms, dialog-mouse 26.0 ms; navigation max 21.6/35.9/27.4 ms on all/2/1 CPUs; 0 application investigations, no sample over 50 ms. 220 Rust tests, fmt and strict Clippy on the same code.",
+  "ci": "GitHub Actions CI passed on windows-latest (elevated runner) and ubuntu-latest for 778ec92 (run 43679036769), whose code equals 7353f42 apart from the version, CHANGELOG, README and FILE_SAFETY.md.",
+  "linux": "NOT RUN: Linux build and checks remain paused by the owner; v0.1.3 ships no Linux archive and Linux x64 stays on v0.1.1.",
+  "files": {
+    "windows/agent.txt": {
+      "sha256": "d8bca651fa7d29b54829a9a79e33cc7e046b5a636883bc7bec05b8f7e1ec127b",
+      "bytes": 459
+    },
+    "windows/binary.sha256": {
+      "sha256": "aa8f02c3fae36991cf86e8a75f267fa86d580b4bd9f9dbc8dab0c3907c3dd5da",
+      "bytes": 294
+    },
+    "windows/clipboard.txt": {
+      "sha256": "af988b42b9dcd2d62f6320f95ee892ad199555253d96570742649b29f31cbdd9",
+      "bytes": 162
+    },
+    "windows/dialog-mouse.txt": {
+      "sha256": "140b246e7ad43cd410d705ad1b8e8e8702b0ce9925e12a33d84f069b8f8a3e51",
+      "bytes": 269
+    },
+    "windows/git-status.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "windows/head.txt": {
+      "sha256": "4703e8c0659299172eecfe7e2e10b86db578f06eccb98fd0895e0ce24bbeff7e",
+      "bytes": 41
+    },
+    "windows/keyboard.txt": {
+      "sha256": "03743b0a6306f41da74c45d6a313091391e42621a2c75b1f9c1c45cb8ff116b6",
+      "bytes": 1143
+    },
+    "windows/latency-no-trace-report.json": {
+      "sha256": "36832d1d89850e0abaace0ede5f893616fda49f19744cddc5590f48f791f5070",
+      "bytes": 302420
+    },
+    "windows/latency-trace-report.json": {
+      "sha256": "a039e650297f6781b74497114317d3f53fcad1ce36e5e04a2d1b06b1387e7f03",
+      "bytes": 319193
+    },
+    "windows/navigation-all-report.json": {
+      "sha256": "23a8e0e51ae53baa13a432564da644aa3224c1401e330a16c86f0f8588de13d5",
+      "bytes": 64571
+    },
+    "windows/navigation-unprepared-1cpu-report.json": {
+      "sha256": "6600bd776ca8d96754f11176c13bea3a98ddc9cbd00124b803c9e1b1e49df624",
+      "bytes": 35514
+    },
+    "windows/navigation-unprepared-2cpu-report.json": {
+      "sha256": "f9c8979ee77b0a580210e604c4d2f82b1e736807a6085c46e937034a3ad837c4",
+      "bytes": 35525
+    },
+    "windows/recovery.txt": {
+      "sha256": "ae5a09b4850d82115090b64c66ba247d0a3e5260a803dcefccf1e4e6111cb313",
+      "bytes": 386
+    },
+    "windows/search.txt": {
+      "sha256": "a95a617a132a364706f932491609e333014875e62ad73f6bd331154f093f2c01",
+      "bytes": 11862
+    },
+    "windows/session.txt": {
+      "sha256": "2b352f2f9de4af7eb9ce5655792721fe93128b492fe055db630cb8797ac62f5d",
+      "bytes": 386
+    },
+    "windows/summary.txt": {
+      "sha256": "e67c446979bf2b66b1bb8f8db817f1d76c5161dc310bc514154b3be70bc6754a",
+      "bytes": 615
+    },
+    "windows/tabs.txt": {
+      "sha256": "25349d494d0a3568cb1539f395fe84f7d5a5f1589b16814515ee4475781f4c2c",
+      "bytes": 556
+    },
+    "windows/typeahead.txt": {
+      "sha256": "30880b8ffaa5afd97961e621eaa1f73f1804567a4bd60e6a1ea4b86d8fa82f75",
+      "bytes": 142
+    }
+  }
+}

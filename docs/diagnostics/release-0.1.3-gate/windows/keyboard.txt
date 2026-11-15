@@ -1,0 +1,18 @@
+D:\Project\GuineaNote\target\previews\keyboard-search-unified.png
+D:\Project\GuineaNote\target\previews\keyboard-search-small.png
+D:\Project\GuineaNote\target\previews\keyboard-help-small-end.png
+D:\Project\GuineaNote\target\previews\keyboard-help-vi-end.png
+{
+  "report": "D:\\Project\\GuineaNote\\target\\keyboard-1794719070229999400\\report.json",
+  "completed": [
+    "Tab manager filtering, Tab/Shift+Tab, F12, F6/F7, Alt arrows, Ctrl+PageUp/PageDown",
+    "Unified fields and every action reached by Tab; Enter on Replace all; one Undo transaction",
+    "Alt+A replaces all; explicit saves preserve UTF-8 BOM/CRLF/NFD/ZWJ and Undo restores bytes",
+    "30x9 focused action visibility and keyboard guide Home/End scrolling",
+    "Ctrl+L goto, Ctrl+U clear prompt, Alt+S Save As",
+    "F2 action-list navigation, file picker, focus mode (F11/Shift+F11), file details and review chooser",
+    "Dirty close keeps Cancel as default; tab shortcuts cannot select Discard; Tab+Enter explicitly discards",
+    "Vietnamese keyboard guide and settings BackTab, clean exit and unchanged source files"
+  ],
+  "investigations": []
+}
