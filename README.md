@@ -115,35 +115,36 @@ contains:
 **Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others):
 
 ```sh
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/guinea-0.1.2-x86_64-unknown-linux-musl.tar.gz
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
-install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
+tar -xzf guinea-0.1.2-x86_64-unknown-linux-musl.tar.gz
+install -m 755 guinea-0.1.2-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 ```
 
 **Windows x64** (PowerShell; no Visual C++ redistributable needed):
 
 ```powershell
-Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/guinea-0.1.2-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
 Get-FileHash -Algorithm SHA256 guinea.zip    # compare with SHA256SUMS
 Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
-# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.1-x86_64-pc-windows-msvc to your PATH
+# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.2-x86_64-pc-windows-msvc to your PATH
 ```
 
 The binaries are not code-signed yet, so SmartScreen may warn about a browser
 download. winget (`cmm-cmm.GuineaNote`) and npm (`npx guinea-note`) packages
 are planned; see the [release plan](docs/RELEASE.md).
 
-### Install with Cargo
+### Install with Cargo (developers)
 
-With Rust 1.98 or newer (and the MSVC build tools on Windows), Cargo builds
-and installs a tagged release straight from GitHub:
+The release archives above need no Rust toolchain. If you already develop
+with Rust 1.98 or newer (and the MSVC build tools on Windows), Cargo can
+build and install a tagged release from source instead:
 
 ```sh
-cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.2 --locked guineanote
 # Agent access (optional): guineanote-agent and guineanote-mcp
-cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guinea-agent
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.2 --locked guinea-agent
 ```
 
 The binaries go to `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows).

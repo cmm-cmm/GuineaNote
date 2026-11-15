@@ -4,7 +4,12 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
-## [Unreleased]
+## [0.1.2] — unreleased
+
+### Changed
+- README: the release archives are the default installation and need no
+  Rust toolchain; `cargo install --git` is listed as an option for
+  developers who build from source.
 
 ### Fixed
 - F2 action list: Enter runs the highlighted row. Typing a name that was
