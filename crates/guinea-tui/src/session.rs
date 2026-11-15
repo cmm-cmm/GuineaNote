@@ -137,11 +137,16 @@ impl Restore {
     }
 }
 
-/// The comparable form of a file path: absolute and, on Windows, without the
-/// verbatim `\\?\` prefix that canonicalized document paths carry, so a
+/// The comparable form of a file path: canonical when the file exists (on
+/// Windows this also expands 8.3 short names such as `RUNNER~1`, which a
+/// TEMP-based path may use while opened documents carry the long name),
+/// otherwise absolute; on Windows without the verbatim `\\?\` prefix, so a
 /// session entry `C:\a.txt` matches the opened document `\\?\C:\a.txt`.
 pub(crate) fn key(path: &Path) -> PathBuf {
-    let path = std::path::absolute(path).unwrap_or_else(|_| path.to_path_buf());
+    let path = path
+        .canonicalize()
+        .or_else(|_| std::path::absolute(path))
+        .unwrap_or_else(|_| path.to_path_buf());
     crate::paths::display(&path)
 }
 
