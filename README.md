@@ -133,8 +133,22 @@ Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
 ```
 
 The binaries are not code-signed yet, so SmartScreen may warn about a browser
-download. winget (`cmm-cmm.GuineaNote`) and npm (`npx guinea-note`) packages
-are planned; see the [release plan](docs/RELEASE.md).
+download.
+
+### Install with npm
+
+With Node.js 18 or newer, npm installs the same native binary as the release
+archive (the launcher runs it; no Rust toolchain is needed):
+
+```sh
+npx guinea-note notes.md          # run once
+npm install -g guinea-note        # then: guinea notes.md
+```
+
+The `guinea-note` launcher depends on one platform package per OS, such as
+`@cmm_cmm/guinea-note-win32-x64`. Version 0.1.2 is published for Windows x64
+only; on Linux use the 0.1.1 archive above. A winget package
+(`cmm-cmm.GuineaNote`) is under review; see the [release plan](docs/RELEASE.md).
 
 ### Install with Cargo (developers)
 

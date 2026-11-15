@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import io
 import json
+import re
 import shutil
 import subprocess
 import tarfile
@@ -35,6 +36,40 @@ PLATFORMS = [
     ("win32-x64", "win32", "x64", "x86_64-pc-windows-msvc", ".zip", ".exe"),
     ("linux-x64", "linux", "x64", "x86_64-unknown-linux-musl", ".tar.gz", ""),
 ]
+
+
+# Same text as the GitHub repository description and topics (gh repo view).
+DESCRIPTION = ("Notepad++-style terminal text editor in Rust: tabs, regex Find/Replace, "
+               "line tools, session restore and exact-byte saves. Windows and Linux.")
+KEYWORDS = ["cli", "editor", "linux", "notepad", "ratatui", "rust", "terminal",
+            "text-editor", "tui", "unicode", "windows"]
+GITHUB = "https://github.com/cmm-cmm/GuineaNote"
+RAW = "https://raw.githubusercontent.com/cmm-cmm/GuineaNote"
+IMAGE = re.compile(r"\.(png|jpe?g|gif|svg|webp)$", re.IGNORECASE)
+MARKDOWN_LINK = re.compile(r"(!?\[[^\]]*\]\()([^)\s]+)((?:\s+\"[^\"]*\")?\))")
+HTML_LINK = re.compile(r'((?:src|href)=")([^"]+)(")')
+
+
+def absolute(target, tag):
+    """GitHub-relative README target -> absolute URL at the release tag."""
+    if re.match(r"^[a-z][a-z0-9+.-]*:", target, re.IGNORECASE) or target.startswith(("#", "/")):
+        return target
+    path, _, fragment = target.partition("#")
+    if IMAGE.search(path):
+        url = f"{RAW}/{tag}/{path}"
+    elif path.endswith("/"):
+        url = f"{GITHUB}/tree/{tag}/{path}"
+    else:
+        url = f"{GITHUB}/blob/{tag}/{path}"
+    return url + (f"#{fragment}" if fragment else "")
+
+
+def npm_readme(tag):
+    """README.md of the tag, readable on npmjs.com: same text as GitHub."""
+    text = subprocess.run(["git", "show", f"{tag}:README.md"], cwd=ROOT, check=True,
+                          capture_output=True).stdout.decode("utf-8")
+    text = MARKDOWN_LINK.sub(lambda m: m[1] + absolute(m[2], tag) + m[3], text)
+    return HTML_LINK.sub(lambda m: m[1] + absolute(m[2], tag) + m[3], text)
 
 
 def platform_package(suffix):
@@ -114,18 +149,12 @@ def main():
     launcher = stage / "guinea-note"
     shutil.copytree(ROOT / "packaging" / "npm" / "guinea-note", launcher)
     shutil.copyfile(ROOT / "LICENSE", launcher / "LICENSE")
-    included = [suffix for suffix, *_ in PLATFORMS if platform_package(suffix) in optional]
-    missing = [suffix for suffix, *_ in PLATFORMS if platform_package(suffix) not in optional]
-    note = f"\n## Platforms in {version}\n\nIncluded: {', '.join(included)}.\n"
-    if missing:
-        note += (f"Not included: {', '.join(missing)}; download a GitHub Release archive "
-                 "built for it: https://github.com/cmm-cmm/GuineaNote/releases\n")
-    with open(launcher / "README.md", "a", encoding="utf-8", newline="\n") as readme:
-        readme.write(note)
+    # npmjs.com shows the same README as GitHub (the README at the tag).
+    (launcher / "README.md").write_text(npm_readme(args.tag), encoding="utf-8", newline="\n")
     manifest = {"name": "guinea-note", "version": version,
-                "description": "Notepad++-style terminal text editor (Rust): tabs, regex Find/Replace, exact-byte saves",
+                "description": DESCRIPTION,
                 **COMMON,
-                "keywords": ["editor", "text-editor", "terminal", "tui", "notepad", "cli"],
+                "keywords": KEYWORDS,
                 "bin": {"guinea": "bin/guinea.js"},
                 "files": ["bin/", "LICENSE", "README.md"],
                 "engines": {"node": ">=18"},
