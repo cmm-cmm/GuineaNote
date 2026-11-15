@@ -14,8 +14,9 @@ This package is a small launcher. npm installs the native binary for your
 platform as an optional dependency (`guinea-note-win32-x64` or
 `guinea-note-linux-x64`); it is the same file as in the
 [GitHub Release](https://github.com/cmm-cmm/GuineaNote/releases) archive
-(see `SHA256SUMS`). Node.js is needed only for the launcher. Supported: Windows
-x64 and Linux x64 (static, any distribution). macOS is not released.
+(see `SHA256SUMS`). Node.js is needed only for the launcher. Releases are built
+for Windows x64 and Linux x64 (static, any distribution); the platforms of this
+version are listed below. macOS is not released.
 
 Documentation, source and issues: https://github.com/cmm-cmm/GuineaNote
 — MIT License.

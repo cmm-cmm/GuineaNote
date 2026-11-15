@@ -64,7 +64,8 @@ def main():
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     version = args.tag.removeprefix("v")
-    out = args.out or ROOT / "target" / "npm" / args.tag
+    # Absolute: npm pack runs inside each staged package directory.
+    out = (args.out or ROOT / "target" / "npm" / args.tag).resolve()
     if out.exists():
         raise SystemExit(f"{out} exists")
     release = json.loads((args.dist / "release-manifest.json").read_text(encoding="utf-8"))
@@ -106,6 +107,14 @@ def main():
     launcher = stage / "guinea-note"
     shutil.copytree(ROOT / "packaging" / "npm" / "guinea-note", launcher)
     shutil.copyfile(ROOT / "LICENSE", launcher / "LICENSE")
+    included = [suffix for suffix, *_ in PLATFORMS if f"guinea-note-{suffix}" in optional]
+    missing = [suffix for suffix, *_ in PLATFORMS if f"guinea-note-{suffix}" not in optional]
+    note = f"\n## Platforms in {version}\n\nIncluded: {', '.join(included)}.\n"
+    if missing:
+        note += (f"Not included: {', '.join(missing)}; download a GitHub Release archive "
+                 "built for it: https://github.com/cmm-cmm/GuineaNote/releases\n")
+    with open(launcher / "README.md", "a", encoding="utf-8", newline="\n") as readme:
+        readme.write(note)
     manifest = {"name": "guinea-note", "version": version,
                 "description": "Notepad++-style terminal text editor (Rust): tabs, regex Find/Replace, exact-byte saves",
                 **COMMON,
