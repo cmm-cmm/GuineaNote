@@ -12,8 +12,9 @@ released.
   Linux, winget and Cargo, screenshots, features, keys, platforms and an FAQ.
   Structured data (SoftwareApplication, HowTo, FAQPage), `llms.txt` and
   `llms-full.txt` for search engines and AI assistants. Static files in
-  `site/`, served by a Cloudflare Worker (`wrangler.toml`); CI checks its
-  version, links and structured data (`scripts/site/check.py`).
+  `site/`, served by a Cloudflare Worker (`wrangler.toml`) that Cloudflare
+  Workers Builds redeploys on every push to `main`; CI checks its version,
+  links and structured data (`scripts/site/check.py`).
 
 ### Release
 - Releases are published by GitHub Actions (`.github/workflows/release.yml`)

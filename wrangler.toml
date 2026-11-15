@@ -1,6 +1,8 @@
 # The website, https://guineanote.konexforge.com/ - static files in site/, served by a
 # Cloudflare Worker with static assets, like the other Konex Forge sites. No build step: the
-# folder is uploaded as it is. Deploy from the repository root with:  npx wrangler deploy
+# folder is uploaded as it is. Cloudflare Workers Builds (Git integration with cmm-cmm/GuineaNote,
+# trigger "Deploy default branch") runs `npx wrangler deploy` on every push to main, like the
+# other Konex Forge sites. By hand, from the repository root:  npx wrangler deploy
 name = "guinea-note"
 compatibility_date = "2026-10-01"
 workers_dev = false
