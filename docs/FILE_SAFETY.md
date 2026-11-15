@@ -91,7 +91,9 @@ GUINEANOTE_RECOVERY_DIR overrides the root. An explicit GUINEANOTE_PREFERENCES
 uses a sibling recovery directory for isolated environments.
 
 Directories/files are owner-only (Unix 0700/0600; protected owner-only Windows
-DACL); foreign owners, symlinks and reparse points are refused. Snapshots are
+DACL); foreign owners, symlinks and reparse points are refused. On Windows the
+owner may be the current user or the default owner of the process's new files
+(the Administrators group in an elevated session; read from a probe file). Snapshots are
 plaintext local drafts and may contain secrets. OS session locks prevent opening
 a live editor's records. Inactive sessions are claimed until checkpoint handoff.
 

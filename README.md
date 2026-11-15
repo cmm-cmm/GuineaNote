@@ -111,11 +111,11 @@ Every channel installs the same binaries as the GitHub Release archives
 
 | Channel | Package | Version | Platforms | Install |
 | --- | --- | --- | --- | --- |
-| GitHub Releases | [`guinea-0.1.2-x86_64-pc-windows-msvc.zip`](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2) | 0.1.2 (latest) | Windows x64 | [Download a release](#download-a-release) |
+| GitHub Releases | [`guinea-0.1.3-x86_64-pc-windows-msvc.zip`](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3) | 0.1.3 (latest) | Windows x64 | [Download a release](#download-a-release) |
 | GitHub Releases | [`guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz`](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1) | 0.1.1 | Linux x64 | [Download a release](#download-a-release) |
-| npm | [`guinea-note`](https://www.npmjs.com/package/guinea-note) (launcher) and [`@cmm_cmm/guinea-note-win32-x64`](https://www.npmjs.com/package/@cmm_cmm/guinea-note-win32-x64) | 0.1.2 | Windows x64 | `npx guinea-note` ([details](#install-with-npm)) |
-| winget | `cmm-cmm.GuineaNote` | 0.1.2, [in review](https://github.com/microsoft/winget-pkgs/pull/480530) | Windows x64 | `winget install cmm-cmm.GuineaNote` once accepted |
-| Cargo (developers) | builds from the Git tag | 0.1.2 | Windows x64, Linux x64 | [Install with Cargo](#install-with-cargo-developers) |
+| npm | [`guinea-note`](https://www.npmjs.com/package/guinea-note) (launcher) and [`@cmm_cmm/guinea-note-win32-x64`](https://www.npmjs.com/package/@cmm_cmm/guinea-note-win32-x64) | 0.1.3 | Windows x64 | `npx guinea-note` ([details](#install-with-npm)) |
+| winget | `cmm-cmm.GuineaNote` | 0.1.3, [in review](https://github.com/microsoft/winget-pkgs/pull/480530) | Windows x64 | `winget install cmm-cmm.GuineaNote` once accepted |
+| Cargo (developers) | builds from the Git tag | 0.1.3 | Windows x64, Linux x64 | [Install with Cargo](#install-with-cargo-developers) |
 
 ### Download a release
 
@@ -126,8 +126,8 @@ contains:
 - `guineanote-agent` and `guineanote-mcp`, for Agent access;
 - `LICENSE` and `THIRD_PARTY_NOTICES.txt`.
 
-**Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others). Version
-0.1.2 was released for Windows only, so Linux stays on 0.1.1 for now:
+**Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others). Versions
+0.1.2 and 0.1.3 were released for Windows only, so Linux stays on 0.1.1 for now:
 
 ```sh
 curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
@@ -140,10 +140,10 @@ install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 **Windows x64** (PowerShell; no Visual C++ redistributable needed):
 
 ```powershell
-Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/guinea-0.1.2-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
 Get-FileHash -Algorithm SHA256 guinea.zip    # compare with SHA256SUMS
 Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
-# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.2-x86_64-pc-windows-msvc to your PATH
+# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc to your PATH
 ```
 
 The binaries are not code-signed yet, so SmartScreen may warn about a browser
@@ -160,7 +160,7 @@ npm install -g guinea-note        # then: guinea notes.md
 ```
 
 The `guinea-note` launcher depends on one platform package per OS, such as
-`@cmm_cmm/guinea-note-win32-x64`. Version 0.1.2 is published for Windows x64
+`@cmm_cmm/guinea-note-win32-x64`. Version 0.1.3 is published for Windows x64
 only; on Linux use the 0.1.1 archive above. A winget package
 (`cmm-cmm.GuineaNote`) is under review; see the [release plan](docs/RELEASE.md).
 
@@ -171,9 +171,9 @@ with Rust 1.98 or newer (and the MSVC build tools on Windows), Cargo can
 build and install a tagged release from source instead:
 
 ```sh
-cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.2 --locked guineanote
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote
 # Agent access (optional): guineanote-agent and guineanote-mcp
-cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.2 --locked guinea-agent
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guinea-agent
 ```
 
 The binaries go to `~/.cargo/bin` (`%USERPROFILE%\.cargo\bin` on Windows).

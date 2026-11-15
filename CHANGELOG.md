@@ -4,6 +4,30 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
+## [0.1.3] — 2026-11-15
+
+### Release
+- Windows x64 only, like 0.1.2 (Linux x64 stays on 0.1.1): GitHub Release, npm
+  and the winget submission (the pending winget pull request moves to 0.1.3).
+
+### Fixed
+- Saving no longer fails with "Recovery path belongs to another user" when
+  Guinea Note runs elevated ("Run as administrator"). Windows makes the
+  Administrators group the owner of new files there; the owner check now also
+  accepts the default owner of the process's own new files. Foreign owners are
+  still refused. Found by the new CI on the elevated Windows runner; present
+  since 0.1.0.
+- Session restore matches files whose saved path uses Windows 8.3 short
+  names (for example a TEMP path with `RUNNER~1`); their caret position was
+  not restored because the opened document carries the long name.
+
+### Changed
+- npm: the `guinea-note` page shows the GitHub README (same text and layout;
+  links made absolute), with the GitHub description and topics. Platform
+  packages are scoped, `@cmm_cmm/guinea-note-<platform>-<arch>`, because npm
+  refused the unscoped name as spam.
+- README: a Published packages table, an npm badge and "Install with npm".
+
 ## [0.1.2] — 2026-11-15
 
 ### Release

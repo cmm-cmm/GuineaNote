@@ -12,7 +12,7 @@ body:
     attributes:
       label: Version
       description: Output of `guinea --version` (or the commit if built from source)
-      placeholder: guinea 0.1.2
+      placeholder: guinea 0.1.3
     validations:
       required: true
   - type: dropdown
