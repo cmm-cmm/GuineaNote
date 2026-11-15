@@ -9,9 +9,11 @@
   - Up next: gửi sitemap lên Google Search Console và Bing Webmaster Tools;
     thêm Trusted Publisher npm cho hai gói (trước bản 0.1.4).
   - Not started: liên kết website từ konexforge.com; secret `WINGET_TOKEN`;
-    (tùy chọn) secret Cloudflare để workflow tự deploy website; nối lại build
-    và kiểm tra Linux.
-  - Done: phát hành v0.1.3 (GitHub, npm); workflow tự phát hành; website.
+    nối lại build và kiểm tra Linux.
+  - Done: phát hành v0.1.3 (GitHub, npm); workflow tự phát hành; website;
+    tự deploy website khi push lên `main` bằng Cloudflare Workers Builds
+    (trigger "Deploy default branch", không cần token Cloudflare trong GitHub;
+    đã kiểm chứng với commit `4bff404`).
 - Dọn dẹp: phần "Tạm dừng 10/11" ở đầu trang chính chuyển nguyên văn sang
   trang con "Lưu trữ — Ghi chú tạm dừng phát triển (10/11/2026)" trong Lưu trữ
   lịch sử; callout v0.1.2 của trang kế hoạch chuyển sang trang lưu trữ kế hoạch;
