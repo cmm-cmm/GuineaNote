@@ -1,0 +1,48 @@
+{
+  "created": "2026-11-15",
+  "release": "v0.1.3 (annotated tag on 8d0daa8), Windows x64 only; GitHub Release 'Guinea Note 0.1.3 (Windows)' marked Latest.",
+  "github_release": "https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3 with guinea-0.1.3-x86_64-pc-windows-msvc.zip (SHA256SUMS), SHA256SUMS and release-manifest.json. Built with --locked in a clean worktree of the tag; downloaded anonymously, SHA256SUMS re-checked (OK) and release-manifest.json identical to the local one. release-notes.md is the published description.",
+  "windows_archive_checks": "windows-check.txt: DLL imports of the three archived executables (system DLLs only, same list as v0.1.2) from the standard-library PE reader, and --version 0.1.3. windows-smoke.txt: pty_smoke.py on the archived guinea.exe, PASS.",
+  "linux": "No Linux archive: Docker/WSL and the Linux build checks remain paused by the owner; Linux x64 stays on v0.1.1. CI tests pass on ubuntu-latest; that is not a Linux release gate.",
+  "npm": "npm-manifest.json: @cmm_cmm/guinea-note-win32-x64@0.1.3 (binary SHA-256 equals guinea.exe in the release archive) and the guinea-note@0.1.3 launcher (README = README.md at v0.1.3 with absolute links; description and keywords = GitHub repository description and topics), staged by scripts/release/npm.py from the downloaded release assets. npm-publish.txt: both published with web 2FA. npm held the versions for review, then released them. npm-registry-check.txt: registry README, description and keywords equal the generated ones; fresh npm install and npx print guinea 0.1.3; the installed guinea.exe has the release SHA-256; 0.1.2 is live as well.",
+  "winget": "packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.3 (schema 1.28.0). PR https://github.com/microsoft/winget-pkgs/pull/480530 (one version per PR) moved from 0.1.2 to 0.1.3: branch cmm-cmm.GuineaNote-0.1.2 of the cmm-cmm fork, commit 88ea79a, diff against upstream contains only the three 0.1.3 files; title and description (winget-pr-body.md) updated. Validation steps 01-06 passed. Pending: Microsoft CLA (owner; the bot posted the agreement at 2026-11-15T05:16:57Z) and moderator review.",
+  "ci": "GitHub Actions CI green on windows-latest (elevated) and ubuntu-latest: run 43679036769 (778ec92), 43679682339 (dev, 8d0daa8), 43679686189 (main, 8d0daa8).",
+  "files": {
+    "npm-manifest.json": {
+      "sha256": "74f208f35c5ebeaea7607af7f19660a090bc40dae0686acdd30618644f069b48",
+      "bytes": 543
+    },
+    "npm-publish.txt": {
+      "sha256": "b92c22f7d6d79c94c9f86f3d5e0e5f376731941263221193f54b9f44b6fb8fe2",
+      "bytes": 374
+    },
+    "npm-registry-check.txt": {
+      "sha256": "88234c828eba18281658ed274386ea68e75db3434a7ab76e57f3dd09d33861bb",
+      "bytes": 1365
+    },
+    "release-manifest.json": {
+      "sha256": "7ac05e188fb40449daf8562e05c6be5766c1e5b49a749a88af5b449d6704b998",
+      "bytes": 1421
+    },
+    "release-notes.md": {
+      "sha256": "9c7f7cf4525b89410fb5b752b0946de898e512ecb93e836169b88620a2617e17",
+      "bytes": 1751
+    },
+    "SHA256SUMS": {
+      "sha256": "861b647d9fc4f4a4ce9b5ce96e6fcf24c65377284f719a36bbb4fa5cd42e9cdb",
+      "bytes": 106
+    },
+    "windows-check.txt": {
+      "sha256": "16530385e5301ceb75858ad25e48c8d6f50012e65afa3c58ff9afec7d594a40b",
+      "bytes": 615
+    },
+    "windows-smoke.txt": {
+      "sha256": "4b3048448ce83f1ea1e533049c0ac10a63c93df82e65a14be1761ccdabc8b3c3",
+      "bytes": 146
+    },
+    "winget-pr-body.md": {
+      "sha256": "8c62c3445e98f324cf0aa04c59f82410062677ad98150997f690a9b3519d999b",
+      "bytes": 1633
+    }
+  }
+}

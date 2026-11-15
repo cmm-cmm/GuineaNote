@@ -366,8 +366,8 @@ editable. See the [Agent guide](docs/AGENT_USAGE.md) (Vietnamese) and
 
 | Platform | Status |
 | --- | --- |
-| Windows x64 (Windows Terminal, conhost) | Released; verified on Windows 11 with ConPTY |
-| Linux x64 (static musl) | Released; verified in a Debian 12 container, runs on Debian 11/12, Ubuntu 22.04, Alpine 3.20 |
+| Windows x64 (Windows Terminal, conhost) | Released (latest 0.1.3); verified on Windows 11 with ConPTY, and by CI on an elevated runner |
+| Linux x64 (static musl) | Released up to 0.1.1, verified in a Debian 12 container, runs on Debian 11/12, Ubuntu 22.04, Alpine 3.20. 0.1.2 and 0.1.3 are Windows only while the Linux build checks are paused; CI still runs the tests on Linux |
 | macOS | Not released and not verified |
 | ARM64, real Linux terminal emulators, Wayland clipboard, SSH/tmux | Not yet verified |
 

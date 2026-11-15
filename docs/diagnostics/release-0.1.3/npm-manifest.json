@@ -1,0 +1,17 @@
+{
+  "version": "0.1.3",
+  "tag": "v0.1.3",
+  "packages": {
+    "@cmm_cmm/guinea-note-win32-x64": {
+      "tarball": "cmm_cmm-guinea-note-win32-x64-0.1.3.tgz",
+      "sha256": "38435f4737ad43ec9a06e79c2874392588b8ff031bf84f709935d7bc37419750",
+      "bytes": 3237860,
+      "binary_sha256": "655e53640b8292c7ebc55e081110ae0f72f883c0f1a7288973e00b9db8478376"
+    },
+    "guinea-note": {
+      "tarball": "guinea-note-0.1.3.tgz",
+      "sha256": "daf790a732e35f6563b757c94a309d9fcaa552145a0c34fa1951bf3aed051990",
+      "bytes": 9853
+    }
+  }
+}

@@ -1,0 +1,21 @@
+npm registry check of 0.1.3 (15/11/2026, after npm released the reviewed versions):
+{
+  "launcher_latest": "0.1.3",
+  "platform_latest": "0.1.3",
+  "registry_readme_equals_npm_readme": true,
+  "readme_length": 21413,
+  "description_matches": true,
+  "keywords_match": true,
+  "launcher_optionalDependencies": {
+    "@cmm_cmm/guinea-note-win32-x64": "0.1.3"
+  },
+  "launcher_tarball": "https://registry.npmjs.org/guinea-note/-/guinea-note-0.1.3.tgz",
+  "launcher_integrity": "sha512-2mR362Tx1uGC3nNwPtrb3UcVWS3jWUN8TbSOliHFcx0InhEWJ8IMSQLyI8Ee55jHTi/twEeHehcPM7wOqxQ1PA==",
+  "platform_tarball": "https://registry.npmjs.org/@cmm_cmm/guinea-note-win32-x64/-/guinea-note-win32-x64-0.1.3.tgz",
+  "platform_integrity": "sha512-dLc+pAWajnpOMpLPg+EJafiEBcHW9MrVsR61STnZtdxCe3vFkPzIkuhKtb43hniK7neELr1hFn4W2ApT9L8pVQ=="
+}
+Fresh project: npm install guinea-note@0.1.3 -> guinea --version: guinea 0.1.3
+npx --yes guinea-note@0.1.3 --version: guinea 0.1.3; npx --yes guinea-note --version: guinea 0.1.3
+Installed binary sha256 (node_modules/@cmm_cmm/guinea-note-win32-x64/bin/guinea.exe): 655e53640b8292c7ebc55e081110ae0f72f883c0f1a7288973e00b9db8478376 (same as guinea.exe in the release zip)
+Non-interactive run: exits 1 with 'Guinea Note requires an interactive terminal (try --help)'
+npx --yes guinea-note@0.1.2 --version: guinea 0.1.2 (0.1.2 was released by npm as well)
