@@ -14,7 +14,27 @@ from pty_smoke import ROOT, Session
 BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 F2 = "\x1bOQ"
 CTRL_S, CTRL_Q, END = "\x13", "\x11", "\x1b[F"
-QUEUED = b"typing is queued"
+QUEUED = "typing is queued"
+QUITS = "Quits when"
+
+
+def watch(ui, *texts):
+    """Record which status texts ever appear on the rendered screen.
+
+    Ratatui writes only the cells that changed, so a message sharing
+    characters with the previous status line (here the opened path) is
+    never contiguous in the raw byte stream. Check every rendered state
+    instead of searching ui.output."""
+    seen = set()
+    feed = ui.stream.feed
+
+    def tracked(data):
+        feed(data)
+        screen = "\n".join(ui.screen.display)
+        seen.update(text for text in texts if text in screen)
+
+    ui.stream.feed = tracked
+    return seen
 
 
 def saved(ui, path, expected):
@@ -43,12 +63,13 @@ def during_open(root, round_):
     path.write_bytes(body.encode())
     typed = f"Việt{round_}+ok "
     ui = Session([str(BINARY), str(path)], preferences_path=root / "preferences.toml")
+    seen = watch(ui, QUEUED)
     try:
         # Sent before the editor has even finished opening the file.
         ui.send(typed)
         ui.wait("MODIFIED", timeout=30)
         saved(ui, path, (typed + body).encode())
-        queued = QUEUED in ui.output
+        queued = QUEUED in seen
         quit(ui)
         return queued
     except BaseException:
@@ -61,6 +82,7 @@ def during_sort(root):
     lines = [f"line {n:06} ✓" for n in range(150_000, 0, -1)]
     path.write_bytes("\r\n".join(lines).encode())
     ui = Session([str(BINARY), str(path)], preferences_path=root / "preferences.toml")
+    seen = watch(ui, QUEUED)
     try:
         ui.wait("line 150000")
         ui.send(F2)
@@ -74,7 +96,7 @@ def during_sort(root):
         rows[0] = "head " + rows[0] + "+tail Việt"
         expected = "\r\n".join(rows)
         saved(ui, path, expected.encode())
-        queued = QUEUED in ui.output
+        queued = QUEUED in seen
         quit(ui)
         return queued
     except BaseException:
@@ -125,6 +147,7 @@ def quit_during_save(root, round_):
     body = "dòng é 👩‍💻\r\n" * 380_000
     path.write_bytes(body.encode())
     ui = Session([str(BINARY), str(path)], preferences_path=root / "preferences.toml")
+    seen = watch(ui, QUITS)
     try:
         ui.wait("dòng é")
         ui.send(f"q{round_}")
@@ -132,7 +155,7 @@ def quit_during_save(root, round_):
         ui.send(CTRL_S + CTRL_Q)
         ui.wait("TERM_STATE_OK", timeout=30)
         ui.wait("CHILD_EXIT=0")
-        waited = b"Quits when" in ui.output
+        waited = QUITS in seen
         ui.close()
         assert path.read_bytes() == (f"q{round_}" + body).encode()
         return waited

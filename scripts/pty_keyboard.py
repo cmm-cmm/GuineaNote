@@ -17,12 +17,29 @@ from tui_preview import snapshot
 BINARY = ROOT / "target/release" / ("guinea.exe" if os.name == "nt" else "guinea")
 
 
-def wait_saved(ui):
-    # A previous Saved message can remain visible while the current buffer is
-    # dirty. Await current state before opening a Windows save destination.
-    ui.wait_until(lambda rows: "● Saved" in (text := "\n".join(rows))
-                  and "● MODIFIED" not in text and "Saving" not in text
-                  and "Save to NEW path" not in text)
+def saved_state(rows):
+    text = "\n".join(rows)
+    return ("● Saved" in text and "● MODIFIED" not in text and "Saving" not in text
+            and "Save to NEW path" not in text)
+
+
+def wait_saved(ui, timeout=10):
+    """Wait until the editor shows the buffer saved, on a complete frame.
+
+    A previous Saved message can remain visible while the current buffer is
+    dirty, and the observer may read a frame that is only partly written (the
+    Save As dialog rows already cleared, the status row not yet updated). So
+    the saved state counts only once it still holds after the output has gone
+    quiet. The file is never opened before then: a reader without
+    FILE_SHARE_DELETE makes the editor's replace fail on Windows."""
+    deadline = time.monotonic() + timeout
+    while True:
+        ui.wait_until(saved_state, timeout=max(0.1, deadline - time.monotonic()))
+        ui.read(.15)  # drain the rest of the frame being written
+        if saved_state(ui.screen.display):
+            return
+        if time.monotonic() > deadline:
+            raise AssertionError("saved state did not settle: " + ui.screen.display[-3].strip())
 
 
 def main():
