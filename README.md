@@ -4,6 +4,7 @@
 
 <p align="center">
   <a href="https://github.com/cmm-cmm/GuineaNote/releases"><img alt="Release" src="https://img.shields.io/github/v/release/cmm-cmm/GuineaNote?include_prereleases&label=release"></a>
+  <a href="https://www.npmjs.com/package/guinea-note"><img alt="npm" src="https://img.shields.io/npm/v/guinea-note?label=npm"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-22C55E"></a>
   <img alt="Windows x64 and Linux x64" src="https://img.shields.io/badge/platform-Windows%20x64%20%7C%20Linux%20x64-153A34">
   <img alt="Rust 1.98+" src="https://img.shields.io/badge/rust-1.98%2B-C97A45">
@@ -102,6 +103,19 @@ Screenshots are rendered from the real editor in a terminal
 (`python -X utf8 scripts/readme_screenshots.py`).
 
 ## Installation
+
+### Published packages
+
+Every channel installs the same binaries as the GitHub Release archives
+(same SHA-256); none of them needs a Rust toolchain.
+
+| Channel | Package | Version | Platforms | Install |
+| --- | --- | --- | --- | --- |
+| GitHub Releases | [`guinea-0.1.2-x86_64-pc-windows-msvc.zip`](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2) | 0.1.2 (latest) | Windows x64 | [Download a release](#download-a-release) |
+| GitHub Releases | [`guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz`](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1) | 0.1.1 | Linux x64 | [Download a release](#download-a-release) |
+| npm | [`guinea-note`](https://www.npmjs.com/package/guinea-note) (launcher) and [`@cmm_cmm/guinea-note-win32-x64`](https://www.npmjs.com/package/@cmm_cmm/guinea-note-win32-x64) | 0.1.2 | Windows x64 | `npx guinea-note` ([details](#install-with-npm)) |
+| winget | `cmm-cmm.GuineaNote` | 0.1.2, [in review](https://github.com/microsoft/winget-pkgs/pull/480530) | Windows x64 | `winget install cmm-cmm.GuineaNote` once accepted |
+| Cargo (developers) | builds from the Git tag | 0.1.2 | Windows x64, Linux x64 | [Install with Cargo](#install-with-cargo-developers) |
 
 ### Download a release
 
