@@ -17,7 +17,9 @@ Use Rust 1.98 or newer with native build tools; Windows requires MSVC tooling. R
 - `cargo test --workspace`: run all Rust tests.
 - `cargo bench --bench editor`: run editor microbenchmarks.
 
-Checks run locally; GitHub CI is intentionally unconfigured.
+Checks run locally. GitHub Actions CI (`.github/workflows/ci.yml`) repeats fmt,
+Clippy and tests on Windows and Linux; it never tags, builds release archives or
+publishes. PTY probes and release gates stay local.
 
 ## Coding Style & Naming Conventions
 

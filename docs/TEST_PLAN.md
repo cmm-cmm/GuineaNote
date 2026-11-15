@@ -351,9 +351,10 @@ overrides NO_COLOR to demonstrate the theme; the application honors the user's
 environment. Pillow is a dev-only capture dependency. Captures were visually
 inspected for color, glyph portability, panel focus and layout.
 
-GitHub CI is deliberately not configured during development at the user's
-request; the initial workflow was removed before pushing the repository.
-Run the required gates, native PTY/panic probes and dependency audit locally.
+Since 15/11/2026 GitHub Actions runs a check-only workflow
+(`.github/workflows/ci.yml`: fmt, Clippy, tests on windows-latest and
+ubuntu-latest). It does not replace the local gates: run the required gates,
+native PTY/panic probes and dependency audit locally.
 Windows/Linux/macOS native runs remain separate verification evidence.
 At the initial checkpoint cargo-deny was unavailable; license metadata was reviewed with
 `cargo tree --locked --workspace --prefix none --format '{p} {l}'` at the initial

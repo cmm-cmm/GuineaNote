@@ -4,7 +4,7 @@
 
 ## Checks
 
-<!-- There is no CI: paste what you ran locally. -->
+<!-- CI runs fmt, Clippy and tests; paste what you ran locally, including PTY probes. -->
 
 - [ ] `cargo fmt --all -- --check`
 - [ ] `cargo clippy --workspace --all-targets -- -D warnings`

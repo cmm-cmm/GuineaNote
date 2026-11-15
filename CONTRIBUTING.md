@@ -34,8 +34,9 @@ agents; `docs/ARCHITECTURE.md` describes implemented behavior.
 
 ## Required checks
 
-There is **no CI**. Run these locally before opening a pull request and paste
-the result in its description:
+CI (GitHub Actions) runs formatting, Clippy and the tests on Windows and
+Linux for every pull request. Run them locally before opening one and paste
+the result in its description; the terminal (PTY) probes run only locally:
 
 ```sh
 cargo fmt --all -- --check
