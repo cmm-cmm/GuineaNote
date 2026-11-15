@@ -142,6 +142,10 @@ separate decision (npm needs the owner's login).
    platform packages from the archive binaries (same SHA-256) and the
    `guinea-note` launcher; test `npx` from the staged tarballs on both OSes,
    then `npm publish` platform packages before the launcher.
+   The launcher README is README.md at the tag (same text and layout as
+   GitHub, relative links made absolute at the tag), and its description and
+   keywords match the GitHub repository; npmjs.com shows the README of the
+   latest published version, so it changes only with a new npm version.
 7. Record channel status here, in IMPLEMENTATION_STATUS and in Notion.
 
 Windows-only release (as v0.1.2): `package.py` without `--linux-dir`; `npm.py`
