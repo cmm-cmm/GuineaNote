@@ -119,7 +119,36 @@ pub(crate) fn preserve(
     target.set_permissions(source.metadata()?.permissions())
 }
 
+/// The owner Windows gives to files this process creates (SDDL SID string).
+/// It is the user SID in a normal session, but the Administrators group in an
+/// elevated one ("Run as administrator"), where checking only the user SID
+/// rejected the editor's own save and recovery files. Like the Unix branch,
+/// it is read from a file the process just created; cached for the process.
+#[cfg(windows)]
+fn default_owner() -> Option<String> {
+    use std::sync::OnceLock;
+    use windows_permissions::{
+        constants::{SeObjectType, SecurityInformation},
+        wrappers,
+    };
+    static OWNER: OnceLock<Option<String>> = OnceLock::new();
+    OWNER
+        .get_or_init(|| {
+            let probe = tempfile::NamedTempFile::new().ok()?;
+            let descriptor = wrappers::GetNamedSecurityInfo(
+                probe.path().as_os_str(),
+                SeObjectType::SE_FILE_OBJECT,
+                SecurityInformation::Owner,
+            )
+            .ok()?;
+            descriptor.owner().map(|owner| owner.to_string())
+        })
+        .clone()
+}
+
 /// Owner-only recovery storage; do not silently accept links or foreign owners.
+/// "Own" means the current user, or the default owner of this process's new
+/// files (the Administrators group when elevated).
 pub(crate) fn private(path: &Path, directory: bool) -> io::Result<()> {
     let meta = fs::symlink_metadata(path)?;
     if special(&meta) || (directory != meta.is_dir()) {
@@ -155,7 +184,10 @@ pub(crate) fn private(path: &Path, directory: bool) -> io::Result<()> {
             SeObjectType::SE_FILE_OBJECT,
             SecurityInformation::Owner,
         )?;
-        if old.owner() != Some(&*sid) {
+        let owner = old.owner().map(|owner| owner.to_string());
+        if owner.as_deref() != Some(sid.to_string().as_str())
+            && (owner.is_none() || owner != default_owner())
+        {
             return Err(io::Error::new(
                 io::ErrorKind::PermissionDenied,
                 "Recovery path belongs to another user",
@@ -174,4 +206,19 @@ pub(crate) fn private(path: &Path, directory: bool) -> io::Result<()> {
         )?;
     }
     Ok(())
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    /// Elevated sessions own new files through the Administrators group, not
+    /// the user SID; the editor's own files must still pass (CI runs elevated).
+    #[test]
+    fn files_and_folders_this_process_creates_count_as_its_own() {
+        let directory = tempfile::tempdir().unwrap();
+        let file = directory.path().join("draft");
+        std::fs::write(&file, "draft").unwrap();
+        super::private(&file, false).unwrap();
+        super::private(directory.path(), true).unwrap();
+        assert!(super::default_owner().is_some());
+    }
 }
