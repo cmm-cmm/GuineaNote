@@ -12,7 +12,8 @@ Each archive holds one folder guinea-<v>-<target>/ with the three binaries,
 LICENSE, THIRD_PARTY_NOTICES.txt and README.md. Entries are sorted and dated
 at the tagged commit, so the same inputs give byte-identical archives.
 Refuses to overwrite an existing archive (published assets are never
-replaced; ship a patch version instead).
+replaced; ship a patch version instead). Without --linux-dir only the Windows
+archive is packed (a Windows-only release, recorded in its release manifest).
 
     python -X utf8 scripts/release/package.py --tag v0.1.0 \\
         --windows-dir <dir with guinea.exe> --linux-dir <dir with guinea> \\
@@ -92,7 +93,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--tag", required=True)
     parser.add_argument("--windows-dir", type=Path, required=True)
-    parser.add_argument("--linux-dir", type=Path, required=True)
+    parser.add_argument("--linux-dir", type=Path,
+                        help="omit for a Windows-only release (no Linux archive)")
     parser.add_argument("--notices", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
     args = parser.parse_args()
@@ -101,10 +103,10 @@ def main():
     stamp = int(git("log", "-1", "--format=%ct", commit))
     args.out.mkdir(parents=True, exist_ok=True)
     targets = {}
-    for target, binary_dir, exe, pack, extension in [
-        (WINDOWS, args.windows_dir, ".exe", pack_zip, ".zip"),
-        (LINUX, args.linux_dir, "", pack_tar_gz, ".tar.gz"),
-    ]:
+    platforms = [(WINDOWS, args.windows_dir, ".exe", pack_zip, ".zip")]
+    if args.linux_dir:
+        platforms.append((LINUX, args.linux_dir, "", pack_tar_gz, ".tar.gz"))
+    for target, binary_dir, exe, pack, extension in platforms:
         folder = f"guinea-{version}-{target}"
         path = args.out / (folder + extension)
         if path.exists():
@@ -131,7 +133,8 @@ def main():
             WINDOWS: subprocess.run(["rustc", "--version"], capture_output=True,
                                     text=True).stdout.strip(),
             # Written next to the binaries by scripts/release/linux-build.sh.
-            LINUX: (args.linux_dir / "rustc.txt").read_text(encoding="utf-8").strip(),
+            **({LINUX: (args.linux_dir / "rustc.txt").read_text(encoding="utf-8").strip()}
+               if args.linux_dir else {}),
         },
         "targets": targets,
     }

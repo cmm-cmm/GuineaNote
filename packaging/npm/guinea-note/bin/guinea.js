@@ -18,6 +18,12 @@ if (!target) {
   console.error("Build from source: https://github.com/cmm-cmm/GuineaNote#build-from-source");
   process.exit(1);
 }
+const { version, optionalDependencies = {} } = require("../package.json");
+if (!(target.pkg in optionalDependencies)) {
+  console.error(`guinea-note: version ${version} has no binary for ${key}.`);
+  console.error("Download the latest release built for it: https://github.com/cmm-cmm/GuineaNote/releases");
+  process.exit(1);
+}
 let binary;
 try {
   binary = path.join(path.dirname(require.resolve(`${target.pkg}/package.json`)), "bin", target.exe);

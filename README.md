@@ -112,14 +112,15 @@ contains:
 - `guineanote-agent` and `guineanote-mcp`, for Agent access;
 - `LICENSE` and `THIRD_PARTY_NOTICES.txt`.
 
-**Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others):
+**Linux x64** (static: Debian 11+, Ubuntu 22.04+, Alpine and others). Version
+0.1.2 was released for Windows only, so Linux stays on 0.1.1 for now:
 
 ```sh
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/guinea-0.1.2-x86_64-unknown-linux-musl.tar.gz
-curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.2/SHA256SUMS
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS
 sha256sum --ignore-missing -c SHA256SUMS
-tar -xzf guinea-0.1.2-x86_64-unknown-linux-musl.tar.gz
-install -m 755 guinea-0.1.2-x86_64-unknown-linux-musl/guinea ~/.local/bin/
+tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 ```
 
 **Windows x64** (PowerShell; no Visual C++ redistributable needed):
@@ -375,8 +376,8 @@ describe older baselines.
 ## Contributing
 
 Bug reports, ideas and pull requests are welcome. Please read
-[CONTRIBUTING.md](CONTRIBUTING.md) first. There is no CI, so these checks run
-locally:
+[CONTRIBUTING.md](CONTRIBUTING.md) first. CI runs formatting, Clippy and the
+tests on Windows and Linux for pushes and pull requests; run them locally too:
 
 ```sh
 cargo fmt --all -- --check

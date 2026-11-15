@@ -74,6 +74,11 @@ def main():
     optional = {}
     for suffix, os_name, cpu, target, extension, exe in PLATFORMS:
         name = f"guinea-note-{suffix}"
+        if target not in release["targets"]:
+            # A release without this target (for example a Windows-only one)
+            # ships no platform package; the launcher then says so on it.
+            print(f"skip {name}: no {target} archive in this release")
+            continue
         folder = f"guinea-{version}-{target}"
         entry = release["targets"][target]
         archive = args.dist / entry["archive"]
