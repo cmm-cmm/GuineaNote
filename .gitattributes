@@ -31,3 +31,7 @@ docs/diagnostics/release-0.1.0/** -text -whitespace
 docs/diagnostics/release-0.1.1-gate/** -text -whitespace
 # v0.1.1 release artifacts and checks.
 docs/diagnostics/release-0.1.1/** -text -whitespace
+# v0.1.2 release gate reports (Windows only).
+docs/diagnostics/release-0.1.2-gate/** -text -whitespace
+# v0.1.2 release artifacts and checks.
+docs/diagnostics/release-0.1.2/** -text -whitespace

@@ -1,0 +1,80 @@
+{
+  "created": "2026-11-15",
+  "purpose": "Release gate for v0.1.2 on commit a638962 (version 0.1.2; F2 highlight, narrow split, save caret and search preview fixes; keyboard and type-ahead probe fixes): scripts/windows/verify.sh. Windows-only release.",
+  "windows": "Windows 11 x64 MSVC static CRT, ConPTY via pywinpty; 21/21 steps with the real clipboard (restored); clean working tree. PTY max 35.7/30.5 ms (trace on/off), tabs 43.9 ms, search 23.6 ms; navigation max 35.3/38.0/42.9 ms on all/2/1 CPUs; 0 application investigations, no sample over 50 ms. 219 Rust tests, fmt and strict Clippy passed on the same tree.",
+  "linux": "NOT RUN. The owner paused Docker/WSL and Linux build verification on 15/11/2026; v0.1.2 ships no Linux archive and Linux x64 stays on v0.1.1. scripts/linux/run.sh, the musl build and linux-check.sh were not executed for this version.",
+  "notes": [
+    "Before this run pty_typeahead and pty_keyboard failed on the unchanged v0.1.1 code (raw byte-stream matching; partly written frames). Both probes were fixed in 74c7db5 and pass here.",
+    "The CI workflow added after this gate runs fmt, Clippy and tests on ubuntu-latest; it is not a substitute for the Linux release gate."
+  ],
+  "files": {
+    "windows/agent.txt": {
+      "sha256": "d8bca651fa7d29b54829a9a79e33cc7e046b5a636883bc7bec05b8f7e1ec127b",
+      "bytes": 459
+    },
+    "windows/binary.sha256": {
+      "sha256": "111f2699de18df551e41ab9391e68af24c5e3ebadfc07250ab8eedb708d7bbe7",
+      "bytes": 294
+    },
+    "windows/clipboard.txt": {
+      "sha256": "af988b42b9dcd2d62f6320f95ee892ad199555253d96570742649b29f31cbdd9",
+      "bytes": 162
+    },
+    "windows/dialog-mouse.txt": {
+      "sha256": "481c26a6d90396d1141fc3f4147202e68658bfa8ea24ab3065bf0ce84f7b36aa",
+      "bytes": 269
+    },
+    "windows/git-status.txt": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "windows/head.txt": {
+      "sha256": "e238adfb8e2a75f470ec6e8707c3ebde83b1a5766439ebef1070116211051285",
+      "bytes": 41
+    },
+    "windows/keyboard.txt": {
+      "sha256": "a8a056b71fa6b703c6e11ad6317ee5bca284faf7568995c30db0ea942eb127aa",
+      "bytes": 1143
+    },
+    "windows/latency-no-trace-report.json": {
+      "sha256": "3b57298269348ea36c3598c4fd235a3fe39c5f09bfd8b1c630bdece5b89bb506",
+      "bytes": 303110
+    },
+    "windows/latency-trace-report.json": {
+      "sha256": "2c77ff39428e28db5b3867a6bf7474f505d7656a86027995642ef614e7462182",
+      "bytes": 317949
+    },
+    "windows/navigation-all-report.json": {
+      "sha256": "8ce3f7f192e993a9a568dafa2b4e9bf5a0355adf28552e4f38f387196a1f7ecf",
+      "bytes": 64617
+    },
+    "windows/navigation-unprepared-1cpu-report.json": {
+      "sha256": "886a1abc6dd2d93767ffadc2e9054c868b9963ab29c8f061b0838be6a70dc8e5",
+      "bytes": 35567
+    },
+    "windows/navigation-unprepared-2cpu-report.json": {
+      "sha256": "50c935b8a2264e6365933dd31c208561f13e40cc0ec4a67de59912e62c8aa873",
+      "bytes": 35565
+    },
+    "windows/search.txt": {
+      "sha256": "9d31ced020c57d6d4eb5d8dacbc3273b4d943d47235d7488fa2618bb4ed8ac5e",
+      "bytes": 11873
+    },
+    "windows/session.txt": {
+      "sha256": "2b352f2f9de4af7eb9ce5655792721fe93128b492fe055db630cb8797ac62f5d",
+      "bytes": 386
+    },
+    "windows/summary.txt": {
+      "sha256": "5baa9124d19ba0a0cd77be8c66e7a2eeb74b47dfd99e99115f441905eea8f27d",
+      "bytes": 617
+    },
+    "windows/tabs.txt": {
+      "sha256": "96ad4e91a079a32fdbb047b697ff01aab076d0d59071bd172df3f4fee915eaf5",
+      "bytes": 556
+    },
+    "windows/typeahead.txt": {
+      "sha256": "30880b8ffaa5afd97961e621eaa1f73f1804567a4bd60e6a1ea4b86d8fa82f75",
+      "bytes": 142
+    }
+  }
+}
