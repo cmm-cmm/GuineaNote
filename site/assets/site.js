@@ -54,6 +54,19 @@
     });
   }
 
+  // The EN/VI switch keeps the section or install tab being read: both pages
+  // use the same ids (#install-linux, #faq, ...).
+  Array.prototype.forEach.call(document.querySelectorAll(".lang a, a[hreflang]"), function (link) {
+    link.addEventListener("click", function () {
+      var hash = location.hash;
+      var selected = document.querySelector("[role=tab][aria-selected=true]");
+      if ((!hash || hash === "#install") && selected && document.getElementById("install").getBoundingClientRect().top < window.innerHeight) {
+        hash = "#" + selected.dataset.hash;
+      }
+      if (hash) link.setAttribute("href", link.getAttribute("href").split("#")[0] + hash);
+    });
+  });
+
   // Copy buttons copy the text of the <pre> next to them, without prompts
   // (spans marked .p) and without comment lines (spans marked .c).
   var label = document.documentElement.lang === "vi" ? ["Chép", "Đã chép"] : ["Copy", "Copied"];
