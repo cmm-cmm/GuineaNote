@@ -354,7 +354,10 @@ inspected for color, glyph portability, panel focus and layout.
 Since 15/11/2026 GitHub Actions runs a check-only workflow
 (`.github/workflows/ci.yml`: fmt, Clippy, tests on windows-latest and
 ubuntu-latest). It does not replace the local gates: run the required gates,
-native PTY/panic probes and dependency audit locally.
+native PTY/panic probes and dependency audit locally. `release.yml` runs the
+same checks again before publishing a new version from `main`, then checks the
+packed archive on windows-latest (DLL imports with `scripts/release/pe_imports.py`,
+`--version`, `pty_smoke.py --binary`); the latency gate is not run there.
 Windows/Linux/macOS native runs remain separate verification evidence.
 At the initial checkpoint cargo-deny was unavailable; license metadata was reviewed with
 `cargo tree --locked --workspace --prefix none --format '{p} {l}'` at the initial

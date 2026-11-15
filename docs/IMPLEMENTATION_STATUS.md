@@ -1,5 +1,46 @@
 # Implementation status
 
+## Checkpoint 15/11/2026 (13) — v0.1.3, npm live, automatic releases
+
+Owner decisions 15/11: release 0.1.3 with the elevated-save fix and the npm
+README synced with GitHub; then publish automatically when `main` gets a new
+version (Trusted Publishing for npm, wingetcreate for winget, Windows only).
+
+| Commit | Change |
+| --- | --- |
+| 15a2402 | `platform::private()` also accepts the default owner of the process's new files (BUILTIN\Administrators when elevated); foreign owners are still refused. Fixes "Recovery path belongs to another user" on saves from an elevated session (found by CI) |
+| cf15292 | ACL test compares the saved owner with the original file's owner |
+| 183285e, 778ec92 | Session keys canonicalize existing files, so 8.3 short paths (`RUNNER~1`) match |
+| 7353f42 | Version 0.1.3; npm README is README.md at the tag with absolute links, GitHub description and topics; README "Published packages" table |
+| 8d0daa8 | Windows gate evidence — tagged **v0.1.3**, `main` fast-forwarded |
+
+Gate on 7353f42: Windows 21/21 steps with the real clipboard, PTY max 48.981 /
+45.403 ms (trace on/off), navigation max 35.9 ms, no sample over 50 ms; 220
+Rust tests, fmt, strict Clippy. CI green on windows-latest (elevated) and
+ubuntu-latest since 778ec92, and on 8d0daa8 (runs 43679682339, 43679686189).
+Linux gate not run (paused).
+
+Channels:
+- **GitHub Release v0.1.3** (Latest, Windows zip): built from the tag in a
+  clean worktree, imports only system DLLs, smoke PTY passes on the archived
+  binary, anonymous download re-checked.
+- **npm:** 0.1.2 and 0.1.3 both released by npm after its review hold.
+  Checked from the registry: `npx guinea-note --version` prints 0.1.3, the
+  installed `guinea.exe` has the release SHA-256 (655e5364…), the npm page
+  shows the v0.1.3 GitHub README with the repository description and topics.
+- **winget:** [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530)
+  now carries only the 0.1.3 manifest (commit 88ea79a); validation 01–06
+  passes; waiting for the owner's CLA and a moderator.
+- **Automatic releases:** `.github/workflows/release.yml` (plan → CI →
+  Windows build and archive checks → tag, GitHub Release, npm through Trusted
+  Publishing → winget through wingetcreate); `scripts/release/notes.py`
+  (release notes from CHANGELOG, required section) and
+  `scripts/release/pe_imports.py` (fails on C runtime imports). Needs the
+  owner's npm Trusted Publisher entries and the `WINGET_TOKEN` secret.
+
+Evidence: [release-0.1.3-gate](diagnostics/release-0.1.3-gate/manifest.json),
+[release-0.1.3](diagnostics/release-0.1.3/manifest.json).
+
 ## Checkpoint 15/11/2026 (12) — v0.1.2 for Windows, CI, winget submission
 
 Owner decisions 15/11: pause Docker/WSL and the Linux build checks (Linux

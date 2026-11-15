@@ -4,6 +4,18 @@ All notable changes. Versions follow [Semantic Versioning](https://semver.org/).
 Release targets: Windows x64 and Linux x64 (static musl). macOS is not
 released.
 
+## [Unreleased]
+
+### Release
+- Releases are published by GitHub Actions (`.github/workflows/release.yml`)
+  when `main` gets a version that has no tag yet: annotated tag, GitHub
+  Release with notes from this file, npm through Trusted Publishing (no
+  stored token, with provenance) and winget through wingetcreate. Windows x64
+  only while the Linux build checks are paused.
+
+### Changed
+- README: the platform table shows the latest release per platform.
+
 ## [0.1.3] — 2026-11-15
 
 ### Release

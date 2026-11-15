@@ -18,8 +18,10 @@ Use Rust 1.98 or newer with native build tools; Windows requires MSVC tooling. R
 - `cargo bench --bench editor`: run editor microbenchmarks.
 
 Checks run locally. GitHub Actions CI (`.github/workflows/ci.yml`) repeats fmt,
-Clippy and tests on Windows and Linux; it never tags, builds release archives or
-publishes. PTY probes and release gates stay local.
+Clippy and tests on Windows and Linux. `.github/workflows/release.yml` publishes
+a release when `main` gets a version that has no tag yet (`docs/RELEASE.md`);
+run the PTY probes and the latency gate locally on `dev` before merging a
+version bump to `main`.
 
 ## Coding Style & Naming Conventions
 

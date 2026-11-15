@@ -20,26 +20,34 @@ planned.
 - **GitHub Actions re-enabled (15/11), replacing D2's "no workflow":** one
   check-only workflow (`.github/workflows/ci.yml`: fmt, Clippy, tests on
   windows-latest and ubuntu-latest; GitHub-owned actions only, read-only
-  token). Release builds, tags and publishing stay manual.
+  token).
+- **Automatic publishing (owner, 15/11, after v0.1.3):** merging to `main`
+  publishes when the version is new (`.github/workflows/release.yml`, see
+  [Automatic release](#automatic-release)). npm uses Trusted Publishing
+  (OIDC, no stored token); winget uses wingetcreate with the `WINGET_TOKEN`
+  secret once the first package is merged. Windows x64 only. v0.1.0–v0.1.3
+  were released by hand with the [manual runbook](#manual-runbook).
 
 ## Channel status
 
 | Channel | Status |
 | --- | --- |
-| GitHub Releases | **v0.1.2 published 15/11, Latest, Windows x64 only** (tag on `c5d5f99`): [v0.1.2](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2); anonymous download re-checked against `SHA256SUMS`. **v0.1.1** (`6b698d9`) remains the release for Linux x64. v0.1.0 (pre-release, `8120df7`) remains |
+| GitHub Releases | **v0.1.3 published 15/11, Latest, Windows x64 only** (tag on `8d0daa8`): [v0.1.3](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3); anonymous download re-checked against `SHA256SUMS`. v0.1.2 (`c5d5f99`, Windows only) remains. **v0.1.1** (`6b698d9`) remains the release for Linux x64. v0.1.0 (pre-release, `8120df7`) remains |
 | `cargo install --git` | **Available from v0.1.1**: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote` (plus `guinea-agent`); verified from the tag in a clean `rust:1.98-bookworm` container and from GitHub on Windows. Git installs use the user's toolchain defaults (dynamic VC runtime on Windows, glibc on Linux) |
-| winget `cmm-cmm.GuineaNote` | **Submitted 15/11:** 0.1.2 manifest (schema 1.28.0) validated and sent as [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530) from the `cmm-cmm` fork. Waiting for the owner's Microsoft CLA and moderator review; `winget install` works only after the merge |
-| npm / npx `guinea-note` | **Published 15/11, held for npm review.** The unscoped `guinea-note-win32-x64` was refused as spam, so platform packages are scoped: `@cmm_cmm/guinea-note-win32-x64@0.1.2` (binary identical to the release) and the `guinea-note@0.1.2` launcher (win32 only; says so on Linux). Both publishes succeeded with web 2FA, but npm serves a `0.0.0-stage` placeholder (no `bin`) until it releases 0.1.2, so `npx guinea-note` does not work yet; nothing awaits the owner in `npm stage list` |
+| winget `cmm-cmm.GuineaNote` | **In review:** [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530) from the `cmm-cmm` fork, opened 15/11 for 0.1.2 and moved to the **0.1.3** manifest (schema 1.28.0, commit `88ea79a`; one version per PR). Automated validation steps 01–06 pass; waiting for the owner's Microsoft CLA (the bot asked at 05:16 UTC) and a moderator. `winget install` works only after the merge |
+| npm / npx `guinea-note` | **Live: 0.1.3 (latest) and 0.1.2.** Platform packages are scoped (`@cmm_cmm/guinea-note-win32-x64`; npm refused the unscoped name as spam) and the `guinea-note` launcher stays unscoped (win32 only; says so on Linux). npm held each new version for review for a while (serving `0.0.0-stage`) and then released it. Checked from the registry: `npx guinea-note --version` prints 0.1.3, the installed `guinea.exe` has the release SHA-256, and the npm page shows the GitHub README of v0.1.3 with the repository description and topics |
 | Homebrew tap | Deferred (macOS is not released; few Homebrew users on Linux) |
 
-Evidence: `docs/diagnostics/release-0.1.2/` and `release-0.1.2-gate/`
+Evidence: `docs/diagnostics/release-0.1.3/` and `release-0.1.3-gate/`
+(v0.1.3, Windows only), `release-0.1.2/` and `release-0.1.2-gate/`
 (v0.1.2, Windows only), `release-0.1.1/` and `release-0.1.1-gate/` (v0.1.1),
 `release-0.1.0/` and `release-0.1.0-gate/` (v0.1.0).
 
 ## Channel choice for a new project (13/11/2026)
 
-Few channels, each maintained well: every channel adds manual work to every
-release (there is no CI). Channels that need popularity or long reviews wait.
+Few channels, each maintained well: every channel adds work to every
+release (publishing is automated since 15/11, but reviews and moderation are
+not). Channels that need popularity or long reviews wait.
 
 | Channel | Decision | Why |
 | --- | --- | --- |
@@ -57,19 +65,21 @@ release (there is no CI). Channels that need popularity or long reviews wait.
 
 ### Next steps
 
-1. **npm / npx:** wait until npm releases the reviewed 0.1.2 versions (the
-   registry serves `0.0.0-stage` meanwhile); if it stays held, contact npm
-   support. Then check `npx guinea-note@0.1.2 --version` from the registry and
-   the binary SHA-256, and only then add npm to the README.
-2. **winget:** sign the Microsoft CLA on #480530 when the bot asks, answer
-   moderator feedback; after the merge check `winget install cmm-cmm.GuineaNote`.
-3. **Elevated saves (found by CI):** saving can fail from an elevated
-   ("Run as administrator") session because `platform::private()` requires
-   the user SID as owner of the temp file; fix in 0.1.3 so the Windows CI job
-   passes.
-4. **Linux:** resume Docker/WSL, run `scripts/linux/run.sh` and the musl
-   build, then ship Linux in the next release (and its npm package).
-5. Update the README install section only after each channel works.
+1. **winget (owner):** sign the Microsoft CLA on #480530 by commenting
+   `@microsoft-github-policy-service agree`, then answer moderator feedback;
+   after the merge check `winget install cmm-cmm.GuineaNote`.
+2. **Automatic release setup (owner, once):** on npmjs.com add a Trusted
+   Publisher (GitHub Actions, `cmm-cmm/GuineaNote`, workflow `release.yml`,
+   environment `release`) to both `guinea-note` and
+   `@cmm_cmm/guinea-note-win32-x64`; create a classic token with the
+   `public_repo` scope and store it as the `WINGET_TOKEN` repository secret.
+   Without them the npm step fails and the winget step is skipped.
+3. **Linux:** resume Docker/WSL, run `scripts/linux/run.sh` and the musl
+   build, then add the Linux build to `release.yml` (and its npm package).
+4. Update the README install section only after each channel works.
+
+Done: npm 0.1.2 and 0.1.3 released by npm and checked from the registry;
+the elevated-save failure found by CI is fixed in 0.1.3.
 
 ## Artifacts
 
@@ -104,8 +114,9 @@ added only after running on ARM hardware.
   templates).
 - **D2 — Where to build:** **by hand** — Windows on the maintainer's machine,
   Linux in the Debian 12 container (`scripts/release/linux-build.sh`).
-  *Changed 15/11:* GitHub Actions now runs the check-only CI workflow; it
-  never builds release archives, tags or publishes.
+  *Changed 15/11:* GitHub Actions runs the check-only CI workflow, and
+  after v0.1.3 `release.yml` builds, tags and publishes new versions from
+  `main` on GitHub-hosted runners (Windows x64 only for now).
 - **D4 — Names:** npm `guinea-note` (launcher, unscoped); platform packages
   `@cmm_cmm/guinea-note-win32-x64` and `@cmm_cmm/guinea-note-linux-x64`
   (scoped since 15/11: npm refused the unscoped name as spam); winget
@@ -119,7 +130,41 @@ Channel order: GitHub Release first. The winget manifest and npm packages are
 prepared from the published archives (`packaging/`) but submitted only on a
 separate decision (npm needs the owner's login).
 
-## Runbook
+## Automatic release
+
+`.github/workflows/release.yml` runs on every push to `main`:
+
+1. **plan** reads `[workspace.package] version` from `Cargo.toml`. If the tag
+   `vX.Y.Z` exists, the run stops (merges without a version bump publish
+   nothing). Otherwise `scripts/release/notes.py` requires a
+   `## [X.Y.Z]` section in `CHANGELOG.md`.
+2. **check** calls `ci.yml` (fmt, Clippy, tests on Windows and Linux).
+3. **build** (windows-latest) builds the commit with `--locked`, generates
+   notices, packs with `package.py` (Windows only), checks the archived
+   binaries (`pe_imports.py`: no C runtime DLLs; `--version`; `pty_smoke.py`),
+   stages npm tarballs (`npm.py`), winget manifests (`winget.py`) and the
+   release notes, and uploads them as the `release-X.Y.Z` artifact.
+4. **publish** (environment `release`) creates the annotated tag on the
+   commit, the GitHub Release (Latest) with the archive, `SHA256SUMS` and
+   `release-manifest.json`, downloads it anonymously to re-check the sums,
+   then publishes the platform package and the launcher to npm through
+   Trusted Publishing (OIDC, npm 11.5.1+, provenance).
+5. **winget** submits the manifests with `wingetcreate submit` (token from
+   the `WINGET_TOKEN` secret), only when `cmm-cmm.GuineaNote` already exists
+   in winget-pkgs; otherwise it is skipped with a notice.
+
+Every publish step skips what already exists, so "Re-run failed jobs" is
+safe. **Run workflow** with `dry_run` (the default) builds and checks any
+branch without tagging or publishing.
+
+To release: on `dev`, bump the version (`Cargo.toml`, `Cargo.lock`), add the
+CHANGELOG section, run the local gate (`scripts/windows/verify.sh`; latency
+rules apply), then fast-forward `main` to `dev` and push. Afterwards record
+the channel status (step 7 below) and check npm and winget reviews.
+
+## Manual runbook
+
+Used for v0.1.0–v0.1.3, and as the fallback when the workflow cannot run.
 
 1. On `dev`: version and CHANGELOG; `cargo fmt --check`, Clippy `-D warnings`,
    `cargo test --workspace`; `bash scripts/windows/verify.sh` and

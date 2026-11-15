@@ -1,5 +1,26 @@
 # Đối chiếu quyết định Notion — 10/11/2026
 
+## Cập nhật 15/11/2026 — v0.1.3, npm, tự động phát hành
+
+- **v0.1.3** (chỉ Windows x64, tag trên `8d0daa8`): sửa lỗi lưu file khi chạy
+  elevated ("Run as administrator") do CI phát hiện, khôi phục phiên với đường
+  dẫn 8.3; README trên npm giống GitHub. CI xanh trên Windows và Linux.
+- npm: 0.1.2 và 0.1.3 đã được npm duyệt và phát hành. Đã kiểm từ registry:
+  `npx guinea-note --version` in 0.1.3, binary trùng SHA-256 với bản phát hành,
+  trang npm hiển thị README của v0.1.3.
+- winget: PR #480530 đã chuyển sang manifest 0.1.3; các bước kiểm tra tự động
+  01–06 đạt; chờ chủ dự án ký CLA và moderator duyệt.
+- **Tự động phát hành khi merge vào `main`** (quyết định của chủ dự án):
+  `.github/workflows/release.yml` chỉ phát hành khi version trong `Cargo.toml`
+  chưa có tag; chạy CI, build Windows, kiểm tra archive, tạo tag và GitHub
+  Release, publish npm qua Trusted Publishing (không lưu token), gửi winget
+  qua wingetcreate (sau khi gói đầu tiên được merge). Chỉ Windows trong lúc
+  Linux tạm dừng. Thay cho D2 "build bằng tay" từ bản sau 0.1.3; gate độ trễ
+  vẫn chạy local trên `dev` trước khi merge.
+- Việc của chủ dự án: thêm Trusted Publisher trên npmjs.com cho hai gói, tạo
+  secret `WINGET_TOKEN` (token classic, quyền `public_repo`), ký CLA trên
+  #480530.
+
 ## Cập nhật 15/11/2026 — v0.1.2 cho Windows, CI, winget
 
 Áp dụng chuẩn phân phối Notion ngày 14/11 (người dùng không cần Rust;

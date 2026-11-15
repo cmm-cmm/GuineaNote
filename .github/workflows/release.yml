@@ -1,0 +1,257 @@
+# Publishes a release when main gets a version that has no tag yet.
+#
+# Owner decision 15/11/2026: merging to main publishes automatically, but only
+# when the [workspace.package] version in Cargo.toml is new (no vX.Y.Z tag);
+# other merges only run CI. Windows x64 only while the Linux build checks are
+# paused. Steps (docs/RELEASE.md):
+#   plan    -> version, tag missing?, CHANGELOG section present?
+#   check   -> the CI workflow (fmt, Clippy, tests on Windows and Linux)
+#   build   -> build from the commit with --locked, package, check imports,
+#              --version and the PTY smoke test on the archived guinea.exe,
+#              stage npm tarballs, write release notes and winget manifests
+#   publish -> annotated tag, GitHub Release, anonymous SHA256SUMS check,
+#              npm (Trusted Publishing, OIDC: no token is stored)
+#   winget  -> wingetcreate submit, once cmm-cmm.GuineaNote is in winget-pkgs
+#              and the WINGET_TOKEN secret exists; otherwise skipped
+# Re-running failed jobs is safe: every publish step skips what already exists.
+# Run it by hand with dry_run (the default) to build and check on any branch
+# without tagging or publishing.
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and check only; never tag or publish"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_TOOLCHAIN: "1.98.1"
+
+jobs:
+  plan:
+    name: plan
+    if: github.ref == 'refs/heads/main' || inputs.dry_run
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.plan.outputs.version }}
+      release: ${{ steps.plan.outputs.release }}
+      build: ${{ steps.plan.outputs.build }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - id: plan
+        name: Is this version new?
+        shell: bash
+        env:
+          DRY_RUN: ${{ inputs.dry_run && 'true' || 'false' }}
+        run: |
+          version=$(python3 -c 'import tomllib; print(tomllib.load(open("Cargo.toml", "rb"))["workspace"]["package"]["version"])')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          python3 -X utf8 scripts/release/notes.py --version "$version"
+          if [ "$DRY_RUN" = true ]; then
+            release=false; build=true
+            echo "::notice::dry run: build and check v$version from ${GITHUB_SHA::7}, publish nothing"
+          elif git ls-remote --exit-code --tags origin "refs/tags/v$version" > /dev/null; then
+            release=false; build=false
+            echo "::notice::v$version is already tagged; nothing to publish"
+          else
+            release=true; build=true
+            echo "::notice::publishing v$version from ${GITHUB_SHA::7}"
+          fi
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: plan
+    if: needs.plan.outputs.build == 'true'
+    uses: ./.github/workflows/ci.yml
+
+  build:
+    name: build (Windows x64)
+    needs: [plan, check]
+    runs-on: windows-latest
+    timeout-minutes: 60
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install Rust ${{ env.RUST_TOOLCHAIN }}
+        run: |
+          rustup toolchain install "$RUST_TOOLCHAIN" --profile minimal
+          rustup default "$RUST_TOOLCHAIN"
+          rustc --version
+      - name: Tag the commit locally (the scripts read files at the tag)
+        # Local only (-f moves an existing tag in a dry run); publish pushes it.
+        run: git tag -f "v$VERSION" "$GITHUB_SHA"
+      - name: Build
+        run: cargo build --workspace --release --locked
+      - name: Third-party notices
+        run: python -X utf8 scripts/release/notices.py
+      - name: Package
+        run: >
+          python -X utf8 scripts/release/package.py --tag "v$VERSION"
+          --windows-dir target/release
+          --notices target/release-notices/THIRD_PARTY_NOTICES.txt
+          --out "target/dist/v$VERSION"
+      - name: Check the archived binaries
+        run: |
+          folder="guinea-$VERSION-x86_64-pc-windows-msvc"
+          python -X utf8 -c "import zipfile, sys; zipfile.ZipFile(sys.argv[1]).extractall('target/check')" "target/dist/v$VERSION/$folder.zip"
+          cd "target/check/$folder"
+          python -X utf8 ../../../scripts/release/pe_imports.py guinea.exe guineanote-agent.exe guineanote-mcp.exe
+          for name in guinea guineanote-agent guineanote-mcp; do
+            printed=$("./$name.exe" --version | tr -d '\r')
+            echo "$printed"
+            [ "$printed" = "$name $VERSION" ] || { echo "::error::$name --version printed '$printed'"; exit 1; }
+          done
+      - name: PTY smoke test on the archived guinea.exe
+        run: |
+          python -m pip install --quiet --target target/pty-tools pywinpty==3.1.2 psutil==7.2.2 pyte==0.8.2
+          python -X utf8 scripts/pty_smoke.py --binary "target/check/guinea-$VERSION-x86_64-pc-windows-msvc/guinea.exe"
+      - name: Stage npm packages, release notes and winget manifests
+        run: |
+          python -X utf8 scripts/release/npm.py --tag "v$VERSION" --dist "target/dist/v$VERSION" --out "target/npm/v$VERSION"
+          python -X utf8 scripts/release/winget.py --dist "target/dist/v$VERSION" --date "$(date -u +%F)"
+          out=target/release-out
+          mkdir -p "$out/dist" "$out/npm" "$out/winget"
+          cp "target/dist/v$VERSION"/* "$out/dist/"
+          cp "target/npm/v$VERSION"/*.tgz "target/npm/v$VERSION/npm-manifest.json" "$out/npm/"
+          cp "packaging/winget/manifests/c/cmm-cmm/GuineaNote/$VERSION"/*.yaml "$out/winget/"
+          python -X utf8 scripts/release/notes.py --dist "target/dist/v$VERSION" --out "$out/notes.md"
+          ls -R "$out"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ env.VERSION }}
+          path: target/release-out
+          if-no-files-found: error
+          retention-days: 90
+
+  publish:
+    name: publish (GitHub Release, npm)
+    needs: [plan, build]
+    if: needs.plan.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      GH_TOKEN: ${{ github.token }}
+      REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-${{ env.VERSION }}
+          path: out
+      - name: Annotated tag
+        run: |
+          tag="v$VERSION"
+          if gh api "repos/$REPO/git/ref/tags/$tag" > /dev/null 2>&1; then
+            echo "$tag exists"
+          else
+            object=$(gh api "repos/$REPO/git/tags" -f tag="$tag" -f message="Guinea Note $VERSION" \
+              -f object="$GITHUB_SHA" -f type=commit --jq .sha)
+            gh api "repos/$REPO/git/refs" -f ref="refs/tags/$tag" -f sha="$object" > /dev/null
+            echo "created $tag on $GITHUB_SHA"
+          fi
+      - name: GitHub Release
+        run: |
+          tag="v$VERSION"
+          if gh release view "$tag" -R "$REPO" > /dev/null 2>&1; then
+            echo "release $tag exists; assets are never replaced"
+          else
+            platforms=$(python3 -c 'import json; t = json.load(open("out/dist/release-manifest.json"))["targets"]; print("Windows and Linux" if len(t) > 1 else "Windows")')
+            gh release create "$tag" out/dist/* -R "$REPO" --verify-tag --latest \
+              --title "Guinea Note $VERSION ($platforms)" --notes-file out/notes.md
+          fi
+      - name: Download the release anonymously and check SHA256SUMS
+        run: |
+          mkdir anonymous && cd anonymous
+          base="https://github.com/$REPO/releases/download/v$VERSION"
+          curl -fsSLO "$base/SHA256SUMS"
+          cut -d' ' -f3 SHA256SUMS | while read -r asset; do curl -fsSLO "$base/$asset"; done
+          sha256sum -c SHA256SUMS
+          curl -fsSLO "$base/release-manifest.json"
+          cmp release-manifest.json ../out/dist/release-manifest.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: npm with Trusted Publishing support (11.5.1 or newer)
+        run: |
+          npm install -g "npm@>=11.5.1 <12"
+          npm --version
+      - name: Publish to npm (platform packages first, then the launcher)
+        run: |
+          publish() {
+            name=$(tar -xOzf "$1" package/package.json | python3 -c 'import json, sys; print(json.load(sys.stdin)["name"])')
+            if [ "$(npm view "$name@$VERSION" version 2> /dev/null)" = "$VERSION" ]; then
+              echo "$name@$VERSION is already on npm"
+            else
+              npm publish "$1" --access public
+            fi
+          }
+          for tgz in out/npm/*.tgz; do
+            case "$(basename "$tgz")" in guinea-note-[0-9]*) ;; *) publish "$tgz" ;; esac
+          done
+          publish out/npm/guinea-note-"$VERSION".tgz
+      - name: npm registry state
+        run: |
+          # npm may hold new versions for review and serve a 0.0.0-stage
+          # placeholder for a while; this only reports what the registry has.
+          npm view guinea-note dist-tags versions --json || true
+
+  winget:
+    name: winget (wingetcreate)
+    needs: [plan, publish]
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      VERSION: ${{ needs.plan.outputs.version }}
+      # wingetcreate reads the token from this variable (not logged).
+      WINGET_CREATE_GITHUB_TOKEN: ${{ secrets.WINGET_TOKEN }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-${{ env.VERSION }}
+          path: out
+      - name: Submit the manifest to microsoft/winget-pkgs
+        shell: pwsh
+        run: |
+          if (-not $env:WINGET_CREATE_GITHUB_TOKEN) {
+            "::notice::WINGET_TOKEN is not set; open the winget pull request by hand (docs/RELEASE.md)"
+            exit 0
+          }
+          $api = 'https://api.github.com/repos/microsoft/winget-pkgs/contents/manifests/c/cmm-cmm/GuineaNote'
+          $headers = @{ 'User-Agent' = 'guinea-note-release' }
+          try { $versions = Invoke-RestMethod -Uri $api -Headers $headers }
+          catch {
+            "::notice::cmm-cmm.GuineaNote is not in winget-pkgs yet (first pull request not merged); skipped"
+            exit 0
+          }
+          if ($versions.name -contains $env:VERSION) { "winget-pkgs already has $env:VERSION"; exit 0 }
+          Invoke-WebRequest -Uri https://aka.ms/wingetcreate/latest -OutFile wingetcreate.exe
+          .\wingetcreate.exe submit --no-open `
+            --prtitle "New version: cmm-cmm.GuineaNote version $env:VERSION" out/winget
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

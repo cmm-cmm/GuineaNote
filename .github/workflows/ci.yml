@@ -1,6 +1,6 @@
 # Checks only: formatting, Clippy and the test suite on Windows and Linux.
-# Releases are still built from tags and published by hand (docs/RELEASE.md);
-# this workflow never tags, builds release archives or publishes packages.
+# This workflow never tags, builds release archives or publishes packages;
+# release.yml calls it before publishing a new version from main.
 name: CI
 
 on:
@@ -8,12 +8,15 @@ on:
     branches: [dev, main]
   pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # github.workflow is the caller's name when release.yml calls this one, so
+  # the release check never cancels (or is cancelled by) the push run.
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
