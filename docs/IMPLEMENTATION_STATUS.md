@@ -25,8 +25,10 @@ Channels:
   `release-manifest.json`): built from the tag in a clean worktree, archive
   imports only system DLLs, smoke PTY passes on the archived binary,
   anonymous download re-checked.
-- **npm:** 0.1.2 packages staged and tested from tarballs on Windows; not
-  published yet (owner authentication step pending).
+- **npm:** the unscoped `guinea-note-win32-x64` was refused as spam; with the
+  scoped `@cmm_cmm/guinea-note-win32-x64` both 0.1.2 publishes succeeded (web
+  2FA), but npm holds them for review and serves a `0.0.0-stage` placeholder,
+  so `npx guinea-note` does not work yet (406e260).
 - **winget:** [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530)
   (schema 1.28.0, validated); waiting for the owner's CLA and review.
 - **CI:** ubuntu-latest passes; windows-latest fails 17 `guinea-io` tests on

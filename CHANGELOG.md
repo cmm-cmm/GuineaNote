@@ -7,7 +7,7 @@ released.
 ## [0.1.2] — 2026-11-15
 
 ### Release
-- Windows x64 only: GitHub Release, npm (`guinea-note`, `guinea-note-win32-x64`)
+- Windows x64 only: GitHub Release, npm (`guinea-note`, `@cmm_cmm/guinea-note-win32-x64`)
   and a winget submission. The Linux build and its checks are paused for this
   version, so Linux x64 stays on 0.1.1; the npm launcher says so on Linux.
 - GitHub Actions re-enabled with a check-only CI workflow (fmt, Clippy, tests

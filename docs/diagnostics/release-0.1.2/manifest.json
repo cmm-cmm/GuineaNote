@@ -8,9 +8,21 @@
   "winget": "packaging/winget/manifests/c/cmm-cmm/GuineaNote/0.1.2 (schema 1.28.0, required by the winget-pkgs PR template), winget validate succeeded (winget v1.29.380). Local winget install --manifest not run: LocalManifestFiles is an admin setting and is disabled here. Submitted as https://github.com/microsoft/winget-pkgs/pull/480530 from the cmm-cmm fork (branch cmm-cmm.GuineaNote-0.1.2, commit f3d48ec); winget-pr-body.md is its description. Pending: Microsoft CLA (owner) and moderator review.",
   "ci": "GitHub Actions re-enabled (GitHub-owned actions only, read-only default token). Run 43665753248 on c5d5f99: ubuntu-latest passed; windows-latest failed 17 guinea-io tests with 'Recovery path belongs to another user': the elevated runner makes BUILTIN\\Administrators the owner of new files and platform::private() requires the user SID. The same check guards every save (lib.rs save -> platform::private on the temp file), so saving from an elevated session can fail; also present in v0.1.1. Listed as a known issue in the release notes; not verified on a real elevated desktop session.",
   "files": {
+    "SHA256SUMS": {
+      "sha256": "b8204cba7071368fbca999913828d904d0975593bd7ff4632e4ce0e3b5ecfc56",
+      "bytes": 106
+    },
+    "npm-manifest-scoped.json": {
+      "sha256": "75a3de3f456f54bd901d9ac89ec4bfe43f7c41fa78a7af2ca4fb6d04657de750",
+      "bytes": 543
+    },
     "npm-manifest.json": {
       "sha256": "f2f3bcd5d318ccc1cee47374a345e49576df91adad02b3b03a4626ab6f410f50",
       "bytes": 526
+    },
+    "npm-publish.txt": {
+      "sha256": "5db6af5861cf3f5b0adc6aa83ca0179423b75b6b54c2f8e921b06cc48f8dbf16",
+      "bytes": 1271
     },
     "pe_imports.py": {
       "sha256": "d2cf084f4defb50e37a1e3eaf3e9f9d32060951768150c98773820b1b0005450",
@@ -19,10 +31,6 @@
     "release-manifest.json": {
       "sha256": "d84607fc751b052eda3cb53310ad450a7dfc534251a68d843d22f8b682acd4e0",
       "bytes": 1421
-    },
-    "SHA256SUMS": {
-      "sha256": "b8204cba7071368fbca999913828d904d0975593bd7ff4632e4ce0e3b5ecfc56",
-      "bytes": 106
     },
     "windows-check.txt": {
       "sha256": "4fd92f6c4a672de74f2c595d7ac7db3d566cb5dfaf9484c3bd5639fa6836c6a6",
@@ -36,5 +44,6 @@
       "sha256": "cb9f58a70e25d38a3b1472534c4a1df906fbc9bc57d2aed95afacc37393459e7",
       "bytes": 1485
     }
-  }
+  },
+  "npm_publish": "npm-manifest.json is the first, unscoped staging: the registry refused guinea-note-win32-x64 ('Package name triggered spam detection'), nothing was published. At the owner's choice the platform package became @cmm_cmm/guinea-note-win32-x64 (npm-manifest-scoped.json, staged at 406e260; same guinea.exe SHA-256). Both publishes succeeded with web 2FA (npm-publish.txt), but npm holds the operational 0.1.2 versions for review and serves a 0.0.0-stage placeholder without a bin; npm stage list shows nothing awaiting the owner. npx guinea-note does not work until npm releases 0.1.2."
 }

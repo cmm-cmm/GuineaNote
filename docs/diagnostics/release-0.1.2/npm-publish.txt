@@ -1,0 +1,21 @@
+npm publish of v0.1.2 (15/11/2026, account cmm_cmm, 2FA auth-and-writes, web authentication with a security key)
+
+Attempt 1: guinea-note-win32-x64-0.1.2.tgz (unscoped)
+  npm error 403 Forbidden - PUT https://registry.npmjs.org/guinea-note-win32-x64 - Package name triggered spam detection
+  Nothing published; the launcher was not attempted.
+
+Attempt 2 (owner's choice: scoped platform packages, npm-manifest-scoped.json):
+  === publishing cmm_cmm-guinea-note-win32-x64-0.1.2.tgz
+  + @cmm_cmm/guinea-note-win32-x64@0.1.2
+  === exit 0 for cmm_cmm-guinea-note-win32-x64-0.1.2.tgz
+  === publishing guinea-note-0.1.2.tgz
+  + guinea-note@0.1.2
+  === exit 0 for guinea-note-0.1.2.tgz
+  === ALL PUBLISHED
+
+Registry right after attempt 2 (registry.npmjs.org, 2026-11-15T02:33Z):
+   guinea-note versions ['0.0.0-stage'] latest 0.0.0-stage - Temporary package placeholder for staged publishing
+   @cmm_cmm/guinea-note-win32-x64 versions ['0.0.0-stage'] latest 0.0.0-stage - Temporary package placeholder for staged publishing
+  npm stage list: No staged packages found (nothing awaits the owner's approval).
+
+Both names belong to cmm_cmm. npm holds the operational 0.1.2 versions for review and serves a 0.0.0-stage placeholder without a bin, so npx guinea-note does not work yet.

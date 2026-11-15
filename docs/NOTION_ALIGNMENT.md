@@ -10,8 +10,10 @@
 - Bật lại GitHub Actions với một workflow chỉ kiểm tra (fmt, Clippy, test trên
   Windows và Linux). Thay cho D2 "không có workflow"; build, tag và publish vẫn
   làm tay.
-- npm: gói 0.1.2 đã đóng gói và thử cài; chưa publish (chờ bước xác thực tài
-  khoản của chủ dự án).
+- npm: tên không scope `guinea-note-win32-x64` bị chặn vì spam; gói nền tảng
+  đổi sang `@cmm_cmm/guinea-note-win32-x64` (launcher vẫn `guinea-note`). Cả hai
+  đã publish nhưng npm đang giữ để xét duyệt, registry chỉ có bản giữ chỗ
+  `0.0.0-stage`; `npx guinea-note` chưa dùng được.
 - winget: đã mở [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530);
   chờ ký CLA và duyệt.
 - CI phát hiện lỗi lưu file khi chạy elevated (có từ v0.1.1); dự kiến sửa ở 0.1.3.

@@ -29,7 +29,7 @@ planned.
 | GitHub Releases | **v0.1.2 published 15/11, Latest, Windows x64 only** (tag on `c5d5f99`): [v0.1.2](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2); anonymous download re-checked against `SHA256SUMS`. **v0.1.1** (`6b698d9`) remains the release for Linux x64. v0.1.0 (pre-release, `8120df7`) remains |
 | `cargo install --git` | **Available from v0.1.1**: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote` (plus `guinea-agent`); verified from the tag in a clean `rust:1.98-bookworm` container and from GitHub on Windows. Git installs use the user's toolchain defaults (dynamic VC runtime on Windows, glibc on Linux) |
 | winget `cmm-cmm.GuineaNote` | **Submitted 15/11:** 0.1.2 manifest (schema 1.28.0) validated and sent as [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530) from the `cmm-cmm` fork. Waiting for the owner's Microsoft CLA and moderator review; `winget install` works only after the merge |
-| npm / npx `guinea-note` | **Staged, not published.** 0.1.2 `guinea-note-win32-x64` (binary identical to the release) and the `guinea-note` launcher (win32 only; says so on Linux) pass tarball install tests on Windows. Publishing waits for the owner's account authentication step (the registry refused the first attempt) |
+| npm / npx `guinea-note` | **Published 15/11, held for npm review.** The unscoped `guinea-note-win32-x64` was refused as spam, so platform packages are scoped: `@cmm_cmm/guinea-note-win32-x64@0.1.2` (binary identical to the release) and the `guinea-note@0.1.2` launcher (win32 only; says so on Linux). Both publishes succeeded with web 2FA, but npm serves a `0.0.0-stage` placeholder (no `bin`) until it releases 0.1.2, so `npx guinea-note` does not work yet; nothing awaits the owner in `npm stage list` |
 | Homebrew tap | Deferred (macOS is not released; few Homebrew users on Linux) |
 
 Evidence: `docs/diagnostics/release-0.1.2/` and `release-0.1.2-gate/`
@@ -57,10 +57,10 @@ release (there is no CI). Channels that need popularity or long reviews wait.
 
 ### Next steps
 
-1. **npm / npx:** after the owner's authentication step, publish
-   `target/npm/v0.1.2/guinea-note-win32-x64-0.1.2.tgz` then
-   `guinea-note-0.1.2.tgz` (`npm publish <tgz> --access public`), and check
-   `npx guinea-note@0.1.2 --version` from the registry.
+1. **npm / npx:** wait until npm releases the reviewed 0.1.2 versions (the
+   registry serves `0.0.0-stage` meanwhile); if it stays held, contact npm
+   support. Then check `npx guinea-note@0.1.2 --version` from the registry and
+   the binary SHA-256, and only then add npm to the README.
 2. **winget:** sign the Microsoft CLA on #480530 when the bot asks, answer
    moderator feedback; after the merge check `winget install cmm-cmm.GuineaNote`.
 3. **Elevated saves (found by CI):** saving can fail from an elevated
@@ -106,8 +106,9 @@ added only after running on ARM hardware.
   Linux in the Debian 12 container (`scripts/release/linux-build.sh`).
   *Changed 15/11:* GitHub Actions now runs the check-only CI workflow; it
   never builds release archives, tags or publishes.
-- **D4 — Names:** npm `guinea-note` (platform packages
-  `guinea-note-win32-x64`, `guinea-note-linux-x64`, unscoped since 13/11), winget
+- **D4 — Names:** npm `guinea-note` (launcher, unscoped); platform packages
+  `@cmm_cmm/guinea-note-win32-x64` and `@cmm_cmm/guinea-note-linux-x64`
+  (scoped since 15/11: npm refused the unscoped name as spam); winget
   `cmm-cmm.GuineaNote`; the command stays `guinea`.
 - **D5 — First version:** `v0.1.0`, published as a GitHub **pre-release**
   labelled preview.
