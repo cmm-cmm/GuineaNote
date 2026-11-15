@@ -1,5 +1,42 @@
 # Implementation status
 
+## Checkpoint 15/11/2026 (12) — v0.1.2 for Windows, CI, winget submission
+
+Owner decisions 15/11: pause Docker/WSL and the Linux build checks (Linux
+x64 stays on v0.1.1); ship v0.1.2 for Windows only; re-enable GitHub Actions
+with a check-only CI workflow; publish npm and open the winget PR.
+
+| Commit | Change |
+| --- | --- |
+| 1c06f5a | F2 Enter runs the highlighted row (exact names rank first); split below 76 columns is read-only; caret visible during saves; search previews keep to the match's line. Four regression tests |
+| 74c7db5 | `pty_typeahead` checks rendered screens instead of raw bytes; `pty_keyboard` accepts "saved" only on a settled frame (both failed on unchanged v0.1.1 code) |
+| 28a6e70, a638962 | Version 0.1.2; README lists `cargo install` for developers (Notion 14/11 distribution standard) |
+| c8809d5 | Windows-only packaging: `package.py` without `--linux-dir`; `npm.py` stages only released platforms; launcher reports a missing platform; README keeps Linux on v0.1.1 |
+| 93761b3 | `.github/workflows/ci.yml` (fmt, Clippy, tests on Windows and Linux); docs no longer say there is no CI |
+| c5d5f99 | Windows gate evidence — tagged **v0.1.2**, `main` fast-forwarded |
+| 92c543f | npm: absolute `--out`; launcher README lists the platforms of each version |
+
+Gate on a638962: Windows 21/21 steps with the real clipboard, PTY max 35.7 /
+30.5 ms, navigation max 35.3 / 38.0 / 42.9 ms, no sample over 50 ms; 219 Rust
+tests, fmt, strict Clippy. Linux gate not run (paused).
+
+Channels:
+- **GitHub Release v0.1.2** (Latest, Windows zip, `SHA256SUMS`,
+  `release-manifest.json`): built from the tag in a clean worktree, archive
+  imports only system DLLs, smoke PTY passes on the archived binary,
+  anonymous download re-checked.
+- **npm:** 0.1.2 packages staged and tested from tarballs on Windows; not
+  published yet (owner authentication step pending).
+- **winget:** [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530)
+  (schema 1.28.0, validated); waiting for the owner's CLA and review.
+- **CI:** ubuntu-latest passes; windows-latest fails 17 `guinea-io` tests on
+  the elevated runner ("Recovery path belongs to another user"). The same
+  owner check guards saves, so saving from an elevated session can fail;
+  present since v0.1.1, listed as a known issue, fix planned for 0.1.3.
+
+Evidence: [release-0.1.2-gate](diagnostics/release-0.1.2-gate/manifest.json),
+[release-0.1.2](diagnostics/release-0.1.2/manifest.json).
+
 ## Checkpoint 13/11/2026 (11) — v0.1.1: GitHub Release and cargo install --git
 
 Owner decision 13/11: for a new project, ship GitHub Releases and

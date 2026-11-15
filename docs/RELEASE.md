@@ -8,18 +8,33 @@ and `cargo install --git` first (done with v0.1.1), then winget and npm/npx.
 Homebrew is deferred until macOS ships or users ask; Scoop and AUR are not
 planned.
 
+**Update 14–15/11/2026 (Notion and owner):**
+- Distribution standard (Notion, 14/11): end users never need Rust; each
+  target is built once from the tag and every channel reuses the GitHub
+  Release files. `cargo install --git` is a developer option only. A
+  PowerShell installer is approved (after winget and npm); a Homebrew tap
+  (Linux/WSL only) is in the backlog; crates.io is a proposal.
+- **Linux paused (15/11):** Docker/WSL and the Linux build checks are paused.
+  v0.1.2 is a **Windows-only** release; Linux x64 stays on v0.1.1 until the
+  Linux build and gate run again.
+- **GitHub Actions re-enabled (15/11), replacing D2's "no workflow":** one
+  check-only workflow (`.github/workflows/ci.yml`: fmt, Clippy, tests on
+  windows-latest and ubuntu-latest; GitHub-owned actions only, read-only
+  token). Release builds, tags and publishing stay manual.
+
 ## Channel status
 
 | Channel | Status |
 | --- | --- |
-| GitHub Releases | **v0.1.1 published**, marked **Latest** (full release since 13/11; published first as a pre-release), tag on `6b698d9`: [v0.1.1](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.1); anonymous download re-checked against `SHA256SUMS`. v0.1.0 (pre-release, `8120df7`) remains |
+| GitHub Releases | **v0.1.2 published 15/11, Latest, Windows x64 only** (tag on `c5d5f99`): [v0.1.2](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.2); anonymous download re-checked against `SHA256SUMS`. **v0.1.1** (`6b698d9`) remains the release for Linux x64. v0.1.0 (pre-release, `8120df7`) remains |
 | `cargo install --git` | **Available from v0.1.1**: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.1 --locked guineanote` (plus `guinea-agent`); verified from the tag in a clean `rust:1.98-bookworm` container and from GitHub on Windows. Git installs use the user's toolchain defaults (dynamic VC runtime on Windows, glibc on Linux) |
-| winget `cmm-cmm.GuineaNote` | **Next.** Generator `scripts/release/winget.py`; the 0.1.0 manifest validated but was never submitted |
-| npm / npx `guinea-note` | **Next.** Unscoped platform packages `guinea-note-win32-x64` / `guinea-note-linux-x64`; staging and tarball tests ready (`scripts/release/npm.py`); needs the owner's `npm login` |
+| winget `cmm-cmm.GuineaNote` | **Submitted 15/11:** 0.1.2 manifest (schema 1.28.0) validated and sent as [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530) from the `cmm-cmm` fork. Waiting for the owner's Microsoft CLA and moderator review; `winget install` works only after the merge |
+| npm / npx `guinea-note` | **Staged, not published.** 0.1.2 `guinea-note-win32-x64` (binary identical to the release) and the `guinea-note` launcher (win32 only; says so on Linux) pass tarball install tests on Windows. Publishing waits for the owner's account authentication step (the registry refused the first attempt) |
 | Homebrew tap | Deferred (macOS is not released; few Homebrew users on Linux) |
 
-Evidence: `docs/diagnostics/release-0.1.1/` and `release-0.1.1-gate/`
-(v0.1.1), `release-0.1.0/` and `release-0.1.0-gate/` (v0.1.0).
+Evidence: `docs/diagnostics/release-0.1.2/` and `release-0.1.2-gate/`
+(v0.1.2, Windows only), `release-0.1.1/` and `release-0.1.1-gate/` (v0.1.1),
+`release-0.1.0/` and `release-0.1.0-gate/` (v0.1.0).
 
 ## Channel choice for a new project (13/11/2026)
 
@@ -42,14 +57,19 @@ release (there is no CI). Channels that need popularity or long reviews wait.
 
 ### Next steps
 
-1. **winget:** `scripts/release/winget.py --dist target/dist/v0.1.1`, then
-   `winget validate`, a Windows Sandbox test if available, and a PR from the
-   owner's fork of `microsoft/winget-pkgs` (`gh`); review takes days.
-2. **npm / npx:** `scripts/release/npm.py --tag v0.1.1`, `npx` tested from the
-   tarballs on both platforms, the owner runs `npm login`, platform packages
-   are published before the launcher, then `npx guinea-note@0.1.1 --version` is
-   checked from the registry.
-3. README install commands, CHANGELOG, IMPLEMENTATION_STATUS and Notion.
+1. **npm / npx:** after the owner's authentication step, publish
+   `target/npm/v0.1.2/guinea-note-win32-x64-0.1.2.tgz` then
+   `guinea-note-0.1.2.tgz` (`npm publish <tgz> --access public`), and check
+   `npx guinea-note@0.1.2 --version` from the registry.
+2. **winget:** sign the Microsoft CLA on #480530 when the bot asks, answer
+   moderator feedback; after the merge check `winget install cmm-cmm.GuineaNote`.
+3. **Elevated saves (found by CI):** saving can fail from an elevated
+   ("Run as administrator") session because `platform::private()` requires
+   the user SID as owner of the temp file; fix in 0.1.3 so the Windows CI job
+   passes.
+4. **Linux:** resume Docker/WSL, run `scripts/linux/run.sh` and the musl
+   build, then ship Linux in the next release (and its npm package).
+5. Update the README install section only after each channel works.
 
 ## Artifacts
 
@@ -83,8 +103,9 @@ added only after running on ARM hardware.
   Conduct, contributing guide, security policy, support page, issue and PR
   templates).
 - **D2 — Where to build:** **by hand** — Windows on the maintainer's machine,
-  Linux in the Debian 12 container (`scripts/release/linux-build.sh`). No
-  GitHub Actions workflow, not even a manual one.
+  Linux in the Debian 12 container (`scripts/release/linux-build.sh`).
+  *Changed 15/11:* GitHub Actions now runs the check-only CI workflow; it
+  never builds release archives, tags or publishes.
 - **D4 — Names:** npm `guinea-note` (platform packages
   `guinea-note-win32-x64`, `guinea-note-linux-x64`, unscoped since 13/11), winget
   `cmm-cmm.GuineaNote`; the command stays `guinea`.
@@ -121,6 +142,11 @@ separate decision (npm needs the owner's login).
    `guinea-note` launcher; test `npx` from the staged tarballs on both OSes,
    then `npm publish` platform packages before the launcher.
 7. Record channel status here, in IMPLEMENTATION_STATUS and in Notion.
+
+Windows-only release (as v0.1.2): `package.py` without `--linux-dir`; `npm.py`
+then stages only the Windows package and the launcher README lists the
+missing platform; README download commands keep Linux on the last Linux
+release.
 
 Rollback: never overwrite a published asset; publish a patch version
 (`npm deprecate` + dist-tag, winget PR for the fix).

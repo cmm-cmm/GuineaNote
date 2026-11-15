@@ -1,5 +1,23 @@
 # Đối chiếu quyết định Notion — 10/11/2026
 
+## Cập nhật 15/11/2026 — v0.1.2 cho Windows, CI, winget
+
+Áp dụng chuẩn phân phối Notion ngày 14/11 (người dùng không cần Rust;
+`cargo install` chỉ dành cho developer). Quyết định của chủ dự án ngày 15/11:
+
+- Tạm dừng Docker/WSL và kiểm tra bản build Linux. v0.1.2 **chỉ phát hành
+  Windows x64**; Linux x64 vẫn dùng v0.1.1.
+- Bật lại GitHub Actions với một workflow chỉ kiểm tra (fmt, Clippy, test trên
+  Windows và Linux). Thay cho D2 "không có workflow"; build, tag và publish vẫn
+  làm tay.
+- npm: gói 0.1.2 đã đóng gói và thử cài; chưa publish (chờ bước xác thực tài
+  khoản của chủ dự án).
+- winget: đã mở [microsoft/winget-pkgs#480530](https://github.com/microsoft/winget-pkgs/pull/480530);
+  chờ ký CLA và duyệt.
+- CI phát hiện lỗi lưu file khi chạy elevated (có từ v0.1.1); dự kiến sửa ở 0.1.3.
+
+Chi tiết: [RELEASE.md](RELEASE.md), [trạng thái](IMPLEMENTATION_STATUS.md).
+
 ## Cập nhật 13/11/2026 — hợp nhất và dọn dẹp Notion
 
 Cấu trúc Notion hiện hành (dọn dẹp ngày 13/11). Nội dung cũ được lưu nguyên
