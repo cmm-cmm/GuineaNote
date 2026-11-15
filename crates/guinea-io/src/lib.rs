@@ -451,6 +451,16 @@ mod tests {
             None,
         )
         .unwrap();
+        // The original's owner is the user SID in a normal session and the
+        // Administrators group in an elevated one; saving must keep it.
+        let original_owner = wrappers::GetNamedSecurityInfo(
+            path.as_os_str(),
+            SeObjectType::SE_FILE_OBJECT,
+            SecurityInformation::Owner,
+        )
+        .unwrap()
+        .owner()
+        .map(|owner| owner.to_string());
         let mut document = open(&path, false, 100).unwrap();
         document.insert("Việt 👩‍💻 ").unwrap();
         save(&mut document, &path).unwrap();
@@ -461,7 +471,11 @@ mod tests {
             SecurityInformation::Owner | SecurityInformation::Dacl,
         )
         .unwrap();
-        assert_eq!(actual.owner(), Some(&*sid));
+        assert!(original_owner.is_some());
+        assert_eq!(
+            actual.owner().map(|owner| owner.to_string()),
+            original_owner
+        );
         let dacl = actual.dacl().unwrap();
         assert_eq!(dacl.len(), 1);
         assert_eq!(dacl.get_ace(0).unwrap().sid(), Some(&*sid));
