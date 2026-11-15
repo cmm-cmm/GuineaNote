@@ -28,10 +28,17 @@ COMMON = {
     "repository": REPOSITORY,
     "bugs": {"url": "https://github.com/cmm-cmm/GuineaNote/issues"},
 }
+# Platform packages are scoped: npm refused the unscoped
+# guinea-note-win32-x64 as spam (15/11/2026). The launcher stays guinea-note.
+SCOPE = "@cmm_cmm"
 PLATFORMS = [
     ("win32-x64", "win32", "x64", "x86_64-pc-windows-msvc", ".zip", ".exe"),
     ("linux-x64", "linux", "x64", "x86_64-unknown-linux-musl", ".tar.gz", ""),
 ]
+
+
+def platform_package(suffix):
+    return f"{SCOPE}/guinea-note-{suffix}"
 
 
 def sha256(data):
@@ -74,7 +81,7 @@ def main():
     packed = {}
     optional = {}
     for suffix, os_name, cpu, target, extension, exe in PLATFORMS:
-        name = f"guinea-note-{suffix}"
+        name = platform_package(suffix)
         if target not in release["targets"]:
             # A release without this target (for example a Windows-only one)
             # ships no platform package; the launcher then says so on it.
@@ -107,8 +114,8 @@ def main():
     launcher = stage / "guinea-note"
     shutil.copytree(ROOT / "packaging" / "npm" / "guinea-note", launcher)
     shutil.copyfile(ROOT / "LICENSE", launcher / "LICENSE")
-    included = [suffix for suffix, *_ in PLATFORMS if f"guinea-note-{suffix}" in optional]
-    missing = [suffix for suffix, *_ in PLATFORMS if f"guinea-note-{suffix}" not in optional]
+    included = [suffix for suffix, *_ in PLATFORMS if platform_package(suffix) in optional]
+    missing = [suffix for suffix, *_ in PLATFORMS if platform_package(suffix) not in optional]
     note = f"\n## Platforms in {version}\n\nIncluded: {', '.join(included)}.\n"
     if missing:
         note += (f"Not included: {', '.join(missing)}; download a GitHub Release archive "
