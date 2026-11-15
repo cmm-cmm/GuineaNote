@@ -36,8 +36,8 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="alternate" type="text/plain" title="Tóm tắt cho trợ lý AI" href="/llms.txt">
 <link rel="preload" as="image" href="/images/tabs-vietnamese.webp" type="image/webp">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js" defer></script>
+<link rel="stylesheet" href="/assets/site.css?v=2">
+<script src="/assets/site.js?v=2" defer></script>
 
 <script type="application/ld+json">
 {
@@ -344,14 +344,14 @@
     <div class="choose">
       <h3>Nên chọn cách nào?</h3>
       <div class="table-wrap">
-        <table>
+        <table class="stack">
           <thead><tr><th scope="col">Cách cài</th><th scope="col">Phù hợp với</th><th scope="col">Cần có</th><th scope="col">Nền tảng</th><th scope="col">Phiên bản</th></tr></thead>
           <tbody>
-            <tr><td><a href="#install-npm">npm / npx</a></td><td>Developer đã có Node.js</td><td>Node.js 18+</td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
-            <tr><td><a href="#install-zip">Windows .zip</a></td><td>Mọi máy Windows; dùng offline, không cần quyền quản trị</td><td><span class="no">Không cần gì</span></td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
-            <tr><td><a href="#install-linux">Bản Linux</a></td><td>Mọi bản phân phối x64, server, container</td><td><span class="no">Không cần gì</span></td><td>Linux x64</td><td>0.1.1</td></tr>
-            <tr><td><a href="#install-winget">winget</a></td><td>Người dùng Windows quản lý ứng dụng bằng winget</td><td>winget</td><td>Windows x64</td><td><span class="wait">chờ duyệt</span></td></tr>
-            <tr><td><a href="#install-cargo">Cargo</a></td><td>Developer Rust tự build từ mã nguồn</td><td>Rust 1.98+</td><td>Windows, Linux</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td data-label="Cách cài"><span><a href="#install-npm">npm / npx</a></span></td><td data-label="Phù hợp với"><span>Developer đã có Node.js</span></td><td data-label="Cần có"><span>Node.js 18+</span></td><td data-label="Nền tảng"><span>Windows x64</span></td><td data-label="Phiên bản"><span><span class="yes">0.1.3</span></span></td></tr>
+            <tr><td data-label="Cách cài"><span><a href="#install-zip">Windows .zip</a></span></td><td data-label="Phù hợp với"><span>Mọi máy Windows; dùng offline, không cần quyền quản trị</span></td><td data-label="Cần có"><span><span class="no">Không cần gì</span></span></td><td data-label="Nền tảng"><span>Windows x64</span></td><td data-label="Phiên bản"><span><span class="yes">0.1.3</span></span></td></tr>
+            <tr><td data-label="Cách cài"><span><a href="#install-linux">Bản Linux</a></span></td><td data-label="Phù hợp với"><span>Mọi bản phân phối x64, server, container</span></td><td data-label="Cần có"><span><span class="no">Không cần gì</span></span></td><td data-label="Nền tảng"><span>Linux x64</span></td><td data-label="Phiên bản"><span>0.1.1</span></td></tr>
+            <tr><td data-label="Cách cài"><span><a href="#install-winget">winget</a></span></td><td data-label="Phù hợp với"><span>Người dùng Windows quản lý ứng dụng bằng winget</span></td><td data-label="Cần có"><span>winget</span></td><td data-label="Nền tảng"><span>Windows x64</span></td><td data-label="Phiên bản"><span><span class="wait">chờ duyệt</span></span></td></tr>
+            <tr><td data-label="Cách cài"><span><a href="#install-cargo">Cargo</a></span></td><td data-label="Phù hợp với"><span>Developer Rust tự build từ mã nguồn</span></td><td data-label="Cần có"><span>Rust 1.98+</span></td><td data-label="Nền tảng"><span>Windows, Linux</span></td><td data-label="Phiên bản"><span><span class="yes">0.1.3</span></span></td></tr>
           </tbody>
         </table>
       </div>
@@ -466,13 +466,13 @@
       <p>Một nền tảng chỉ được gọi là hỗ trợ sau khi trình soạn thảo đã chạy native trên đó.</p>
     </div>
     <div class="table-wrap">
-      <table>
+      <table class="stack bare">
         <thead><tr><th scope="col">Nền tảng</th><th scope="col">Tình trạng</th></tr></thead>
         <tbody>
-          <tr><td>Windows x64 (Windows Terminal, conhost)</td><td><span class="yes">Đã phát hành, 0.1.3.</span> Đã kiểm trên Windows 11 với ConPTY, và bằng CI trên runner chạy quyền quản trị.</td></tr>
-          <tr><td>Linux x64 (musl tĩnh)</td><td><span class="yes">Đã phát hành, 0.1.1.</span> Đã kiểm trong container Debian 12; chạy trên Debian 11/12, Ubuntu 22.04 và Alpine 3.20. CI chạy test trên Linux cho mọi thay đổi.</td></tr>
-          <tr><td>macOS</td><td><span class="no">Không phát hành và không kiểm thử.</span></td></tr>
-          <tr><td>ARM64, terminal emulator Linux thật, SSH và tmux</td><td><span class="wait">Chưa kiểm chứng.</span></td></tr>
+          <tr><td data-label="Nền tảng"><span>Windows x64 (Windows Terminal, conhost)</span></td><td data-label="Tình trạng"><span><span class="yes">Đã phát hành, 0.1.3.</span> Đã kiểm trên Windows 11 với ConPTY, và bằng CI trên runner chạy quyền quản trị.</span></td></tr>
+          <tr><td data-label="Nền tảng"><span>Linux x64 (musl tĩnh)</span></td><td data-label="Tình trạng"><span><span class="yes">Đã phát hành, 0.1.1.</span> Đã kiểm trong container Debian 12; chạy trên Debian 11/12, Ubuntu 22.04 và Alpine 3.20. CI chạy test trên Linux cho mọi thay đổi.</span></td></tr>
+          <tr><td data-label="Nền tảng"><span>macOS</span></td><td data-label="Tình trạng"><span><span class="no">Không phát hành và không kiểm thử.</span></span></td></tr>
+          <tr><td data-label="Nền tảng"><span>ARM64, terminal emulator Linux thật, SSH và tmux</span></td><td data-label="Tình trạng"><span><span class="wait">Chưa kiểm chứng.</span></span></td></tr>
         </tbody>
       </table>
     </div>

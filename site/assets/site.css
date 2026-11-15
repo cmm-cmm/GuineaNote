@@ -82,7 +82,7 @@ p { margin: 0 0 1em; }
 /* Header */
 .top { position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
 .top .wrap { display: flex; align-items: center; gap: 20px; min-height: 64px; }
-.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 800; font-size: 1.16rem; letter-spacing: -.02em; }
+.brand { white-space: nowrap; display: inline-flex; align-items: center; gap: 10px; color: var(--text); text-decoration: none; font-weight: 800; font-size: 1.16rem; letter-spacing: -.02em; }
 .brand img { width: 36px; height: 36px; image-rendering: auto; }
 .brand b { color: var(--green); font-weight: 800; }
 .ver { font: 600 .74rem/1 var(--mono); color: var(--mint); background: var(--forest); border-radius: 999px; padding: 5px 8px; margin-left: 2px; }
@@ -168,7 +168,7 @@ section { padding: 72px 0; }
 .panel .sub { color: var(--muted); margin-top: -4px; }
 .how { list-style: none; counter-reset: s; margin: 18px 0 0; padding: 0; display: grid; gap: 18px; }
 .how li { counter-increment: s; position: relative; padding-left: 46px; min-width: 0; }
-.how p code, .facts code { overflow-wrap: anywhere; }
+.how p code, .facts code { overflow-wrap: break-word; }
 .panel > * { min-width: 0; }
 .how li::before { content: counter(s); position: absolute; left: 0; top: 0; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 800 .95rem/1 var(--mono); background: var(--forest); color: var(--mint); border: 1px solid color-mix(in srgb, var(--green) 40%, transparent); }
 .how li > b { display: inline; }
@@ -249,10 +249,60 @@ footer nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 footer nav a { color: var(--muted); text-decoration: none; }
 footer nav a:hover { color: var(--text); text-decoration: underline; }
 
-/* Phones: more room for commands inside the install card */
+/* Keys inside running text: smaller caps that fit the line height */
+p kbd { font-size: .72rem; padding: 2px 5px; border-bottom-width: 2px; vertical-align: 1px; }
+.step p { line-height: 1.95; }
+
+/* Tablets and phones: every install option visible, tabs wrap instead of scrolling sideways */
+@media (max-width: 900px) {
+  .tabs { flex-wrap: wrap; overflow: visible; }
+}
+
+/* Phones */
 @media (max-width: 600px) {
   section { padding: 56px 0; }
-  .panel { padding: 22px 16px; }
+  .panel { padding: 22px 16px; gap: 22px; }
   .how li { padding-left: 40px; }
   .tabs { padding: 8px; }
+  .tabs [role="tab"] { padding: 9px 10px; font-size: .9rem; }
+  /* commands wrap so nothing is hidden; Copy stays on the right */
+  .cmd pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .86rem; padding: 11px 12px; }
+  .hero .cmd pre { font-size: .95rem; }
+  /* Copy moves under the command so the command gets the full width */
+  .cmd { flex-direction: column; }
+  .copy { border-left: 0; border-top: 1px solid #22324a; padding: 8px 12px; min-width: 0; text-align: right; font-size: .76rem; }
+  /* the mascot sat on the screenshot's title bar */
+  .hero-art .mascot { display: none; }
+  .facts dl { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .facts dt { font-size: .8rem; margin-top: 8px; }
+  .chip { font-size: .8rem; }
+}
+@media (max-width: 400px) {
+  /* the header keeps the brand and the EN/VI switch; GitHub is in the hero and footer */
+  .nav { display: none; }
+  .top .wrap { justify-content: space-between; }
+  .brand { font-size: 1.05rem; }
+}
+
+/* Tables become one card per row on phones */
+@media (max-width: 640px) {
+  .stack, .stack tbody, .stack tr, .stack td { display: block; width: 100%; }
+  .choose table.stack { min-width: 0; }
+  .stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  .stack tr { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .stack tbody tr:last-child { border-bottom: 0; }
+  .stack td { border: 0; padding: 3px 0; display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 10px; }
+  .stack td::before { content: attr(data-label); color: var(--soft); font-size: .76rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; padding-top: 3px; }
+  .stack td:first-child { display: block; font-weight: 700; font-size: 1.02rem; padding-bottom: 6px; }
+  .stack td:first-child::before { display: none; }
+  .stack.bare td { display: block; padding: 2px 0; }
+  .stack.bare td::before { display: none; }
+  .stack.bare td:last-child { color: var(--muted); }
+}
+@media (max-width: 400px) {
+  .cmd pre { font-size: .8rem; }
+  /* a key card puts its keys under the label when both do not fit */
+  .key { flex-wrap: wrap; row-gap: 8px; }
+  .key > span:first-child { flex: 1 0 9em; }
+  .key .k { margin-left: auto; }
 }

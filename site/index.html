@@ -36,8 +36,8 @@
 <link rel="manifest" href="/site.webmanifest">
 <link rel="alternate" type="text/plain" title="Summary for AI assistants" href="/llms.txt">
 <link rel="preload" as="image" href="/images/editor.webp" type="image/webp">
-<link rel="stylesheet" href="/assets/site.css">
-<script src="/assets/site.js" defer></script>
+<link rel="stylesheet" href="/assets/site.css?v=2">
+<script src="/assets/site.js?v=2" defer></script>
 
 <script type="application/ld+json">
 {
@@ -372,14 +372,14 @@
     <div class="choose">
       <h3>Which one should I pick?</h3>
       <div class="table-wrap">
-        <table>
+        <table class="stack">
           <thead><tr><th scope="col">Way</th><th scope="col">Best for</th><th scope="col">You need</th><th scope="col">Platforms</th><th scope="col">Version</th></tr></thead>
           <tbody>
-            <tr><td><a href="#install-npm">npm / npx</a></td><td>Developers who already have Node.js</td><td>Node.js 18+</td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
-            <tr><td><a href="#install-zip">Windows .zip</a></td><td>Any Windows PC; offline, no admin rights</td><td><span class="no">Nothing</span></td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
-            <tr><td><a href="#install-linux">Linux archive</a></td><td>Any x64 distribution, servers, containers</td><td><span class="no">Nothing</span></td><td>Linux x64</td><td>0.1.1</td></tr>
-            <tr><td><a href="#install-winget">winget</a></td><td>Windows users who manage apps with winget</td><td>winget</td><td>Windows x64</td><td><span class="wait">in review</span></td></tr>
-            <tr><td><a href="#install-cargo">Cargo</a></td><td>Rust developers building from source</td><td>Rust 1.98+</td><td>Windows, Linux</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td data-label="Way"><span><a href="#install-npm">npm / npx</a></span></td><td data-label="Best for"><span>Developers who already have Node.js</span></td><td data-label="You need"><span>Node.js 18+</span></td><td data-label="Platforms"><span>Windows x64</span></td><td data-label="Version"><span><span class="yes">0.1.3</span></span></td></tr>
+            <tr><td data-label="Way"><span><a href="#install-zip">Windows .zip</a></span></td><td data-label="Best for"><span>Any Windows PC; offline, no admin rights</span></td><td data-label="You need"><span><span class="no">Nothing</span></span></td><td data-label="Platforms"><span>Windows x64</span></td><td data-label="Version"><span><span class="yes">0.1.3</span></span></td></tr>
+            <tr><td data-label="Way"><span><a href="#install-linux">Linux archive</a></span></td><td data-label="Best for"><span>Any x64 distribution, servers, containers</span></td><td data-label="You need"><span><span class="no">Nothing</span></span></td><td data-label="Platforms"><span>Linux x64</span></td><td data-label="Version"><span>0.1.1</span></td></tr>
+            <tr><td data-label="Way"><span><a href="#install-winget">winget</a></span></td><td data-label="Best for"><span>Windows users who manage apps with winget</span></td><td data-label="You need"><span>winget</span></td><td data-label="Platforms"><span>Windows x64</span></td><td data-label="Version"><span><span class="wait">in review</span></span></td></tr>
+            <tr><td data-label="Way"><span><a href="#install-cargo">Cargo</a></span></td><td data-label="Best for"><span>Rust developers building from source</span></td><td data-label="You need"><span>Rust 1.98+</span></td><td data-label="Platforms"><span>Windows, Linux</span></td><td data-label="Version"><span><span class="yes">0.1.3</span></span></td></tr>
           </tbody>
         </table>
       </div>
@@ -494,13 +494,13 @@
       <p>A platform is called supported only after the editor has run natively on it.</p>
     </div>
     <div class="table-wrap">
-      <table>
+      <table class="stack bare">
         <thead><tr><th scope="col">Platform</th><th scope="col">Status</th></tr></thead>
         <tbody>
-          <tr><td>Windows x64 (Windows Terminal, conhost)</td><td><span class="yes">Released, 0.1.3.</span> Verified on Windows 11 with ConPTY, and by CI on an elevated runner.</td></tr>
-          <tr><td>Linux x64 (static musl)</td><td><span class="yes">Released, 0.1.1.</span> Verified in a Debian 12 container; runs on Debian 11/12, Ubuntu 22.04 and Alpine 3.20. CI runs the tests on Linux for every change.</td></tr>
-          <tr><td>macOS</td><td><span class="no">Not released and not tested.</span></td></tr>
-          <tr><td>ARM64, real Linux terminal emulators, SSH and tmux</td><td><span class="wait">Not verified yet.</span></td></tr>
+          <tr><td data-label="Platform"><span>Windows x64 (Windows Terminal, conhost)</span></td><td data-label="Status"><span><span class="yes">Released, 0.1.3.</span> Verified on Windows 11 with ConPTY, and by CI on an elevated runner.</span></td></tr>
+          <tr><td data-label="Platform"><span>Linux x64 (static musl)</span></td><td data-label="Status"><span><span class="yes">Released, 0.1.1.</span> Verified in a Debian 12 container; runs on Debian 11/12, Ubuntu 22.04 and Alpine 3.20. CI runs the tests on Linux for every change.</span></td></tr>
+          <tr><td data-label="Platform"><span>macOS</span></td><td data-label="Status"><span><span class="no">Not released and not tested.</span></span></td></tr>
+          <tr><td data-label="Platform"><span>ARM64, real Linux terminal emulators, SSH and tmux</span></td><td data-label="Status"><span><span class="wait">Not verified yet.</span></span></td></tr>
         </tbody>
       </table>
     </div>
