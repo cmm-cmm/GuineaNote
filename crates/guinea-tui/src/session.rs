@@ -223,12 +223,13 @@ mod tests {
         save(&session, &tabs, 2).unwrap();
 
         let (files, mut restore, missing) = Restore::load(&session);
-        assert_eq!(files, vec![a.clone(), b.clone()]);
+        // Saved in the comparable form: canonical long names, no verbatim prefix.
+        assert_eq!(files, vec![key(&a), key(&b)]);
         assert_eq!(missing, 0);
         assert_eq!(restore.opened(&a), Some((1, 2)));
         assert_eq!(restore.take_active(), None, "b is still outstanding");
         assert_eq!(restore.opened(&b), Some((0, 1)), "grapheme column");
-        assert_eq!(restore.take_active(), Some(b));
+        assert_eq!(restore.take_active(), Some(key(&b)));
         assert!(restore.is_empty());
     }
 
