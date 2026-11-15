@@ -1,0 +1,158 @@
+# Guinea Note — full description
+
+Guinea Note is a free, open-source text editor for the terminal, written in Rust and released under the MIT License. It is modeled on Notepad++ rather than Nano or Vim: there are no modes, you type text directly, and familiar keys such as Ctrl+S, Ctrl+F, Ctrl+Z and Ctrl+Q do what they do in desktop editors. It opens files in tabs and has one Find/Replace panel with regular expressions, line tools, bookmarks, session restore, read-only formatted previews and crash recovery. Saves keep the UTF-8 BOM and the original LF, CRLF or mixed newlines exactly as they were. The interface is in English and Vietnamese.
+
+- Website: https://guineanote.konexforge.com/ (Vietnamese: https://guineanote.konexforge.com/vi/)
+- Source: https://github.com/cmm-cmm/GuineaNote
+- Command: `guinea`
+- Current version: 0.1.3, released 2026-11-15, Windows x64. The latest Linux x64 release is 0.1.1 (2026-11-13).
+- Made by Konex Forge (https://konexforge.com/).
+- Built with Ratatui, Crossterm and Ropey.
+
+## Platforms
+
+| Platform | Status |
+| --- | --- |
+| Windows x64 (Windows Terminal, conhost) | Released (0.1.3). Verified on Windows 11 with ConPTY, and by CI on an elevated runner. |
+| Linux x64 (static musl) | Released (0.1.1). Verified in a Debian 12 container; runs on Debian 11/12, Ubuntu 22.04, Alpine 3.20. Versions 0.1.2 and 0.1.3 are Windows only while the Linux build checks are paused. |
+| macOS | Not released and not tested. |
+| ARM64, real Linux terminal emulators, Wayland clipboard, SSH/tmux | Not verified yet. |
+
+## Install
+
+Every method installs the same binary as the GitHub Release archive (same SHA-256). None needs Rust.
+
+### Windows: npm / npx (Node.js 18 or newer)
+
+```
+npx guinea-note notes.md          # run once without installing
+npm install -g guinea-note        # install the guinea command
+guinea notes.md
+```
+
+Packages: `guinea-note` (launcher) and `@cmm_cmm/guinea-note-win32-x64` (native binary). Update with `npm install -g guinea-note@latest`; remove with `npm uninstall -g guinea-note`. Version 0.1.3 of the npm package has no Linux binary; on Linux the launcher says so.
+
+### Windows: portable zip (no Node.js, no administrator rights)
+
+```
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/SHA256SUMS -OutFile SHA256SUMS
+(Get-FileHash guinea.zip -Algorithm SHA256).Hash -eq ((Select-String windows-msvc.zip SHA256SUMS).Line -split ' ')[0]   # must print True
+Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc", "User")
+# open a new terminal, then:
+guinea notes.md
+```
+
+The zip contains `guinea.exe`, `guineanote-agent.exe`, `guineanote-mcp.exe`, `LICENSE`, `THIRD_PARTY_NOTICES.txt` and `README.md`. The C runtime is linked statically. The binaries are not code-signed, so SmartScreen may warn about a browser download.
+
+### Linux x64: static binary
+
+```
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS
+sha256sum --ignore-missing -c SHA256SUMS
+tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
+guinea notes.md
+```
+
+The archive is 7.3 MB. The system clipboard works through wl-clipboard, xclip or xsel when one is installed.
+
+### winget (in review)
+
+`winget install cmm-cmm.GuineaNote` will work once the package is accepted in microsoft/winget-pkgs (pull request https://github.com/microsoft/winget-pkgs/pull/480530). Until then it finds nothing.
+
+### Cargo (developers, Rust 1.98+)
+
+```
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote
+cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guinea-agent   # optional Agent tools
+```
+
+Check any installation with `guinea --version` (prints `guinea 0.1.3`, or `guinea 0.1.1` on Linux).
+
+## Quick start
+
+```
+guinea notes.md                # open a file; a missing path is created on save
+guinea a.txt b.txt             # one tab per file
+guinea                         # reopen the previous session (or the welcome screen)
+guinea --language vi notes.md  # Vietnamese interface
+guinea --readonly server.log   # no edits or saves
+guinea --help
+```
+
+Inside the editor F1 shows the keyboard guide, F2 lists every action with its key (or why it is unavailable right now), Ctrl+S saves and Ctrl+Q quits. Folders are not opened; Ctrl+O opens a file picker.
+
+## Keyboard essentials
+
+| Keys | Action |
+| --- | --- |
+| Ctrl+N / Ctrl+O / Ctrl+S | New tab / open (file picker) / save |
+| Alt+S or Ctrl+Shift+S | Save to a new path |
+| Ctrl+W / Ctrl+Q | Close tab / quit (unsaved changes are confirmed) |
+| Ctrl+Z / Ctrl+Y | Undo / redo |
+| Ctrl+A / Ctrl+C / Ctrl+X / Ctrl+V | Select all / copy / cut / paste (system clipboard) |
+| Tab / Shift+Tab, Ctrl+D, Alt+Up / Alt+Down | Indent / outdent, duplicate, move lines |
+| Ctrl+F / Ctrl+H, F3 | Find/Replace panel, next match |
+| Ctrl+L or Ctrl+G | Go to line[:column] |
+| Ctrl+F2, Alt+F2 / Shift+F2 | Toggle bookmark, next / previous bookmark |
+| F6 / F7, Ctrl+PageUp / Ctrl+PageDown | Previous / next tab |
+| F12 or Ctrl+P | Tab manager |
+| F8 | Split preview or linked review tab |
+| F9 / F10 | File details / Settings (language) |
+| F1 / F2 | Keyboard guide / action list |
+| Esc | Close a dialog, cancel a large tool |
+
+The mouse is optional: click tabs, buttons and text, drag or Shift-click to select, scroll with the wheel, middle-click to close a tab.
+
+## Features
+
+- Tabs: a one-row tab bar, a tab manager (F12 / Ctrl+P) to filter, switch, save and close tabs, and session restore of open files, carets and the active tab.
+- Find/Replace (Ctrl+F / Ctrl+H): match case (Alt+C), whole word (Alt+W), linear-time regular expressions (Alt+R) with `$1` and `${name}` replacements, Mark All, bookmarks for marked lines; Replace all is a single Undo step. Search runs on cancellable background workers.
+- Line and text tools (F2): sort ascending or descending, remove duplicate or empty lines, trim trailing whitespace, UPPER / lower / Title case, line comments for each language; indent, duplicate and move lines.
+- Previews (F8): Markdown with a contents sidebar, JSON / JSONL / JSON5, CSV / TSV, XML / SVG, TOML, YAML, INI / ENV / properties and Jupyter notebooks (shown, never run), as a split view or a linked read-only tab. Previews never write to the file.
+- Responsiveness: long lines are indexed and large tools run in the background; keys typed meanwhile are queued, never dropped; Esc cancels a large tool. Every measured interaction above 50 ms is investigated before a release (targets p50 ≤ 10 ms, p95 ≤ 20 ms, p99 ≤ 50 ms).
+- Keyboard first: every mouse action has a key, and the key labels on screen come from the keymap itself.
+- Languages: English and Vietnamese; F10 switches and remembers the language.
+- Syntax colors for common languages, smart highlighting of the selected word, bracket matching.
+
+## Files and safety
+
+- Only UTF-8 is edited. The BOM and the original LF/CRLF/mixed newline bytes are preserved; Enter uses CRLF only in files that use CRLF throughout.
+- Invalid encodings, binary/NUL content and symlinked files are refused rather than damaged.
+- Saves are atomic. If another program changed the file, saving stops with a conflict; you can reload, save to a new path or cancel. Saving runs in the background.
+- Crash recovery: unsaved tabs are checkpointed about once per second into a private local store and come back as drafts after a crash. Drafts never overwrite the source file (`recovery = false` turns this off).
+- Opening a file above 10 MiB asks first. Undo history keeps up to 2,048 steps and 64 MiB of edit data.
+- Not included: bounded-memory editing of huge files, LSP, plugins, Git integration and folder browsing.
+
+## Configuration
+
+Settings come from a TOML file passed with `--config`: `language` ("en" or "vi"), `tab_width`, `large_file_warning_bytes`, `syntax`, `mouse`, `basic_colors`, `ansi_colors`, `clipboard` ("auto", "system", "osc52" or "internal"), `recovery`, `session`. Preferences are saved to `%APPDATA%\GuineaNote\preferences.toml` on Windows or `~/.config/guineanote/preferences.toml` on Linux. `NO_COLOR` is honored and no Nerd Font is needed. Over SSH the editor uses an internal clipboard; OSC 52 is opt-in.
+
+## Agent access (CLI and MCP)
+
+Off unless the editor starts with `--agent`; `--agent-write` allows edits and saves; sensitive paths such as `.env` stay blocked unless `--agent-secrets` is added. `guineanote-agent` is a JSON CLI and `guineanote-mcp` an MCP stdio server. Agents read live, unsaved buffers, and their changes apply only at the document revision they planned against. While an agent works on a document, that tab is read-only to the user and marked AI.
+
+## FAQ
+
+**What is Guinea Note?** A free, open-source text editor for the terminal, written in Rust. It works like Notepad++: tabs, one Find/Replace panel with regular expressions, line tools, bookmarks and session restore, with no modes to learn. The command is `guinea`.
+
+**How do I install Guinea Note on Windows?** With Node.js 18 or newer, run `npx guinea-note notes.md`, or `npm install -g guinea-note`. Without Node.js, download `guinea-0.1.3-x86_64-pc-windows-msvc.zip` from GitHub Releases, check its SHA-256, unpack it and add the folder to PATH. A winget package, `cmm-cmm.GuineaNote`, is in review.
+
+**How do I install Guinea Note on Linux?** Download the 0.1.1 static musl archive and SHA256SUMS from GitHub Releases, check them with `sha256sum --ignore-missing -c SHA256SUMS`, unpack and copy `guinea` into `~/.local/bin`.
+
+**Do I need Rust or Node.js?** No. Node.js 18+ is needed only for the npm install, and Rust 1.98+ only to build from source.
+
+**Is it free?** Yes, MIT License.
+
+**Does it change my file's encoding or line endings?** No. It keeps the BOM and LF/CRLF/mixed newlines; untouched bytes are saved exactly as they were.
+
+**How is it different from Nano or Vim?** It is not modal and follows Notepad++ conventions: tabs, a Find/Replace panel, line tools and familiar Ctrl shortcuts.
+
+**Does it run on macOS?** No; only Windows x64 and Linux x64 are released.
+
+**Can I use it in Vietnamese?** Yes: `guinea --language vi`, or F10 Settings.
+
+**Can AI coding agents use it?** Optionally, through `--agent` with the `guineanote-agent` CLI or the `guineanote-mcp` MCP server; off by default.

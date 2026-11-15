@@ -5,3 +5,6 @@ __pycache__/
 .env
 .env.*
 !.env.example
+
+# Wrangler local cache (website deploys); may hold account details
+.wrangler/

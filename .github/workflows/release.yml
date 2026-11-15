@@ -13,6 +13,8 @@
 #              npm (Trusted Publishing, OIDC: no token is stored)
 #   winget  -> wingetcreate submit, once cmm-cmm.GuineaNote is in winget-pkgs
 #              and the WINGET_TOKEN secret exists; otherwise skipped
+#   site    -> deploy site/ (https://guineanote.konexforge.com/) with Wrangler
+#              when the CLOUDFLARE_API_TOKEN secret exists; otherwise skipped
 # Re-running failed jobs is safe: every publish step skips what already exists.
 # Run it by hand with dry_run (the default) to build and check on any branch
 # without tagging or publishing.
@@ -255,3 +257,28 @@ jobs:
           .\wingetcreate.exe submit --no-open `
             --prtitle "New version: cmm-cmm.GuineaNote version $env:VERSION" out/winget
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  site:
+    name: site (guineanote.konexforge.com)
+    needs: [plan, publish]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Check the site
+        run: python3 -X utf8 scripts/site/check.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Deploy with Wrangler
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::notice::CLOUDFLARE_API_TOKEN is not set; deploy the site by hand with npx wrangler deploy"
+            exit 0
+          fi
+          npx --yes wrangler@4.162.0 deploy

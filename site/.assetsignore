@@ -1,0 +1,3 @@
+# Files in site/ that must never be uploaded as public assets.
+# The cf CLI drops a cache with Cloudflare account details here when run inside site/.
+.cloudflare

@@ -6,6 +6,15 @@ released.
 
 ## [Unreleased]
 
+### Added
+- Website https://guineanote.konexforge.com/ (English, `/vi/` Vietnamese):
+  a step-by-step install guide with copy buttons for npm, the Windows zip,
+  Linux, winget and Cargo, screenshots, features, keys, platforms and an FAQ.
+  Structured data (SoftwareApplication, HowTo, FAQPage), `llms.txt` and
+  `llms-full.txt` for search engines and AI assistants. Static files in
+  `site/`, served by a Cloudflare Worker (`wrangler.toml`); CI checks its
+  version, links and structured data (`scripts/site/check.py`).
+
 ### Release
 - Releases are published by GitHub Actions (`.github/workflows/release.yml`)
   when `main` gets a version that has no tag yet: annotated tag, GitHub
@@ -14,7 +23,9 @@ released.
   only while the Linux build checks are paused.
 
 ### Changed
-- README: the platform table shows the latest release per platform.
+- README: the platform table shows the latest release per platform; a "Pick
+  one" install table and links to the website; the Windows steps include the
+  PATH command and a check against the release's `SHA256SUMS`.
 
 ## [0.1.3] — 2026-11-15
 

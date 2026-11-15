@@ -1,0 +1,30 @@
+# Same policy as the other konexforge.com sites. Cloudflare injects scripts of its own on this
+# zone (Bot Fight Mode's JavaScript detections, Web Analytics); it copies the nonce below onto
+# them, which Cloudflare recommends over 'unsafe-inline'. The site's own script is
+# /assets/site.js, served from 'self'; the other <script> blocks are JSON-LD data, which a CSP
+# does not block.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'nonce-Hk7qR2vX9mLp4sWd8zTa' https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'none'
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/vi/
+  Cache-Control: public, max-age=0, must-revalidate
+
+/llms*.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+# Names carry no content hash, so cache for a day: a redeploy reaches everyone within 24 hours.
+/assets/*
+  Cache-Control: public, max-age=86400
+
+/images/*
+  Cache-Control: public, max-age=86400

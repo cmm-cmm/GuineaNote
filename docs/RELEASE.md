@@ -74,6 +74,9 @@ not). Channels that need popularity or long reviews wait.
    `@cmm_cmm/guinea-note-win32-x64`; create a classic token with the
    `public_repo` scope and store it as the `WINGET_TOKEN` repository secret.
    Without them the npm step fails and the winget step is skipped.
+   Optional: a Cloudflare API token (Workers Scripts: Edit) as
+   `CLOUDFLARE_API_TOKEN`, with `CLOUDFLARE_ACCOUNT_ID`, lets the workflow
+   deploy the website; without it, deploy by hand with `npx wrangler deploy`.
 3. **Linux:** resume Docker/WSL, run `scripts/linux/run.sh` and the musl
    build, then add the Linux build to `release.yml` (and its npm package).
 4. Update the README install section only after each channel works.
@@ -153,12 +156,18 @@ separate decision (npm needs the owner's login).
    the `WINGET_TOKEN` secret), only when `cmm-cmm.GuineaNote` already exists
    in winget-pkgs; otherwise it is skipped with a notice.
 
+6. **site** deploys `site/` to https://guineanote.konexforge.com/ with
+   Wrangler when the `CLOUDFLARE_API_TOKEN` (and `CLOUDFLARE_ACCOUNT_ID`)
+   secrets exist; otherwise it is skipped with a notice.
+
 Every publish step skips what already exists, so "Re-run failed jobs" is
 safe. **Run workflow** with `dry_run` (the default) builds and checks any
 branch without tagging or publishing.
 
 To release: on `dev`, bump the version (`Cargo.toml`, `Cargo.lock`), add the
-CHANGELOG section, run the local gate (`scripts/windows/verify.sh`; latency
+CHANGELOG section, update the website (`site/index.html`, `site/vi/index.html`,
+`site/llms.txt`, `site/llms-full.txt`: version, dates and download links;
+checksums are not written there, the pages compare with `SHA256SUMS`; CI's `scripts/site/check.py` fails until the version matches), run the local gate (`scripts/windows/verify.sh`; latency
 rules apply), then fast-forward `main` to `dev` and push. Afterwards record
 the channel status (step 7 below) and check npm and winget reviews.
 

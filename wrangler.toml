@@ -1,0 +1,17 @@
+# The website, https://guineanote.konexforge.com/ - static files in site/, served by a
+# Cloudflare Worker with static assets, like the other Konex Forge sites. No build step: the
+# folder is uploaded as it is. Deploy from the repository root with:  npx wrangler deploy
+name = "guinea-note"
+compatibility_date = "2026-10-01"
+workers_dev = false
+
+# A Custom Domain: Wrangler creates the DNS record and the certificate for it on deploy.
+# It has to be a route with custom_domain = true; a top-level [[custom_domains]] table is not a
+# Wrangler field and would be skipped with an "Unexpected fields" warning.
+routes = [
+    { pattern = "guineanote.konexforge.com", custom_domain = true }
+]
+
+[assets]
+directory = "./site"
+not_found_handling = "404-page"

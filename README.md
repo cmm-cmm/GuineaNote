@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://guineanote.konexforge.com/"><img alt="Website" src="https://img.shields.io/badge/website-guineanote.konexforge.com-22C55E"></a>
   <a href="https://github.com/cmm-cmm/GuineaNote/releases"><img alt="Release" src="https://img.shields.io/github/v/release/cmm-cmm/GuineaNote?include_prereleases&label=release"></a>
   <a href="https://www.npmjs.com/package/guinea-note"><img alt="npm" src="https://img.shields.io/npm/v/guinea-note?label=npm"></a>
   <a href="LICENSE"><img alt="MIT License" src="https://img.shields.io/badge/license-MIT-22C55E"></a>
@@ -25,6 +26,10 @@ Vietnamese.
 
 > **Status: 0.1.x preview.** Releases target **Windows x64** and **Linux x64**
 > (static binaries for any distribution). macOS is not released.
+
+**Website:** [guineanote.konexforge.com](https://guineanote.konexforge.com/)
+([Tiếng Việt](https://guineanote.konexforge.com/vi/)), with a step-by-step
+install guide and copy buttons.
 
 <p align="center">
   <img src="docs/images/editor.png" alt="Guinea Note editing a Rust file: tab bar, syntax colors, bookmarks in the gutter and smart highlighting of the selected word" width="900">
@@ -104,6 +109,19 @@ Screenshots are rendered from the real editor in a terminal
 
 ## Installation
 
+**Pick one** (the [website](https://guineanote.konexforge.com/#install) has the
+same steps with copy buttons):
+
+| You have | Run | Version |
+| --- | --- | --- |
+| Windows x64 with Node.js 18+ | `npx guinea-note notes.md`, or `npm install -g guinea-note` for the `guinea` command ([details](#install-with-npm)) | 0.1.3 |
+| Windows x64, nothing else | [Download the zip](https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip), unpack it, add it to PATH ([commands](#download-a-release)) | 0.1.3 |
+| Linux x64 | [Download the static archive](https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz), copy `guinea` to `~/.local/bin` ([commands](#download-a-release)) | 0.1.1 |
+| Rust 1.98+ (developers) | `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote` ([details](#install-with-cargo-developers)) | 0.1.3 |
+
+Then check it: `guinea --version` prints `guinea 0.1.3` (`guinea 0.1.1` on
+Linux). winget (`cmm-cmm.GuineaNote`) is in review.
+
 ### Published packages
 
 Every channel installs the same binaries as the GitHub Release archives
@@ -141,9 +159,11 @@ install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/
 
 ```powershell
 Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip -OutFile guinea.zip
-Get-FileHash -Algorithm SHA256 guinea.zip    # compare with SHA256SUMS
+Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/SHA256SUMS -OutFile SHA256SUMS
+(Get-FileHash guinea.zip -Algorithm SHA256).Hash -eq ((Select-String windows-msvc.zip SHA256SUMS).Line -split ' ')[0]   # must print True
 Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"
-# then add $env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc to your PATH
+# add the folder to your user PATH, then open a new terminal
+[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc", "User")
 ```
 
 The binaries are not code-signed yet, so SmartScreen may warn about a browser

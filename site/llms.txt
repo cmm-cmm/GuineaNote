@@ -1,0 +1,42 @@
+# Guinea Note
+
+> Guinea Note is a free, open-source (MIT) text editor for the terminal, written in Rust and modeled on Notepad++: tabs, one Find/Replace panel with regular expressions, line tools, bookmarks, session restore, read-only previews and crash recovery, with no modes to learn. Saves keep the UTF-8 BOM and LF/CRLF/mixed newlines exactly as they were. The command is `guinea`. Current version: 0.1.3 (released 2026-11-15) for Windows x64; Linux x64 is on 0.1.1. Made by Konex Forge.
+
+Key facts:
+
+- Platforms: Windows x64 (Windows Terminal, conhost; verified on Windows 11) and Linux x64 (static musl binary; Debian 11/12, Ubuntu 22.04, Alpine 3.20). macOS is not released. ARM64, SSH and tmux are not verified yet.
+- Install on Windows with Node.js 18+: `npx guinea-note notes.md`, or `npm install -g guinea-note` then `guinea notes.md`. npm packages: `guinea-note` (launcher) and `@cmm_cmm/guinea-note-win32-x64` (binary).
+- Install on Windows without Node.js: download `guinea-0.1.3-x86_64-pc-windows-msvc.zip` from GitHub Releases, check it against the release's SHA256SUMS, unpack it and add the folder to PATH. Portable; no administrator rights or Visual C++ runtime needed.
+- Install on Linux: `guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz` from GitHub Releases, check with `sha256sum --ignore-missing -c SHA256SUMS`, copy `guinea` to `~/.local/bin`.
+- winget: package `cmm-cmm.GuineaNote` (`winget install cmm-cmm.GuineaNote`) is submitted and in review; it does not work yet.
+- Developers: `cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote` (Rust 1.98+). End users never need Rust.
+- Not modal: Ctrl+S save, Ctrl+F / Ctrl+H Find/Replace, Ctrl+Z undo, Ctrl+Q quit, F2 lists every action with its key, F1 keyboard guide.
+- Interface languages: English and Vietnamese (`guinea --language vi`, or F10 Settings).
+- Files: edits UTF-8 only; refuses other encodings, binary files and symlinks instead of damaging them; atomic saves with conflict detection; checksummed crash-recovery drafts.
+- Optional local AI agent access: `guinea --agent` with the `guineanote-agent` JSON CLI or the `guineanote-mcp` MCP server; off by default, edits only with `--agent-write`.
+
+## Docs
+
+- [Vietnamese page / Trang tiếng Việt](https://guineanote.konexforge.com/vi/): the same overview, install guide and FAQ in Vietnamese
+- [Full description for AI assistants](https://guineanote.konexforge.com/llms-full.txt): every install method, feature, key and FAQ in one Markdown file
+- [README](https://github.com/cmm-cmm/GuineaNote/blob/main/README.md): installation, keys, files, Find/Replace, previews, configuration, Agent access, platforms
+- [Keyboard shortcuts](https://github.com/cmm-cmm/GuineaNote/blob/main/docs/KEYBOARD_SHORTCUTS.md): the complete keymap with terminal conflicts and alternatives
+- [File safety](https://github.com/cmm-cmm/GuineaNote/blob/main/docs/FILE_SAFETY.md): encodings, newlines, atomic saves, conflicts and recovery
+- [Release notes 0.1.3](https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3): changes, download and SHA-256
+
+## Download
+
+- [Guinea Note 0.1.3 for Windows x64 (zip)](https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip)
+- [Guinea Note 0.1.1 for Linux x64 (tar.gz, 7.3 MB)](https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz)
+- [npm package guinea-note](https://www.npmjs.com/package/guinea-note)
+- [All releases](https://github.com/cmm-cmm/GuineaNote/releases)
+
+## Source
+
+- [GitHub repository](https://github.com/cmm-cmm/GuineaNote): Rust (Ratatui, Crossterm, Ropey), MIT License
+- [Changelog](https://github.com/cmm-cmm/GuineaNote/blob/main/CHANGELOG.md)
+
+## Optional
+
+- [Website](https://guineanote.konexforge.com/)
+- [Konex Forge](https://konexforge.com/)

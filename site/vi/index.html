@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="vi" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guinea Note — Trình soạn thảo kiểu Notepad++ cho terminal</title>
+<meta name="description" content="Guinea Note là trình soạn thảo văn bản miễn phí, mã nguồn mở cho terminal, viết bằng Rust, dùng như Notepad++: tab, Tìm/Thay thế regex, công cụ dòng, khôi phục phiên và lưu đúng từng byte. Cài bằng npx guinea-note trên Windows hoặc file tĩnh trên Linux.">
+<link rel="canonical" href="https://guineanote.konexforge.com/vi/">
+<link rel="alternate" hreflang="en" href="https://guineanote.konexforge.com/">
+<link rel="alternate" hreflang="vi" href="https://guineanote.konexforge.com/vi/">
+<link rel="alternate" hreflang="x-default" href="https://guineanote.konexforge.com/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Konex Forge">
+<meta name="theme-color" content="#0b1320" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbf8f1" media="(prefers-color-scheme: light)">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Guinea Note">
+<meta property="og:title" content="Guinea Note — Notepad++ ngay trong terminal">
+<meta property="og:description" content="Trình soạn thảo miễn phí, mã nguồn mở cho terminal, viết bằng Rust: tab, Tìm/Thay thế regex, công cụ dòng, khôi phục phiên và lưu giữ nguyên byte. Chạy npx guinea-note trên Windows.">
+<meta property="og:url" content="https://guineanote.konexforge.com/vi/">
+<meta property="og:image" content="https://guineanote.konexforge.com/assets/og-image-vi.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Guinea Note: trình soạn thảo kiểu Notepad++ cho terminal. npx guinea-note notes.md">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:locale:alternate" content="en_US">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Guinea Note — Notepad++ ngay trong terminal">
+<meta name="twitter:description" content="Trình soạn thảo miễn phí, mã nguồn mở cho terminal, viết bằng Rust: tab, Tìm/Thay thế regex, công cụ dòng, khôi phục phiên và lưu giữ nguyên byte.">
+<meta name="twitter:image" content="https://guineanote.konexforge.com/assets/og-image-vi.png">
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/mascot-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="alternate" type="text/plain" title="Tóm tắt cho trợ lý AI" href="/llms.txt">
+<link rel="preload" as="image" href="/images/tabs-vietnamese.webp" type="image/webp">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js" defer></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": "https://konexforge.com/#organization", "name": "Konex Forge", "url": "https://konexforge.com/" },
+    {
+      "@type": "WebSite", "@id": "https://guineanote.konexforge.com/#site",
+      "url": "https://guineanote.konexforge.com/", "name": "Guinea Note",
+      "inLanguage": ["en", "vi"], "publisher": { "@id": "https://konexforge.com/#organization" }
+    },
+    {
+      "@type": "WebPage", "@id": "https://guineanote.konexforge.com/vi/#page",
+      "url": "https://guineanote.konexforge.com/vi/", "inLanguage": "vi",
+      "name": "Guinea Note — Trình soạn thảo kiểu Notepad++ cho terminal",
+      "datePublished": "2026-11-15", "dateModified": "2026-11-15",
+      "isPartOf": { "@id": "https://guineanote.konexforge.com/#site" },
+      "about": { "@id": "https://guineanote.konexforge.com/#app" },
+      "primaryImageOfPage": "https://guineanote.konexforge.com/images/tabs-vietnamese.webp"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://guineanote.konexforge.com/#app",
+      "name": "Guinea Note",
+      "alternateName": ["guinea", "GuineaNote", "guinea-note"],
+      "description": "Trình soạn thảo văn bản miễn phí, mã nguồn mở cho terminal theo phong cách Notepad++, viết bằng Rust. Mở file theo tab, một bảng Tìm/Thay thế có biểu thức chính quy, công cụ dòng, bookmark, khôi phục phiên, xem trước định dạng chỉ đọc và khôi phục sau sự cố. Khi lưu giữ nguyên BOM UTF-8 và kiểu xuống dòng LF/CRLF/hỗn hợp. Giao diện tiếng Việt và tiếng Anh. Lệnh chạy là guinea.",
+      "url": "https://guineanote.konexforge.com/vi/",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Text editor",
+      "operatingSystem": "Windows x64, Linux x64",
+      "softwareVersion": "0.1.3",
+      "datePublished": "2026-11-15",
+      "downloadUrl": "https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip",
+      "installUrl": "https://guineanote.konexforge.com/vi/#install",
+      "releaseNotes": "https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "inLanguage": ["en", "vi"],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "author": { "@id": "https://konexforge.com/#organization" },
+      "publisher": { "@id": "https://konexforge.com/#organization" }
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://guineanote.konexforge.com/vi/#howto-npm",
+      "name": "Cài Guinea Note trên Windows bằng npm",
+      "inLanguage": "vi",
+      "tool": [{ "@type": "HowToTool", "name": "Node.js 18 trở lên" }],
+      "step": [
+        { "@type": "HowToStep", "name": "Kiểm tra Node.js", "text": "Chạy node --version và bảo đảm kết quả là v18 trở lên." },
+        { "@type": "HowToStep", "name": "Chạy thử Guinea Note", "text": "Chạy npx guinea-note notes.md để tải và mở trình soạn thảo mà không cần cài." },
+        { "@type": "HowToStep", "name": "Cài lệnh guinea", "text": "Chạy npm install -g guinea-note, sau đó mở file bằng guinea notes.md." }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "inLanguage": "vi",
+      "mainEntity": [
+        { "@type": "Question", "name": "Guinea Note là gì?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Guinea Note là trình soạn thảo văn bản miễn phí, mã nguồn mở cho terminal, viết bằng Rust. Cách dùng giống Notepad++: tab, một bảng Tìm/Thay thế có biểu thức chính quy, công cụ dòng, bookmark và khôi phục phiên, không có chế độ (mode) phải học. Lệnh chạy là guinea." } },
+        { "@type": "Question", "name": "Cài Guinea Note trên Windows thế nào?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Nếu có Node.js 18 trở lên, chạy npx guinea-note notes.md, hoặc npm install -g guinea-note để có lệnh guinea. Nếu không có Node.js, tải guinea-0.1.3-x86_64-pc-windows-msvc.zip từ GitHub Releases, kiểm tra SHA-256, giải nén và thêm thư mục vào PATH. Gói winget cmm-cmm.GuineaNote đang chờ duyệt." } },
+        { "@type": "Question", "name": "Cài Guinea Note trên Linux thế nào?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Tải guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz và SHA256SUMS từ GitHub Releases, kiểm tra bằng sha256sum --ignore-missing -c SHA256SUMS, giải nén rồi chép guinea vào ~/.local/bin. File chạy tĩnh này chạy trên Debian 11 và 12, Ubuntu 22.04, Alpine 3.20 và các bản phân phối x64 khác. Bản 0.1.2 và 0.1.3 chỉ phát hành cho Windows nên Linux tạm dùng 0.1.1." } },
+        { "@type": "Question", "name": "Có cần cài Rust hay Node.js không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Không. Các bản phát hành là file chạy native độc lập. Chỉ cần Node.js 18 trở lên nếu cài qua npm, và Rust 1.98 trở lên nếu tự build từ mã nguồn bằng cargo install." } },
+        { "@type": "Question", "name": "Guinea Note có miễn phí không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Có. Guinea Note miễn phí và là mã nguồn mở theo giấy phép MIT. Mã nguồn ở GitHub: github.com/cmm-cmm/GuineaNote." } },
+        { "@type": "Question", "name": "Guinea Note có đổi encoding hay kiểu xuống dòng của file không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Không. Guinea Note sửa file UTF-8 và giữ nguyên BOM cùng kiểu xuống dòng LF, CRLF hoặc hỗn hợp; các byte bạn không sửa được lưu y như cũ. Lưu file là thao tác nguyên tử và dừng lại báo xung đột nếu chương trình khác đã sửa file. File encoding khác, file nhị phân và symlink bị từ chối thay vì bị làm hỏng." } },
+        { "@type": "Question", "name": "Guinea Note khác Nano hay Vim ở điểm nào?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Guinea Note không có chế độ (mode): bạn gõ chữ trực tiếp và dùng các phím quen thuộc như Ctrl+S, Ctrl+F, Ctrl+Z, Ctrl+Q. Nó học theo Notepad++ chứ không theo Nano hay Vim, với tab, bảng Tìm/Thay thế và công cụ dòng. F2 liệt kê mọi thao tác kèm phím tắt." } },
+        { "@type": "Question", "name": "Guinea Note có chạy trên macOS không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Không. Bản phát hành chỉ dành cho Windows x64 và Linux x64; macOS không được phát hành và không được kiểm thử." } },
+        { "@type": "Question", "name": "Dùng Guinea Note bằng tiếng Việt được không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Được. Giao diện có tiếng Việt và tiếng Anh. Mở bằng guinea --language vi, hoặc đổi ngôn ngữ trong Cài đặt (F10); lựa chọn được ghi nhớ." } },
+        { "@type": "Question", "name": "AI coding agent có dùng được Guinea Note không?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Có, nếu bạn cho phép. Mở trình soạn thảo với --agent để agent cục bộ đọc tài liệu đang mở qua JSON CLI guineanote-agent hoặc MCP server guineanote-mcp; thêm --agent-write để cho phép sửa và lưu. Mặc định tính năng này tắt, và các đường dẫn nhạy cảm như .env vẫn bị chặn trừ khi bạn cho phép." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Bỏ qua, đến nội dung</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/vi/" aria-label="Trang chủ Guinea Note">
+      <img src="/assets/mascot-96.png" width="36" height="36" alt="">
+      <span>Guinea <b>Note</b></span>
+      <span class="ver">v0.1.3</span>
+    </a>
+    <nav class="nav" aria-label="Điều hướng chính">
+      <a href="#install">Cài đặt</a>
+      <a href="#start">Bắt đầu</a>
+      <a href="#features">Tính năng</a>
+      <a href="#keys">Phím tắt</a>
+      <a href="#faq">Hỏi đáp</a>
+      <a class="gh" href="https://github.com/cmm-cmm/GuineaNote">GitHub</a>
+    </nav>
+    <div class="lang" aria-label="Ngôn ngữ">
+      <a href="/" hreflang="en" lang="en">EN</a>
+      <a href="/vi/" hreflang="vi" lang="vi" aria-current="true">VI</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div>
+      <span class="chip"><i aria-hidden="true"></i>Miễn phí · Mã nguồn mở · Windows &amp; Linux x64</span>
+      <h1 id="hero-title">Notepad++ ngay trong <em>terminal.</em></h1>
+      <p class="lead"><strong>Guinea Note</strong> là trình soạn thảo văn bản miễn phí, mã nguồn mở cho terminal, viết bằng Rust. Có tab, một bảng Tìm/Thay thế dùng biểu thức chính quy, công cụ dòng, khôi phục phiên — và lưu file giữ nguyên từng byte như ban đầu.</p>
+      <div class="cmd" aria-label="Chạy Guinea Note bằng npm">
+        <pre><span class="p">&gt; </span>npx guinea-note notes.md</pre>
+      </div>
+      <div class="cta">
+        <a class="btn btn-primary" href="#install">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>
+          <span>Cài Guinea Note<small>Windows · Linux · từng bước</small></span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7l-5 5 5 5M15.5 7l5 5-5 5M13.5 5l-3 14"/></svg>
+          Mã nguồn trên GitHub
+        </a>
+      </div>
+      <div class="checks">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Giấy phép MIT</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Không cần Rust</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Không có mode phải học</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Tiếng Việt &amp; English</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img class="mascot" src="/assets/mascot-96.png" width="96" height="96" alt="">
+      <div class="term">
+        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>guinea --language vi</span></div>
+        <img src="/images/tabs-vietnamese.webp" width="1380" height="816" fetchpriority="high" alt="Guinea Note với giao diện tiếng Việt, đang mở trình quản lý tab trong terminal.">
+      </div>
+      <p class="caption">Ảnh chụp trình soạn thảo thật, giao diện tiếng Việt.</p>
+    </div>
+  </div>
+</section>
+
+<section id="install" class="band" aria-labelledby="install-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Cài đặt</div>
+      <h2 id="install-title">Chạy được sau một phút.</h2>
+      <p>Chọn cách cài phù hợp. Cách nào cũng chạy đúng file như trên GitHub Release (cùng SHA-256), và không cách nào cần Rust.</p>
+    </div>
+
+    <div class="picker">
+      <div class="tabs" role="tablist" aria-label="Các cách cài đặt" data-tabs>
+        <button type="button" role="tab" id="tab-npm" aria-controls="install-npm" aria-selected="true" data-hash="install-npm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-5-6-5M12 19h8"/></svg>npm · npx <span class="tag">nhanh nhất</span></button>
+        <button type="button" role="tab" id="tab-zip" aria-controls="install-zip" aria-selected="false" tabindex="-1" data-hash="install-zip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3zM12.5 4.2 21 3v8.5h-8.5zM3 12.5h7.5v7L3 18.5zM12.5 12.5H21V21l-8.5-1.2z"/></svg>Windows .zip</button>
+        <button type="button" role="tab" id="tab-linux" aria-controls="install-linux" aria-selected="false" tabindex="-1" data-hash="install-linux">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-2.5 0-3.5 2.2-3.5 4.5 0 1.6-.5 2.7-1.6 4.2C5.6 13.5 5 15 5 16.5 5 19 7 21 12 21s7-2 7-4.5c0-1.5-.6-3-1.9-4.8-1.1-1.5-1.6-2.6-1.6-4.2C15.5 5.2 14.5 3 12 3z"/></svg>Linux</button>
+        <button type="button" role="tab" id="tab-winget" aria-controls="install-winget" aria-selected="false" tabindex="-1" data-hash="install-winget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8"/></svg>winget <span class="tag wait">chờ duyệt</span></button>
+        <button type="button" role="tab" id="tab-cargo" aria-controls="install-cargo" aria-selected="false" tabindex="-1" data-hash="install-cargo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5l3 3M4 20l3.5-1 10-10-2.5-2.5-10 10z"/></svg>Cargo <span class="tag dev">developer</span></button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-npm" aria-labelledby="tab-npm">
+        <div>
+          <h3>npm / npx <span class="tag">Windows x64</span></h3>
+          <p class="sub">Nếu máy có Node.js, npm sẽ tải bản native của trình soạn thảo về cho bạn. Không biên dịch gì trên máy.</p>
+          <ol class="how">
+            <li><b>Kiểm tra Node.js là bản 18 trở lên</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>node --version</pre></div>
+              <p>Chưa có Node.js? Dùng <a href="#install-zip">bản .zip cho Windows</a> — không cần cài thêm gì.</p></li>
+            <li><b>Chạy thử một lần, không cần cài</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>npx guinea-note notes.md</pre></div></li>
+            <li><b>Hoặc cài hẳn lệnh <code>guinea</code></b>
+              <div class="cmd"><pre><span class="p">&gt; </span>npm install -g guinea-note
+<span class="p">&gt; </span>guinea notes.md</pre></div></li>
+          </ol>
+          <p class="note mac"><strong>Bạn dùng Mac?</strong> Guinea Note chưa phát hành cho macOS. Bản phát hành chỉ dành cho Windows x64 và Linux x64.</p>
+        </div>
+        <aside class="facts" aria-label="Thông tin gói npm">
+          <h4>Tóm tắt</h4>
+          <dl>
+            <dt>Phiên bản</dt><dd>0.1.3</dd>
+            <dt>Gói</dt><dd><a href="https://www.npmjs.com/package/guinea-note">guinea-note</a> + <a href="https://www.npmjs.com/package/@cmm_cmm/guinea-note-win32-x64">@cmm_cmm/…-win32-x64</a></dd>
+            <dt>Cần</dt><dd>Node.js 18+</dd>
+            <dt>Cập nhật</dt><dd><code>npm install -g guinea-note@latest</code></dd>
+            <dt>Gỡ</dt><dd><code>npm uninstall -g guinea-note</code></dd>
+          </dl>
+          <p class="note">Trên Linux, gói npm bản 0.1.3 chưa có file chạy; hãy dùng <a href="#install-linux">bản cho Linux</a>.</p>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-zip" aria-labelledby="tab-zip" hidden>
+        <div>
+          <h3>Windows .zip <span class="tag">portable</span></h3>
+          <p class="sub">Một thư mục có sẵn <code>guinea.exe</code>. Không có trình cài đặt, không cần quyền quản trị, không cần Visual C++ runtime.</p>
+          <ol class="how">
+            <li><b>Tải file nén</b> (PowerShell), hoặc <a href="https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip">tải bằng trình duyệt</a>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip -OutFile guinea.zip</pre></div></li>
+            <li><b>Kiểm tra SHA-256</b> — kết quả phải là <code>True</code>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/SHA256SUMS -OutFile SHA256SUMS
+<span class="p">PS&gt; </span>(Get-FileHash guinea.zip -Algorithm SHA256).Hash -eq ((Select-String windows-msvc.zip SHA256SUMS).Line -split ' ')[0]</pre></div></li>
+            <li><b>Giải nén</b>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"</pre></div></li>
+            <li><b>Thêm vào PATH</b> (chỉ cho người dùng hiện tại)
+              <div class="cmd"><pre><span class="p">PS&gt; </span>[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc", "User")</pre></div>
+              <p>Sau đó mở cửa sổ terminal mới để nhận PATH mới.</p></li>
+            <li><b>Bắt đầu soạn thảo</b>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>guinea notes.md</pre></div></li>
+          </ol>
+        </div>
+        <aside class="facts" aria-label="Thông tin bản Windows">
+          <h4>Tóm tắt</h4>
+          <dl>
+            <dt>Phiên bản</dt><dd>0.1.3</dd>
+            <dt>Gồm</dt><dd>guinea.exe, guineanote-agent.exe, guineanote-mcp.exe</dd>
+            <dt>Terminal</dt><dd>Windows Terminal, conhost</dd>
+            <dt>Gỡ</dt><dd>Xóa thư mục và mục PATH tương ứng</dd>
+          </dl>
+          <p class="note">File chưa được ký số, nên SmartScreen có thể cảnh báo khi tải bằng trình duyệt. Bước kiểm tra SHA-256 ở trên xác nhận đây đúng là file đã phát hành.</p>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-linux" aria-labelledby="tab-linux" hidden>
+        <div>
+          <h3>Linux x64 <span class="tag">file chạy tĩnh</span></h3>
+          <p class="sub">Một file chạy tĩnh (musl) dùng được trên mọi bản phân phối x64, không phụ thuộc thư viện nào.</p>
+          <ol class="how">
+            <li><b>Tải file nén và checksum</b>
+              <div class="cmd"><pre><span class="p">$ </span>curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+<span class="p">$ </span>curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS</pre></div></li>
+            <li><b>Kiểm tra</b> — dòng kết quả phải kết thúc bằng <code>OK</code>
+              <div class="cmd"><pre><span class="p">$ </span>sha256sum --ignore-missing -c SHA256SUMS</pre></div></li>
+            <li><b>Giải nén và cài</b>
+              <div class="cmd"><pre><span class="p">$ </span>tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+<span class="p">$ </span>install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/</pre></div>
+              <p>Nếu sau đó không tìm thấy lệnh <code>guinea</code>, hãy thêm <code>~/.local/bin</code> vào PATH.</p></li>
+            <li><b>Bắt đầu soạn thảo</b>
+              <div class="cmd"><pre><span class="p">$ </span>guinea notes.md</pre></div></li>
+          </ol>
+          <p class="note"><strong>Linux đang ở bản 0.1.1.</strong> Bản 0.1.2 và 0.1.3 chỉ phát hành cho Windows trong lúc tạm dừng kiểm tra bản build Linux; bản Linux sẽ được cập nhật khi việc kiểm tra chạy lại.</p>
+        </div>
+        <aside class="facts" aria-label="Thông tin bản Linux">
+          <h4>Tóm tắt</h4>
+          <dl>
+            <dt>Phiên bản</dt><dd>0.1.1</dd>
+            <dt>Dung lượng</dt><dd>7,3 MB</dd>
+            <dt>Đã thử trên</dt><dd>Debian 11/12, Ubuntu 22.04, Alpine 3.20</dd>
+            <dt>Clipboard</dt><dd>wl-clipboard, xclip hoặc xsel (tùy chọn)</dd>
+            <dt>Gỡ</dt><dd><code>rm ~/.local/bin/guinea</code></dd>
+          </dl>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-winget" aria-labelledby="tab-winget" hidden>
+        <div>
+          <h3>winget <span class="tag wait">chờ duyệt</span></h3>
+          <p class="sub">Gói <code>cmm-cmm.GuineaNote</code> cho Windows Package Manager đang chờ duyệt tại <a href="https://github.com/microsoft/winget-pkgs/pull/480530">microsoft/winget-pkgs</a>.</p>
+          <ol class="how">
+            <li><b>Cài, sau khi gói được chấp nhận</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>winget install cmm-cmm.GuineaNote</pre></div></li>
+            <li><b>Cập nhật về sau</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>winget upgrade cmm-cmm.GuineaNote</pre></div></li>
+          </ol>
+          <p class="note">Trước khi duyệt xong, các lệnh này chưa tìm thấy gói. Hiện tại hãy dùng <a href="#install-npm">npm</a> hoặc <a href="#install-zip">bản .zip</a>.</p>
+        </div>
+        <aside class="facts" aria-label="Thông tin winget">
+          <h4>Tóm tắt</h4>
+          <dl>
+            <dt>Gói</dt><dd>cmm-cmm.GuineaNote</dd>
+            <dt>Phiên bản</dt><dd>0.1.3 (đã nộp)</dd>
+            <dt>Lệnh</dt><dd>guinea, guineanote-agent, guineanote-mcp</dd>
+          </dl>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-cargo" aria-labelledby="tab-cargo" hidden>
+        <div>
+          <h3>Cargo <span class="tag dev">build từ mã nguồn</span></h3>
+          <p class="sub">Dành cho developer Rust: Cargo build một bản đã gắn tag bằng toolchain của bạn (Rust 1.98 trở lên; trên Windows cần thêm MSVC build tools).</p>
+          <ol class="how">
+            <li><b>Build và cài trình soạn thảo</b>
+              <div class="cmd"><pre><span class="p">$ </span>cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote</pre></div></li>
+            <li><b>Tùy chọn: quyền truy cập cho Agent</b> (<code>guineanote-agent</code>, <code>guineanote-mcp</code>)
+              <div class="cmd"><pre><span class="p">$ </span>cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guinea-agent</pre></div></li>
+          </ol>
+        </div>
+        <aside class="facts" aria-label="Thông tin Cargo">
+          <h4>Tóm tắt</h4>
+          <dl>
+            <dt>Cài vào</dt><dd><code>~/.cargo/bin</code></dd>
+            <dt>Cập nhật</dt><dd>Chạy lại lệnh với tag mới, thêm <code>--force</code></dd>
+            <dt>Gỡ</dt><dd><code>cargo uninstall guineanote guinea-agent</code></dd>
+          </dl>
+        </aside>
+      </div>
+    </div>
+
+    <div class="choose">
+      <h3>Nên chọn cách nào?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Cách cài</th><th scope="col">Phù hợp với</th><th scope="col">Cần có</th><th scope="col">Nền tảng</th><th scope="col">Phiên bản</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#install-npm">npm / npx</a></td><td>Developer đã có Node.js</td><td>Node.js 18+</td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td><a href="#install-zip">Windows .zip</a></td><td>Mọi máy Windows; dùng offline, không cần quyền quản trị</td><td><span class="no">Không cần gì</span></td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td><a href="#install-linux">Bản Linux</a></td><td>Mọi bản phân phối x64, server, container</td><td><span class="no">Không cần gì</span></td><td>Linux x64</td><td>0.1.1</td></tr>
+            <tr><td><a href="#install-winget">winget</a></td><td>Người dùng Windows quản lý ứng dụng bằng winget</td><td>winget</td><td>Windows x64</td><td><span class="wait">chờ duyệt</span></td></tr>
+            <tr><td><a href="#install-cargo">Cargo</a></td><td>Developer Rust tự build từ mã nguồn</td><td>Rust 1.98+</td><td>Windows, Linux</td><td><span class="yes">0.1.3</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note ok"><strong>Kiểm tra đã cài được chưa:</strong> <code>guinea --version</code> in ra <code>guinea 0.1.3</code> (trên Linux là <code>guinea 0.1.1</code>).</p>
+    </div>
+  </div>
+</section>
+
+<section id="start" aria-labelledby="start-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Bắt đầu nhanh</div>
+      <h2 id="start-title">Mở. Sửa. Lưu.</h2>
+      <p>Nếu đã dùng Notepad++, bạn gần như biết hết rồi. Không có mode: cứ gõ, và các phím quen thuộc làm đúng việc quen thuộc.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">01</div><h3>Mở file</h3><p>Đường dẫn chưa tồn tại sẽ được tạo khi lưu. Nhiều file mở thành nhiều tab, và gõ <code>guinea</code> không kèm gì sẽ mở lại phiên trước.</p>
+        <div class="cmd"><pre><span class="p">$ </span>guinea notes.md</pre></div></div>
+      <div class="step"><div class="n">02</div><h3>Sửa như Notepad++</h3><p><kbd>Ctrl</kbd>+<kbd>S</kbd> để lưu, <kbd>Ctrl</kbd>+<kbd>F</kbd> để tìm, <kbd>Ctrl</kbd>+<kbd>Z</kbd> để hoàn tác, <kbd>Ctrl</kbd>+<kbd>D</kbd> để nhân đôi dòng. BOM và kiểu xuống dòng được giữ nguyên.</p></div>
+      <div class="step"><div class="n">03</div><h3>Tìm mọi thao tác</h3><p><kbd>F2</kbd> liệt kê mọi thao tác kèm phím tắt — hoặc lý do thao tác chưa dùng được lúc này. <kbd>F1</kbd> mở hướng dẫn phím và <kbd>Ctrl</kbd>+<kbd>Q</kbd> để thoát.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="tour-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Xem nhanh</div>
+      <h2 id="tour-title">Màn hình thật, không phải ảnh dựng.</h2>
+      <p>Mọi ảnh đều chụp từ trình soạn thảo đang chạy trong terminal.</p>
+    </div>
+    <div class="gallery" tabindex="0" aria-label="Ảnh chụp màn hình">
+      <figure><div class="term"><img src="/images/editor.webp" width="1380" height="816" loading="lazy" alt="Guinea Note đang sửa một file Rust: thanh tab, tô màu cú pháp, bookmark ở lề và thanh trạng thái."></div>
+        <figcaption><strong>Soạn thảo mã nguồn</strong>Tab, tô màu cú pháp, bookmark và tô sáng thông minh từ đang chọn.</figcaption></figure>
+      <figure><div class="term"><img src="/images/find-replace.webp" width="1380" height="816" loading="lazy" alt="Bảng Tìm/Thay thế với biểu thức chính quy, thay thế $1 và danh sách kết quả."></div>
+        <figcaption><strong>Tìm/Thay thế bằng regex</strong>Phân biệt hoa thường, nguyên từ và biểu thức chính quy với thay thế <code>$1</code> (Ctrl+F, Alt+R).</figcaption></figure>
+      <figure><div class="term"><img src="/images/markdown-preview.webp" width="1380" height="816" loading="lazy" alt="Mã Markdown bên cạnh bản xem trước chỉ đọc có danh sách việc và callout."></div>
+        <figcaption><strong>Xem trước song song</strong>Markdown cạnh mã nguồn, có mục lục bên (F8).</figcaption></figure>
+      <figure><div class="term"><img src="/images/actions.webp" width="1380" height="816" loading="lazy" alt="Danh sách thao tác F2 được lọc theo công cụ dòng, mỗi mục kèm phím tắt."></div>
+        <figcaption><strong>Danh sách thao tác F2</strong>Mọi thao tác, phím tắt của nó, hoặc lý do chưa dùng được.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Tính năng</div>
+      <h2 id="features-title">Bộ công cụ của Notepad++, trong terminal.</h2>
+      <p>Nhanh với file lớn, cẩn thận với từng byte, và mọi thao tác đều làm được bằng bàn phím.</p>
+    </div>
+    <div class="bento">
+      <div class="tile wide"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h6l2 2h10v10H3zM3 7V5h6l2 2"/></svg></div>
+        <h3>Tab và khôi phục phiên</h3><p>Thanh tab một dòng, trình quản lý tab (F12 / Ctrl+P) để lọc, chuyển, lưu và đóng tab; lần mở sau tự mở lại file, vị trí con trỏ và tab đang chọn.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5 21 21"/></svg></div>
+        <h3>Tìm/Thay thế bằng regex</h3><p>Một bảng cho cả hai, biểu thức chính quy thời gian tuyến tính, thay thế <code>$1</code> / <code>${name}</code>, đánh dấu tất cả. Thay tất cả là một bước Hoàn tác.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7M17 14v6M14 17h6"/></svg></div>
+        <h3>Công cụ dòng và chữ</h3><p>Sắp xếp, xóa dòng trùng hoặc dòng trống, cắt khoảng trắng cuối dòng, đổi HOA / thường / Hoa Đầu Từ, comment dòng, di chuyển và nhân đôi dòng.</p></div>
+      <div class="tile wide"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <h3>Giữ nguyên từng byte</h3><p>UTF-8 chặt chẽ, giữ nguyên BOM và kiểu xuống dòng LF / CRLF / hỗn hợp. Lưu nguyên tử, báo xung đột khi chương trình khác đã sửa file; encoding không hợp lệ, file nhị phân và symlink bị từ chối thay vì bị làm hỏng.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4M12 8v4l3 2"/></svg></div>
+        <h3>Khôi phục sau sự cố</h3><p>Tab chưa lưu được ghi lại khoảng mỗi giây vào kho riêng và quay lại dưới dạng bản nháp sau khi chương trình bị tắt đột ngột.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></div>
+        <h3>Xem trước dễ đọc</h3><p>Markdown, JSON, CSV/TSV, XML, TOML, YAML, INI/ENV và notebook, xem song song hoặc trong tab chỉ đọc liên kết (F8).</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Nhanh với file lớn</h3><p>Dòng dài và công cụ nặng chạy nền; phím gõ trong lúc đó được xếp hàng, không bị mất. Mọi thao tác trên 50 ms đều được điều tra trước khi phát hành.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10H3zM7 11h.01M11 11h.01M15 11h.01M7 14h10"/></svg></div>
+        <h3>Bàn phím là chính</h3><p>Mọi thao tác chuột đều có phím tương ứng, và nhãn phím trên màn hình lấy từ chính bảng phím. Chuột là tùy chọn.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9M8.5 3v2M6 5c0 4 3 7 6.5 8M11 5c0 4-3 7-7 9M13 21l4-9 4 9M14.5 18h5"/></svg></div>
+        <h3>Tiếng Việt và English</h3><p>Toàn bộ giao diện có hai ngôn ngữ: <code>--language vi</code>, hoặc Cài đặt F10 — lựa chọn được ghi nhớ.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v4H9zM12 7v3M5 10h14v8H5zM9 14h.01M15 14h.01M3 13v3M21 13v3"/></svg></div>
+        <h3>Agent khi bạn cho phép</h3><p>JSON CLI và MCP server cho coding agent cục bộ đọc và sửa tài liệu đang mở — chỉ khi bạn mở bằng <code>--agent</code>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="keys" class="band" aria-labelledby="keys-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Phím tắt chính</div>
+      <h2 id="keys-title">Những phím bạn đã quen.</h2>
+      <p>Bảng phím đầy đủ, xung đột với terminal và phím thay thế có trong <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/docs/KEYBOARD_SHORTCUTS.md">KEYBOARD_SHORTCUTS.md</a>.</p>
+    </div>
+    <div class="keys">
+      <div class="key"><span>Lưu</span><span class="k"><kbd>Ctrl</kbd><kbd>S</kbd></span></div>
+      <div class="key"><span>Mở file</span><span class="k"><kbd>Ctrl</kbd><kbd>O</kbd></span></div>
+      <div class="key"><span>Tab mới</span><span class="k"><kbd>Ctrl</kbd><kbd>N</kbd></span></div>
+      <div class="key"><span>Đóng tab / thoát</span><span class="k"><kbd>Ctrl</kbd><kbd>W</kbd><i>/</i><kbd>Ctrl</kbd><kbd>Q</kbd></span></div>
+      <div class="key"><span>Hoàn tác / làm lại</span><span class="k"><kbd>Ctrl</kbd><kbd>Z</kbd><i>/</i><kbd>Ctrl</kbd><kbd>Y</kbd></span></div>
+      <div class="key"><span>Tìm / Thay thế</span><span class="k"><kbd>Ctrl</kbd><kbd>F</kbd><i>/</i><kbd>Ctrl</kbd><kbd>H</kbd></span></div>
+      <div class="key"><span>Kết quả tiếp theo</span><span class="k"><kbd>F3</kbd></span></div>
+      <div class="key"><span>Đến dòng</span><span class="k"><kbd>Ctrl</kbd><kbd>G</kbd></span></div>
+      <div class="key"><span>Nhân đôi / di chuyển dòng</span><span class="k"><kbd>Ctrl</kbd><kbd>D</kbd><i>/</i><kbd>Alt</kbd><kbd>↑↓</kbd></span></div>
+      <div class="key"><span>Bật/tắt bookmark</span><span class="k"><kbd>Ctrl</kbd><kbd>F2</kbd></span></div>
+      <div class="key"><span>Quản lý tab</span><span class="k"><kbd>F12</kbd></span></div>
+      <div class="key"><span>Xem trước</span><span class="k"><kbd>F8</kbd></span></div>
+      <div class="key"><span>Hướng dẫn phím</span><span class="k"><kbd>F1</kbd></span></div>
+      <div class="key"><span>Mọi thao tác</span><span class="k"><kbd>F2</kbd></span></div>
+      <div class="key"><span>Cài đặt (ngôn ngữ)</span><span class="k"><kbd>F10</kbd></span></div>
+      <div class="key"><span>Chép / dán</span><span class="k"><kbd>Ctrl</kbd><kbd>C</kbd><i>/</i><kbd>Ctrl</kbd><kbd>V</kbd></span></div>
+      <div class="key"><span>Tab trước / sau</span><span class="k"><kbd>F6</kbd><i>/</i><kbd>F7</kbd></span></div>
+      <div class="key"><span>Đóng hộp thoại, hủy</span><span class="k"><kbd>Esc</kbd></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="platforms" aria-labelledby="platforms-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Nền tảng</div>
+      <h2 id="platforms-title">Chạy ở đâu, nói thật.</h2>
+      <p>Một nền tảng chỉ được gọi là hỗ trợ sau khi trình soạn thảo đã chạy native trên đó.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Nền tảng</th><th scope="col">Tình trạng</th></tr></thead>
+        <tbody>
+          <tr><td>Windows x64 (Windows Terminal, conhost)</td><td><span class="yes">Đã phát hành, 0.1.3.</span> Đã kiểm trên Windows 11 với ConPTY, và bằng CI trên runner chạy quyền quản trị.</td></tr>
+          <tr><td>Linux x64 (musl tĩnh)</td><td><span class="yes">Đã phát hành, 0.1.1.</span> Đã kiểm trong container Debian 12; chạy trên Debian 11/12, Ubuntu 22.04 và Alpine 3.20. CI chạy test trên Linux cho mọi thay đổi.</td></tr>
+          <tr><td>macOS</td><td><span class="no">Không phát hành và không kiểm thử.</span></td></tr>
+          <tr><td>ARM64, terminal emulator Linux thật, SSH và tmux</td><td><span class="wait">Chưa kiểm chứng.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="band" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Hỏi đáp</div>
+      <h2 id="faq-title">Câu hỏi thường gặp.</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>Guinea Note là gì?</summary>
+        <p>Guinea Note là trình soạn thảo văn bản miễn phí, mã nguồn mở cho terminal, viết bằng Rust. Cách dùng giống Notepad++: tab, một bảng Tìm/Thay thế có biểu thức chính quy, công cụ dòng, bookmark và khôi phục phiên, không có chế độ (mode) phải học. Lệnh chạy là <code>guinea</code>.</p></details>
+      <details><summary>Cài Guinea Note trên Windows thế nào?</summary>
+        <p>Nếu có Node.js 18 trở lên, chạy <code>npx guinea-note notes.md</code>, hoặc <code>npm install -g guinea-note</code> để có lệnh <code>guinea</code>. Nếu không có Node.js, tải <code>guinea-0.1.3-x86_64-pc-windows-msvc.zip</code> từ GitHub Releases, kiểm tra SHA-256, giải nén và thêm thư mục vào PATH (<a href="#install-zip">xem từng bước</a>). Gói winget <code>cmm-cmm.GuineaNote</code> đang chờ duyệt.</p></details>
+      <details><summary>Cài Guinea Note trên Linux thế nào?</summary>
+        <p>Tải <code>guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz</code> và <code>SHA256SUMS</code> từ GitHub Releases, kiểm tra bằng <code>sha256sum --ignore-missing -c SHA256SUMS</code>, giải nén rồi chép <code>guinea</code> vào <code>~/.local/bin</code> (<a href="#install-linux">xem từng bước</a>). File chạy tĩnh này chạy trên Debian 11 và 12, Ubuntu 22.04, Alpine 3.20 và các bản phân phối x64 khác. Bản 0.1.2 và 0.1.3 chỉ phát hành cho Windows nên Linux tạm dùng 0.1.1.</p></details>
+      <details><summary>Có cần cài Rust hay Node.js không?</summary>
+        <p>Không. Các bản phát hành là file chạy native độc lập. Chỉ cần Node.js 18 trở lên nếu cài qua npm, và Rust 1.98 trở lên nếu tự build từ mã nguồn bằng <code>cargo install</code>.</p></details>
+      <details><summary>Guinea Note có miễn phí không?</summary>
+        <p>Có. Guinea Note miễn phí và là mã nguồn mở theo giấy phép MIT. Mã nguồn ở GitHub: <a href="https://github.com/cmm-cmm/GuineaNote">github.com/cmm-cmm/GuineaNote</a>.</p></details>
+      <details><summary>Guinea Note có đổi encoding hay kiểu xuống dòng của file không?</summary>
+        <p>Không. Guinea Note sửa file UTF-8 và giữ nguyên BOM cùng kiểu xuống dòng LF, CRLF hoặc hỗn hợp; các byte bạn không sửa được lưu y như cũ. Lưu file là thao tác nguyên tử và dừng lại báo xung đột nếu chương trình khác đã sửa file. File encoding khác, file nhị phân và symlink bị từ chối thay vì bị làm hỏng.</p></details>
+      <details><summary>Guinea Note khác Nano hay Vim ở điểm nào?</summary>
+        <p>Guinea Note không có chế độ (mode): bạn gõ chữ trực tiếp và dùng các phím quen thuộc như Ctrl+S, Ctrl+F, Ctrl+Z, Ctrl+Q. Nó học theo Notepad++ chứ không theo Nano hay Vim, với tab, bảng Tìm/Thay thế và công cụ dòng. F2 liệt kê mọi thao tác kèm phím tắt.</p></details>
+      <details><summary>Guinea Note có chạy trên macOS không?</summary>
+        <p>Không. Bản phát hành chỉ dành cho Windows x64 và Linux x64; macOS không được phát hành và không được kiểm thử.</p></details>
+      <details><summary>Dùng Guinea Note bằng tiếng Việt được không?</summary>
+        <p>Được. Giao diện có tiếng Việt và tiếng Anh. Mở bằng <code>guinea --language vi</code>, hoặc đổi ngôn ngữ trong Cài đặt (F10); lựa chọn được ghi nhớ.</p></details>
+      <details><summary>AI coding agent có dùng được Guinea Note không?</summary>
+        <p>Có, nếu bạn cho phép. Mở trình soạn thảo với <code>--agent</code> để agent cục bộ đọc tài liệu đang mở qua JSON CLI <code>guineanote-agent</code> hoặc MCP server <code>guineanote-mcp</code>; thêm <code>--agent-write</code> để cho phép sửa và lưu. Mặc định tính năng này tắt, và các đường dẫn nhạy cảm như <code>.env</code> vẫn bị chặn trừ khi bạn cho phép.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final" aria-labelledby="final-title">
+  <div class="wrap">
+    <h2 id="final-title">Thử ngay bằng một dòng lệnh.</h2>
+    <p class="lead" style="margin: 0 auto">Windows có Node.js 18+. Trường hợp khác: xem <a href="#install">mọi cách cài</a>.</p>
+    <div class="cmd"><pre><span class="p">&gt; </span>npx guinea-note notes.md</pre></div>
+    <div class="cta">
+      <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote/releases/latest">Tất cả bản phát hành</a>
+      <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote#readme">Đọc hướng dẫn đầy đủ</a>
+    </div>
+    <p class="updated">Phiên bản 0.1.3 · phát hành ngày 15/11/2026 · trang cập nhật ngày 15/11/2026</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/vi/"><img src="/assets/mascot-96.png" width="28" height="28" alt=""><span>Guinea <b>Note</b></span></a>
+    <nav aria-label="Chân trang">
+      <a href="https://github.com/cmm-cmm/GuineaNote">GitHub</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/releases">Bản phát hành</a>
+      <a href="https://www.npmjs.com/package/guinea-note">npm</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/CHANGELOG.md">Nhật ký thay đổi</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/LICENSE">Giấy phép MIT</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/" hreflang="en" lang="en">English</a>
+    </nav>
+    <span>Một sản phẩm của <a href="https://konexforge.com/">Konex Forge</a></span>
+  </div>
+</footer>
+</body>
+</html>

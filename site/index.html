@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guinea Note — Notepad++-style text editor for the terminal</title>
+<meta name="description" content="Guinea Note is a free, open-source terminal text editor written in Rust, like Notepad++: tabs, regex Find/Replace, line tools, session restore and byte-exact saves. Install with npx guinea-note on Windows, or a static binary on Linux.">
+<link rel="canonical" href="https://guineanote.konexforge.com/">
+<link rel="alternate" hreflang="en" href="https://guineanote.konexforge.com/">
+<link rel="alternate" hreflang="vi" href="https://guineanote.konexforge.com/vi/">
+<link rel="alternate" hreflang="x-default" href="https://guineanote.konexforge.com/">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
+<meta name="author" content="Konex Forge">
+<meta name="theme-color" content="#0b1320" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbf8f1" media="(prefers-color-scheme: light)">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Guinea Note">
+<meta property="og:title" content="Guinea Note — Notepad++ for your terminal">
+<meta property="og:description" content="A free, open-source terminal text editor in Rust: tabs, regex Find/Replace, line tools, session restore and saves that keep your bytes. Run npx guinea-note on Windows.">
+<meta property="og:url" content="https://guineanote.konexforge.com/">
+<meta property="og:image" content="https://guineanote.konexforge.com/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Guinea Note: Notepad++-style text editor for the terminal. npx guinea-note notes.md">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="vi_VN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Guinea Note — Notepad++ for your terminal">
+<meta name="twitter:description" content="A free, open-source terminal text editor in Rust: tabs, regex Find/Replace, line tools, session restore and saves that keep your bytes.">
+<meta name="twitter:image" content="https://guineanote.konexforge.com/assets/og-image.png">
+
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/mascot-32.png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="alternate" type="text/plain" title="Summary for AI assistants" href="/llms.txt">
+<link rel="preload" as="image" href="/images/editor.webp" type="image/webp">
+<link rel="stylesheet" href="/assets/site.css">
+<script src="/assets/site.js" defer></script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    { "@type": "Organization", "@id": "https://konexforge.com/#organization", "name": "Konex Forge", "url": "https://konexforge.com/" },
+    {
+      "@type": "WebSite", "@id": "https://guineanote.konexforge.com/#site",
+      "url": "https://guineanote.konexforge.com/", "name": "Guinea Note",
+      "inLanguage": ["en", "vi"], "publisher": { "@id": "https://konexforge.com/#organization" }
+    },
+    {
+      "@type": "WebPage", "@id": "https://guineanote.konexforge.com/#page",
+      "url": "https://guineanote.konexforge.com/", "inLanguage": "en",
+      "name": "Guinea Note — Notepad++-style text editor for the terminal",
+      "datePublished": "2026-11-15", "dateModified": "2026-11-15",
+      "isPartOf": { "@id": "https://guineanote.konexforge.com/#site" },
+      "about": { "@id": "https://guineanote.konexforge.com/#app" },
+      "primaryImageOfPage": "https://guineanote.konexforge.com/images/editor.webp"
+    },
+    {
+      "@type": "SoftwareApplication",
+      "@id": "https://guineanote.konexforge.com/#app",
+      "name": "Guinea Note",
+      "alternateName": ["guinea", "GuineaNote", "guinea-note"],
+      "description": "A free, open-source, Notepad++-style text editor for the terminal, written in Rust. It opens files in tabs and has one Find/Replace panel with regular expressions, line tools, bookmarks, session restore, read-only formatted previews and crash recovery. Saves keep the UTF-8 BOM and LF/CRLF/mixed newlines exactly as they were. English and Vietnamese interface. The command is guinea.",
+      "url": "https://guineanote.konexforge.com/",
+      "applicationCategory": "DeveloperApplication",
+      "applicationSubCategory": "Text editor",
+      "operatingSystem": "Windows x64, Linux x64",
+      "softwareVersion": "0.1.3",
+      "datePublished": "2026-11-15",
+      "downloadUrl": "https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip",
+      "installUrl": "https://guineanote.konexforge.com/#install",
+      "releaseNotes": "https://github.com/cmm-cmm/GuineaNote/releases/tag/v0.1.3",
+      "license": "https://opensource.org/licenses/MIT",
+      "isAccessibleForFree": true,
+      "inLanguage": ["en", "vi"],
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "screenshot": [
+        "https://guineanote.konexforge.com/images/editor.webp",
+        "https://guineanote.konexforge.com/images/find-replace.webp",
+        "https://guineanote.konexforge.com/images/markdown-preview.webp",
+        "https://guineanote.konexforge.com/images/actions.webp",
+        "https://guineanote.konexforge.com/images/tabs-vietnamese.webp"
+      ],
+      "featureList": [
+        "Tabs with a tab manager and session restore of open files, carets and the active tab",
+        "One Find/Replace panel with match case, whole word and linear-time regular expressions ($1 and ${name} replacements), Mark All",
+        "Line tools: sort, remove duplicate or empty lines, trim trailing whitespace, case conversion, line comments",
+        "Byte-exact saves: UTF-8 BOM and LF/CRLF/mixed newlines preserved, atomic saves, conflict checks",
+        "Checksummed crash-recovery drafts",
+        "Read-only previews for Markdown, JSON, CSV/TSV, XML, TOML, YAML, INI/ENV and Jupyter notebooks",
+        "Background work for large files and long lines; keys typed meanwhile are queued",
+        "Keyboard first with optional mouse support; F2 lists every action with its key",
+        "English and Vietnamese interface",
+        "Opt-in local Agent access through a JSON CLI and an MCP server"
+      ],
+      "author": { "@id": "https://konexforge.com/#organization" },
+      "publisher": { "@id": "https://konexforge.com/#organization" }
+    },
+    {
+      "@type": "SoftwareSourceCode",
+      "name": "Guinea Note source code",
+      "codeRepository": "https://github.com/cmm-cmm/GuineaNote",
+      "programmingLanguage": "Rust",
+      "runtimePlatform": "Windows x64, Linux x64 (static musl)",
+      "license": "https://opensource.org/licenses/MIT",
+      "targetProduct": { "@id": "https://guineanote.konexforge.com/#app" }
+    },
+    {
+      "@type": "HowTo",
+      "@id": "https://guineanote.konexforge.com/#howto-npm",
+      "name": "Install Guinea Note on Windows with npm",
+      "inLanguage": "en",
+      "tool": [{ "@type": "HowToTool", "name": "Node.js 18 or newer" }],
+      "step": [
+        { "@type": "HowToStep", "name": "Check Node.js", "text": "Run node --version and make sure it prints v18 or newer." },
+        { "@type": "HowToStep", "name": "Run Guinea Note once", "text": "Run npx guinea-note notes.md to download and start the editor without installing it." },
+        { "@type": "HowToStep", "name": "Install the guinea command", "text": "Run npm install -g guinea-note, then start the editor with guinea notes.md." }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "inLanguage": "en",
+      "mainEntity": [
+        { "@type": "Question", "name": "What is Guinea Note?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Guinea Note is a free, open-source text editor for the terminal, written in Rust. It works like Notepad++: tabs, one Find/Replace panel with regular expressions, line tools, bookmarks and session restore, with no modes to learn. The command is guinea." } },
+        { "@type": "Question", "name": "How do I install Guinea Note on Windows?",
+          "acceptedAnswer": { "@type": "Answer", "text": "With Node.js 18 or newer, run npx guinea-note notes.md, or npm install -g guinea-note to get the guinea command. Without Node.js, download guinea-0.1.3-x86_64-pc-windows-msvc.zip from GitHub Releases, check its SHA-256, unpack it and add the folder to your PATH. A winget package, cmm-cmm.GuineaNote, is in review." } },
+        { "@type": "Question", "name": "How do I install Guinea Note on Linux?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Download guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz and SHA256SUMS from GitHub Releases, check them with sha256sum --ignore-missing -c SHA256SUMS, unpack the archive and copy guinea into ~/.local/bin. The static binary runs on Debian 11 and 12, Ubuntu 22.04, Alpine 3.20 and other x64 distributions. Versions 0.1.2 and 0.1.3 were released for Windows only, so Linux stays on 0.1.1 for now." } },
+        { "@type": "Question", "name": "Do I need Rust or Node.js to use Guinea Note?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. The release archives are self-contained native binaries. Node.js 18 or newer is needed only to install through npm, and Rust 1.98 or newer only to build from source with cargo install." } },
+        { "@type": "Question", "name": "Is Guinea Note free?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. Guinea Note is free and open source under the MIT License. The source code is on GitHub at github.com/cmm-cmm/GuineaNote." } },
+        { "@type": "Question", "name": "Does Guinea Note change my file's encoding or line endings?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Guinea Note edits UTF-8 and keeps the BOM and the original LF, CRLF or mixed newlines; bytes you did not edit are saved exactly as they were. Saves are atomic and stop with a conflict if another program changed the file. Other encodings, binary files and symlinked files are refused rather than damaged." } },
+        { "@type": "Question", "name": "How is Guinea Note different from Nano or Vim?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Guinea Note is not modal: you type text directly and use familiar keys such as Ctrl+S, Ctrl+F, Ctrl+Z and Ctrl+Q. It is modeled on Notepad++ rather than Nano or Vim, with tabs, a Find/Replace panel and line tools. F2 lists every action with its key." } },
+        { "@type": "Question", "name": "Does Guinea Note run on macOS?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Releases target Windows x64 and Linux x64 only; macOS is not released and not tested." } },
+        { "@type": "Question", "name": "Can I use Guinea Note in Vietnamese?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Yes. The interface is available in English and Vietnamese. Start it with guinea --language vi, or switch the language in Settings (F10); the choice is remembered." } },
+        { "@type": "Question", "name": "Can AI coding agents use Guinea Note?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Optionally. Start the editor with --agent to let a local agent read open documents through the guineanote-agent JSON CLI or the guineanote-mcp MCP server; add --agent-write to allow edits and saves. Agent access is off by default, and sensitive paths such as .env stay blocked unless you allow them." } }
+      ]
+    }
+  ]
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Guinea Note home">
+      <img src="/assets/mascot-96.png" width="36" height="36" alt="">
+      <span>Guinea <b>Note</b></span>
+      <span class="ver">v0.1.3</span>
+    </a>
+    <nav class="nav" aria-label="Main">
+      <a href="#install">Install</a>
+      <a href="#start">Quick start</a>
+      <a href="#features">Features</a>
+      <a href="#keys">Keys</a>
+      <a href="#faq">FAQ</a>
+      <a class="gh" href="https://github.com/cmm-cmm/GuineaNote">GitHub</a>
+    </nav>
+    <div class="lang" aria-label="Language">
+      <a href="/" hreflang="en" lang="en" aria-current="true">EN</a>
+      <a href="/vi/" hreflang="vi" lang="vi">VI</a>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-title">
+  <div class="wrap">
+    <div>
+      <span class="chip"><i aria-hidden="true"></i>Free · Open source · Windows &amp; Linux x64</span>
+      <h1 id="hero-title">Notepad++ for your <em>terminal.</em></h1>
+      <p class="lead"><strong>Guinea Note</strong> is a free, open-source text editor for the terminal, written in Rust. Tabs, one Find/Replace panel with regular expressions, line tools and session restore — and saves that keep your bytes exactly as they were.</p>
+      <div class="cmd" aria-label="Run Guinea Note with npm">
+        <pre><span class="p">&gt; </span>npx guinea-note notes.md</pre>
+      </div>
+      <div class="cta">
+        <a class="btn btn-primary" href="#install">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7.5 10.5 12 15l4.5-4.5M5 19.5h14"/></svg>
+          <span>Install Guinea Note<small>Windows · Linux · step by step</small></span>
+        </a>
+        <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 7l-5 5 5 5M15.5 7l5 5-5 5M13.5 5l-3 14"/></svg>
+          Source on GitHub
+        </a>
+      </div>
+      <div class="checks">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>MIT License</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>No Rust needed</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>No modes to learn</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>English &amp; Tiếng Việt</span>
+      </div>
+    </div>
+    <div class="hero-art">
+      <img class="mascot" src="/assets/mascot-96.png" width="96" height="96" alt="">
+      <div class="term">
+        <div class="term-bar" aria-hidden="true"><i></i><i></i><i></i><span>guinea src/main.rs</span></div>
+        <img src="/images/editor.webp" width="1380" height="816" fetchpriority="high" alt="Guinea Note editing a Rust file in a terminal: tab bar, syntax colors, bookmarks in the gutter and the status bar.">
+      </div>
+      <p class="caption">The real editor, captured from a terminal.</p>
+    </div>
+  </div>
+</section>
+
+<section id="install" class="band" aria-labelledby="install-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Install</div>
+      <h2 id="install-title">Up and running in a minute.</h2>
+      <p>Pick how you want to install. Every option runs the same binary as the GitHub Release (same SHA-256), and none of them needs Rust.</p>
+    </div>
+
+    <div class="picker">
+      <div class="tabs" role="tablist" aria-label="Ways to install" data-tabs>
+        <button type="button" role="tab" id="tab-npm" aria-controls="install-npm" aria-selected="true" data-hash="install-npm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-5-6-5M12 19h8"/></svg>npm · npx <span class="tag">fastest</span></button>
+        <button type="button" role="tab" id="tab-zip" aria-controls="install-zip" aria-selected="false" tabindex="-1" data-hash="install-zip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.5l7.5-1v7H3zM12.5 4.2 21 3v8.5h-8.5zM3 12.5h7.5v7L3 18.5zM12.5 12.5H21V21l-8.5-1.2z"/></svg>Windows .zip</button>
+        <button type="button" role="tab" id="tab-linux" aria-controls="install-linux" aria-selected="false" tabindex="-1" data-hash="install-linux">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3c-2.5 0-3.5 2.2-3.5 4.5 0 1.6-.5 2.7-1.6 4.2C5.6 13.5 5 15 5 16.5 5 19 7 21 12 21s7-2 7-4.5c0-1.5-.6-3-1.9-4.8-1.1-1.5-1.6-2.6-1.6-4.2C15.5 5.2 14.5 3 12 3z"/></svg>Linux</button>
+        <button type="button" role="tab" id="tab-winget" aria-controls="install-winget" aria-selected="false" tabindex="-1" data-hash="install-winget">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8l8-4 8 4-8 4zM4 8v8l8 4 8-4V8M12 12v8"/></svg>winget <span class="tag wait">in review</span></button>
+        <button type="button" role="tab" id="tab-cargo" aria-controls="install-cargo" aria-selected="false" tabindex="-1" data-hash="install-cargo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.5 6.5l3 3M4 20l3.5-1 10-10-2.5-2.5-10 10z"/></svg>Cargo <span class="tag dev">developers</span></button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-npm" aria-labelledby="tab-npm">
+        <div>
+          <h3>npm / npx <span class="tag">Windows x64</span></h3>
+          <p class="sub">If you have Node.js, npm fetches the native editor for you. Nothing is compiled on your machine.</p>
+          <ol class="how">
+            <li><b>Check that Node.js is 18 or newer</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>node --version</pre></div>
+              <p>No Node.js? Use the <a href="#install-zip">Windows .zip</a> instead — it needs nothing else.</p></li>
+            <li><b>Run Guinea Note once, without installing</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>npx guinea-note notes.md</pre></div></li>
+            <li><b>Or install the <code>guinea</code> command for good</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>npm install -g guinea-note
+<span class="p">&gt; </span>guinea notes.md</pre></div></li>
+          </ol>
+          <p class="note mac"><strong>On a Mac?</strong> Guinea Note is not released for macOS. Releases target Windows x64 and Linux x64 only.</p>
+        </div>
+        <aside class="facts" aria-label="npm package facts">
+          <h4>At a glance</h4>
+          <dl>
+            <dt>Version</dt><dd>0.1.3</dd>
+            <dt>Packages</dt><dd><a href="https://www.npmjs.com/package/guinea-note">guinea-note</a> + <a href="https://www.npmjs.com/package/@cmm_cmm/guinea-note-win32-x64">@cmm_cmm/…-win32-x64</a></dd>
+            <dt>Needs</dt><dd>Node.js 18+</dd>
+            <dt>Update</dt><dd><code>npm install -g guinea-note@latest</code></dd>
+            <dt>Remove</dt><dd><code>npm uninstall -g guinea-note</code></dd>
+          </dl>
+          <p class="note">On Linux the npm package of 0.1.3 has no binary yet; use the <a href="#install-linux">Linux archive</a>.</p>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-zip" aria-labelledby="tab-zip" hidden>
+        <div>
+          <h3>Windows .zip <span class="tag">portable</span></h3>
+          <p class="sub">One folder with <code>guinea.exe</code>. No installer, no administrator rights, no Visual C++ runtime.</p>
+          <ol class="how">
+            <li><b>Download the archive</b> (PowerShell), or <a href="https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip">download it in the browser</a>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/guinea-0.1.3-x86_64-pc-windows-msvc.zip -OutFile guinea.zip</pre></div></li>
+            <li><b>Check the SHA-256</b> — it must print <code>True</code>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Invoke-WebRequest https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.3/SHA256SUMS -OutFile SHA256SUMS
+<span class="p">PS&gt; </span>(Get-FileHash guinea.zip -Algorithm SHA256).Hash -eq ((Select-String windows-msvc.zip SHA256SUMS).Line -split ' ')[0]</pre></div></li>
+            <li><b>Unpack it</b>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>Expand-Archive guinea.zip -DestinationPath "$env:LOCALAPPDATA\GuineaNote"</pre></div></li>
+            <li><b>Add it to your PATH</b> (current user only)
+              <div class="cmd"><pre><span class="p">PS&gt; </span>[Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:LOCALAPPDATA\GuineaNote\guinea-0.1.3-x86_64-pc-windows-msvc", "User")</pre></div>
+              <p>Then open a new terminal window so it sees the new PATH.</p></li>
+            <li><b>Start editing</b>
+              <div class="cmd"><pre><span class="p">PS&gt; </span>guinea notes.md</pre></div></li>
+          </ol>
+        </div>
+        <aside class="facts" aria-label="Windows archive facts">
+          <h4>At a glance</h4>
+          <dl>
+            <dt>Version</dt><dd>0.1.3</dd>
+            <dt>Contains</dt><dd>guinea.exe, guineanote-agent.exe, guineanote-mcp.exe</dd>
+            <dt>Terminals</dt><dd>Windows Terminal, conhost</dd>
+            <dt>Remove</dt><dd>Delete the folder and its PATH entry</dd>
+          </dl>
+          <p class="note">The binaries are not code-signed yet, so SmartScreen may warn about a browser download. The SHA-256 check above proves the file is the published one.</p>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-linux" aria-labelledby="tab-linux" hidden>
+        <div>
+          <h3>Linux x64 <span class="tag">static binary</span></h3>
+          <p class="sub">One static (musl) binary that runs on any x64 distribution, with no dependencies.</p>
+          <ol class="how">
+            <li><b>Download the archive and the checksums</b>
+              <div class="cmd"><pre><span class="p">$ </span>curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+<span class="p">$ </span>curl -LO https://github.com/cmm-cmm/GuineaNote/releases/download/v0.1.1/SHA256SUMS</pre></div></li>
+            <li><b>Check them</b> — the line must end in <code>OK</code>
+              <div class="cmd"><pre><span class="p">$ </span>sha256sum --ignore-missing -c SHA256SUMS</pre></div></li>
+            <li><b>Unpack and install</b>
+              <div class="cmd"><pre><span class="p">$ </span>tar -xzf guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz
+<span class="p">$ </span>install -m 755 guinea-0.1.1-x86_64-unknown-linux-musl/guinea ~/.local/bin/</pre></div>
+              <p>If <code>guinea</code> is not found afterwards, add <code>~/.local/bin</code> to your PATH.</p></li>
+            <li><b>Start editing</b>
+              <div class="cmd"><pre><span class="p">$ </span>guinea notes.md</pre></div></li>
+          </ol>
+          <p class="note"><strong>Linux is on version 0.1.1.</strong> Versions 0.1.2 and 0.1.3 were released for Windows only while the Linux build checks are paused; the Linux archive moves forward when they resume.</p>
+        </div>
+        <aside class="facts" aria-label="Linux archive facts">
+          <h4>At a glance</h4>
+          <dl>
+            <dt>Version</dt><dd>0.1.1</dd>
+            <dt>Size</dt><dd>7.3 MB</dd>
+            <dt>Tested on</dt><dd>Debian 11/12, Ubuntu 22.04, Alpine 3.20</dd>
+            <dt>Clipboard</dt><dd>wl-clipboard, xclip or xsel (optional)</dd>
+            <dt>Remove</dt><dd><code>rm ~/.local/bin/guinea</code></dd>
+          </dl>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-winget" aria-labelledby="tab-winget" hidden>
+        <div>
+          <h3>winget <span class="tag wait">in review</span></h3>
+          <p class="sub">The Windows Package Manager package <code>cmm-cmm.GuineaNote</code> is waiting for review in <a href="https://github.com/microsoft/winget-pkgs/pull/480530">microsoft/winget-pkgs</a>.</p>
+          <ol class="how">
+            <li><b>Install, once the package is accepted</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>winget install cmm-cmm.GuineaNote</pre></div></li>
+            <li><b>Update later</b>
+              <div class="cmd"><pre><span class="p">&gt; </span>winget upgrade cmm-cmm.GuineaNote</pre></div></li>
+          </ol>
+          <p class="note">Until the review is done these commands find nothing. Use <a href="#install-npm">npm</a> or the <a href="#install-zip">Windows .zip</a> today.</p>
+        </div>
+        <aside class="facts" aria-label="winget facts">
+          <h4>At a glance</h4>
+          <dl>
+            <dt>Package</dt><dd>cmm-cmm.GuineaNote</dd>
+            <dt>Version</dt><dd>0.1.3 (submitted)</dd>
+            <dt>Commands</dt><dd>guinea, guineanote-agent, guineanote-mcp</dd>
+          </dl>
+        </aside>
+      </div>
+
+      <div class="panel" role="tabpanel" id="install-cargo" aria-labelledby="tab-cargo" hidden>
+        <div>
+          <h3>Cargo <span class="tag dev">build from source</span></h3>
+          <p class="sub">For Rust developers: Cargo builds a tagged release with your own toolchain (Rust 1.98 or newer; on Windows also the MSVC build tools).</p>
+          <ol class="how">
+            <li><b>Build and install the editor</b>
+              <div class="cmd"><pre><span class="p">$ </span>cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guineanote</pre></div></li>
+            <li><b>Optional: Agent access</b> (<code>guineanote-agent</code>, <code>guineanote-mcp</code>)
+              <div class="cmd"><pre><span class="p">$ </span>cargo install --git https://github.com/cmm-cmm/GuineaNote --tag v0.1.3 --locked guinea-agent</pre></div></li>
+          </ol>
+        </div>
+        <aside class="facts" aria-label="Cargo facts">
+          <h4>At a glance</h4>
+          <dl>
+            <dt>Installs to</dt><dd><code>~/.cargo/bin</code></dd>
+            <dt>Update</dt><dd>Same command, newer tag, plus <code>--force</code></dd>
+            <dt>Remove</dt><dd><code>cargo uninstall guineanote guinea-agent</code></dd>
+          </dl>
+        </aside>
+      </div>
+    </div>
+
+    <div class="choose">
+      <h3>Which one should I pick?</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">Way</th><th scope="col">Best for</th><th scope="col">You need</th><th scope="col">Platforms</th><th scope="col">Version</th></tr></thead>
+          <tbody>
+            <tr><td><a href="#install-npm">npm / npx</a></td><td>Developers who already have Node.js</td><td>Node.js 18+</td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td><a href="#install-zip">Windows .zip</a></td><td>Any Windows PC; offline, no admin rights</td><td><span class="no">Nothing</span></td><td>Windows x64</td><td><span class="yes">0.1.3</span></td></tr>
+            <tr><td><a href="#install-linux">Linux archive</a></td><td>Any x64 distribution, servers, containers</td><td><span class="no">Nothing</span></td><td>Linux x64</td><td>0.1.1</td></tr>
+            <tr><td><a href="#install-winget">winget</a></td><td>Windows users who manage apps with winget</td><td>winget</td><td>Windows x64</td><td><span class="wait">in review</span></td></tr>
+            <tr><td><a href="#install-cargo">Cargo</a></td><td>Rust developers building from source</td><td>Rust 1.98+</td><td>Windows, Linux</td><td><span class="yes">0.1.3</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note ok"><strong>Check that it works:</strong> <code>guinea --version</code> prints <code>guinea 0.1.3</code> (<code>guinea 0.1.1</code> on Linux).</p>
+    </div>
+  </div>
+</section>
+
+<section id="start" aria-labelledby="start-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Quick start</div>
+      <h2 id="start-title">Open. Edit. Save.</h2>
+      <p>If you have used Notepad++, you already know most of it. There are no modes: you type, and the usual keys do the usual things.</p>
+    </div>
+    <div class="steps">
+      <div class="step"><div class="n">01</div><h3>Open a file</h3><p>A missing path is created when you save. Several files open as tabs, and <code>guinea</code> alone reopens your last session.</p>
+        <div class="cmd"><pre><span class="p">$ </span>guinea notes.md</pre></div></div>
+      <div class="step"><div class="n">02</div><h3>Edit like Notepad++</h3><p><kbd>Ctrl</kbd>+<kbd>S</kbd> saves, <kbd>Ctrl</kbd>+<kbd>F</kbd> finds, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undoes, <kbd>Ctrl</kbd>+<kbd>D</kbd> duplicates a line. Your BOM and line endings stay as they were.</p></div>
+      <div class="step"><div class="n">03</div><h3>Find any action</h3><p><kbd>F2</kbd> lists every action with its key — or why it is unavailable right now. <kbd>F1</kbd> shows the keyboard guide and <kbd>Ctrl</kbd>+<kbd>Q</kbd> quits.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="tour-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">A quick tour</div>
+      <h2 id="tour-title">Real screens, not mock-ups.</h2>
+      <p>Every image is rendered from the editor running in a terminal.</p>
+    </div>
+    <div class="gallery" tabindex="0" aria-label="Screenshots">
+      <figure><div class="term"><img src="/images/find-replace.webp" width="1380" height="816" loading="lazy" alt="Find/Replace panel with a regular expression, a $1 replacement and the list of matches."></div>
+        <figcaption><strong>Find/Replace with regex</strong>Match case, whole word and regular expressions with <code>$1</code> replacements (Ctrl+F, Alt+R).</figcaption></figure>
+      <figure><div class="term"><img src="/images/markdown-preview.webp" width="1380" height="816" loading="lazy" alt="Markdown source beside its formatted read-only preview with a task list and a callout."></div>
+        <figcaption><strong>Split preview</strong>Markdown beside its source, with a contents sidebar (F8).</figcaption></figure>
+      <figure><div class="term"><img src="/images/actions.webp" width="1380" height="816" loading="lazy" alt="The F2 action list filtered to line tools, each with its key."></div>
+        <figcaption><strong>F2 action list</strong>Every action, its key, or why it is unavailable right now.</figcaption></figure>
+      <figure><div class="term"><img src="/images/tabs-vietnamese.webp" width="1380" height="816" loading="lazy" alt="Vietnamese interface with the tab manager open."></div>
+        <figcaption><strong>Vietnamese interface</strong>The tab manager (F12) in Vietnamese; switch with F10.</figcaption></figure>
+    </div>
+  </div>
+</section>
+
+<section id="features" aria-labelledby="features-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Features</div>
+      <h2 id="features-title">The Notepad++ toolbox, in a terminal.</h2>
+      <p>Fast on big files, careful with your bytes, and every action reachable from the keyboard.</p>
+    </div>
+    <div class="bento">
+      <div class="tile wide"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h6l2 2h10v10H3zM3 7V5h6l2 2"/></svg></div>
+        <h3>Tabs and session restore</h3><p>A one-row tab bar, a tab manager (F12 / Ctrl+P) to filter, switch, save and close tabs, and the next start reopens your files, carets and active tab.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 17a6.5 6.5 0 1 0 0-13 6.5 6.5 0 0 0 0 13zM15.5 15.5 21 21"/></svg></div>
+        <h3>Find/Replace with regex</h3><p>One panel for both, linear-time regular expressions, <code>$1</code> / <code>${name}</code> replacements, Mark All. Replace all is one Undo step.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h10M4 18h7M17 14v6M14 17h6"/></svg></div>
+        <h3>Line and text tools</h3><p>Sort, remove duplicate or empty lines, trim trailing spaces, UPPER / lower / Title case, line comments, move and duplicate lines.</p></div>
+      <div class="tile wide"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6zM8.5 12l2.5 2.5 4.5-5"/></svg></div>
+        <h3>Your bytes, exactly</h3><p>Strict UTF-8 with the BOM and LF / CRLF / mixed newlines kept as they were. Atomic saves, a conflict check when another program changed the file, and invalid encodings, binary files and symlinks refused rather than damaged.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.7M4 4v4h4M12 8v4l3 2"/></svg></div>
+        <h3>Crash recovery</h3><p>Unsaved tabs are checkpointed about once a second into a private store and come back as drafts after a crash.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/></svg></div>
+        <h3>Readable previews</h3><p>Markdown, JSON, CSV/TSV, XML, TOML, YAML, INI/ENV and notebooks, side by side or in a linked read-only tab (F8).</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></div>
+        <h3>Fast on big files</h3><p>Long lines and big tools run in the background; keys typed meanwhile are queued, never dropped. Every interaction over 50 ms is investigated before a release.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h18v10H3zM7 11h.01M11 11h.01M15 11h.01M7 14h10"/></svg></div>
+        <h3>Keyboard first</h3><p>Every mouse action has a key, and the labels on screen come from the keymap itself. The mouse is optional.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h9M8.5 3v2M6 5c0 4 3 7 6.5 8M11 5c0 4-3 7-7 9M13 21l4-9 4 9M14.5 18h5"/></svg></div>
+        <h3>English and Tiếng Việt</h3><p>The whole interface in both languages: <code>--language vi</code>, or F10 Settings, which remembers your choice.</p></div>
+      <div class="tile"><div class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6v4H9zM12 7v3M5 10h14v8H5zM9 14h.01M15 14h.01M3 13v3M21 13v3"/></svg></div>
+        <h3>Opt-in Agent access</h3><p>A JSON CLI and an MCP server let a local coding agent read and edit open documents — only when you start with <code>--agent</code>.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="keys" class="band" aria-labelledby="keys-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Keyboard essentials</div>
+      <h2 id="keys-title">The keys you already know.</h2>
+      <p>The full keymap, terminal conflicts and alternatives are in <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/docs/KEYBOARD_SHORTCUTS.md">KEYBOARD_SHORTCUTS.md</a>.</p>
+    </div>
+    <div class="keys">
+      <div class="key"><span>Save</span><span class="k"><kbd>Ctrl</kbd><kbd>S</kbd></span></div>
+      <div class="key"><span>Open file</span><span class="k"><kbd>Ctrl</kbd><kbd>O</kbd></span></div>
+      <div class="key"><span>New tab</span><span class="k"><kbd>Ctrl</kbd><kbd>N</kbd></span></div>
+      <div class="key"><span>Close tab / quit</span><span class="k"><kbd>Ctrl</kbd><kbd>W</kbd><i>/</i><kbd>Ctrl</kbd><kbd>Q</kbd></span></div>
+      <div class="key"><span>Undo / redo</span><span class="k"><kbd>Ctrl</kbd><kbd>Z</kbd><i>/</i><kbd>Ctrl</kbd><kbd>Y</kbd></span></div>
+      <div class="key"><span>Find / Replace</span><span class="k"><kbd>Ctrl</kbd><kbd>F</kbd><i>/</i><kbd>Ctrl</kbd><kbd>H</kbd></span></div>
+      <div class="key"><span>Next match</span><span class="k"><kbd>F3</kbd></span></div>
+      <div class="key"><span>Go to line</span><span class="k"><kbd>Ctrl</kbd><kbd>G</kbd></span></div>
+      <div class="key"><span>Duplicate / move line</span><span class="k"><kbd>Ctrl</kbd><kbd>D</kbd><i>/</i><kbd>Alt</kbd><kbd>↑↓</kbd></span></div>
+      <div class="key"><span>Toggle bookmark</span><span class="k"><kbd>Ctrl</kbd><kbd>F2</kbd></span></div>
+      <div class="key"><span>Tab manager</span><span class="k"><kbd>F12</kbd></span></div>
+      <div class="key"><span>Preview</span><span class="k"><kbd>F8</kbd></span></div>
+      <div class="key"><span>Keyboard guide</span><span class="k"><kbd>F1</kbd></span></div>
+      <div class="key"><span>Every action</span><span class="k"><kbd>F2</kbd></span></div>
+      <div class="key"><span>Settings (language)</span><span class="k"><kbd>F10</kbd></span></div>
+      <div class="key"><span>Copy / paste</span><span class="k"><kbd>Ctrl</kbd><kbd>C</kbd><i>/</i><kbd>Ctrl</kbd><kbd>V</kbd></span></div>
+      <div class="key"><span>Previous / next tab</span><span class="k"><kbd>F6</kbd><i>/</i><kbd>F7</kbd></span></div>
+      <div class="key"><span>Close dialog, cancel</span><span class="k"><kbd>Esc</kbd></span></div>
+    </div>
+  </div>
+</section>
+
+<section id="platforms" aria-labelledby="platforms-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">Platforms</div>
+      <h2 id="platforms-title">Where it runs, honestly.</h2>
+      <p>A platform is called supported only after the editor has run natively on it.</p>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Platform</th><th scope="col">Status</th></tr></thead>
+        <tbody>
+          <tr><td>Windows x64 (Windows Terminal, conhost)</td><td><span class="yes">Released, 0.1.3.</span> Verified on Windows 11 with ConPTY, and by CI on an elevated runner.</td></tr>
+          <tr><td>Linux x64 (static musl)</td><td><span class="yes">Released, 0.1.1.</span> Verified in a Debian 12 container; runs on Debian 11/12, Ubuntu 22.04 and Alpine 3.20. CI runs the tests on Linux for every change.</td></tr>
+          <tr><td>macOS</td><td><span class="no">Not released and not tested.</span></td></tr>
+          <tr><td>ARM64, real Linux terminal emulators, SSH and tmux</td><td><span class="wait">Not verified yet.</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="band" aria-labelledby="faq-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="kicker">FAQ</div>
+      <h2 id="faq-title">Questions, answered.</h2>
+    </div>
+    <div class="faq">
+      <details open><summary>What is Guinea Note?</summary>
+        <p>Guinea Note is a free, open-source text editor for the terminal, written in Rust. It works like Notepad++: tabs, one Find/Replace panel with regular expressions, line tools, bookmarks and session restore, with no modes to learn. The command is <code>guinea</code>.</p></details>
+      <details><summary>How do I install Guinea Note on Windows?</summary>
+        <p>With Node.js 18 or newer, run <code>npx guinea-note notes.md</code>, or <code>npm install -g guinea-note</code> to get the <code>guinea</code> command. Without Node.js, download <code>guinea-0.1.3-x86_64-pc-windows-msvc.zip</code> from GitHub Releases, check its SHA-256, unpack it and add the folder to your PATH (<a href="#install-zip">step by step</a>). A winget package, <code>cmm-cmm.GuineaNote</code>, is in review.</p></details>
+      <details><summary>How do I install Guinea Note on Linux?</summary>
+        <p>Download <code>guinea-0.1.1-x86_64-unknown-linux-musl.tar.gz</code> and <code>SHA256SUMS</code> from GitHub Releases, check them with <code>sha256sum --ignore-missing -c SHA256SUMS</code>, unpack the archive and copy <code>guinea</code> into <code>~/.local/bin</code> (<a href="#install-linux">step by step</a>). The static binary runs on Debian 11 and 12, Ubuntu 22.04, Alpine 3.20 and other x64 distributions. Versions 0.1.2 and 0.1.3 were released for Windows only, so Linux stays on 0.1.1 for now.</p></details>
+      <details><summary>Do I need Rust or Node.js to use Guinea Note?</summary>
+        <p>No. The release archives are self-contained native binaries. Node.js 18 or newer is needed only to install through npm, and Rust 1.98 or newer only to build from source with <code>cargo install</code>.</p></details>
+      <details><summary>Is Guinea Note free?</summary>
+        <p>Yes. Guinea Note is free and open source under the MIT License. The source code is on GitHub at <a href="https://github.com/cmm-cmm/GuineaNote">github.com/cmm-cmm/GuineaNote</a>.</p></details>
+      <details><summary>Does Guinea Note change my file's encoding or line endings?</summary>
+        <p>No. Guinea Note edits UTF-8 and keeps the BOM and the original LF, CRLF or mixed newlines; bytes you did not edit are saved exactly as they were. Saves are atomic and stop with a conflict if another program changed the file. Other encodings, binary files and symlinked files are refused rather than damaged.</p></details>
+      <details><summary>How is Guinea Note different from Nano or Vim?</summary>
+        <p>Guinea Note is not modal: you type text directly and use familiar keys such as Ctrl+S, Ctrl+F, Ctrl+Z and Ctrl+Q. It is modeled on Notepad++ rather than Nano or Vim, with tabs, a Find/Replace panel and line tools. F2 lists every action with its key.</p></details>
+      <details><summary>Does Guinea Note run on macOS?</summary>
+        <p>No. Releases target Windows x64 and Linux x64 only; macOS is not released and not tested.</p></details>
+      <details><summary>Can I use Guinea Note in Vietnamese?</summary>
+        <p>Yes. The interface is available in English and Vietnamese. Start it with <code>guinea --language vi</code>, or switch the language in Settings (F10); the choice is remembered.</p></details>
+      <details><summary>Can AI coding agents use Guinea Note?</summary>
+        <p>Optionally. Start the editor with <code>--agent</code> to let a local agent read open documents through the <code>guineanote-agent</code> JSON CLI or the <code>guineanote-mcp</code> MCP server; add <code>--agent-write</code> to allow edits and saves. Agent access is off by default, and sensitive paths such as <code>.env</code> stay blocked unless you allow them.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="final" aria-labelledby="final-title">
+  <div class="wrap">
+    <h2 id="final-title">Try it in one line.</h2>
+    <p class="lead" style="margin: 0 auto">Windows with Node.js 18+. Other setups: see <a href="#install">all install options</a>.</p>
+    <div class="cmd"><pre><span class="p">&gt; </span>npx guinea-note notes.md</pre></div>
+    <div class="cta">
+      <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote/releases/latest">All releases</a>
+      <a class="btn btn-ghost" href="https://github.com/cmm-cmm/GuineaNote#readme">Read the full guide</a>
+    </div>
+    <p class="updated">Version 0.1.3 · released 15 November 2026 · page updated 15 November 2026</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="/"><img src="/assets/mascot-96.png" width="28" height="28" alt=""><span>Guinea <b>Note</b></span></a>
+    <nav aria-label="Footer">
+      <a href="https://github.com/cmm-cmm/GuineaNote">GitHub</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/releases">Releases</a>
+      <a href="https://www.npmjs.com/package/guinea-note">npm</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/CHANGELOG.md">Changelog</a>
+      <a href="https://github.com/cmm-cmm/GuineaNote/blob/main/LICENSE">MIT License</a>
+      <a href="/llms.txt">llms.txt</a>
+      <a href="/vi/" hreflang="vi" lang="vi">Tiếng Việt</a>
+    </nav>
+    <span>A product of <a href="https://konexforge.com/">Konex Forge</a></span>
+  </div>
+</footer>
+</body>
+</html>

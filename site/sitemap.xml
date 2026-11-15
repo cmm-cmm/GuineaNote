@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://guineanote.konexforge.com/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guineanote.konexforge.com/"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://guineanote.konexforge.com/vi/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guineanote.konexforge.com/"/>
+    <image:image><image:loc>https://guineanote.konexforge.com/images/editor.webp</image:loc></image:image>
+    <image:image><image:loc>https://guineanote.konexforge.com/images/find-replace.webp</image:loc></image:image>
+    <image:image><image:loc>https://guineanote.konexforge.com/images/markdown-preview.webp</image:loc></image:image>
+    <image:image><image:loc>https://guineanote.konexforge.com/images/actions.webp</image:loc></image:image>
+  </url>
+  <url>
+    <loc>https://guineanote.konexforge.com/vi/</loc>
+    <lastmod>2026-11-15</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://guineanote.konexforge.com/"/>
+    <xhtml:link rel="alternate" hreflang="vi" href="https://guineanote.konexforge.com/vi/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://guineanote.konexforge.com/"/>
+    <image:image><image:loc>https://guineanote.konexforge.com/images/tabs-vietnamese.webp</image:loc></image:image>
+  </url>
+</urlset>

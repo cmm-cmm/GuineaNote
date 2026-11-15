@@ -1,0 +1,13 @@
+{
+  "name": "Guinea Note",
+  "short_name": "Guinea Note",
+  "description": "A Notepad++-style text editor for the terminal, written in Rust.",
+  "start_url": "/",
+  "icons": [
+    { "src": "/assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ],
+  "theme_color": "#0B1320",
+  "background_color": "#0B1320",
+  "display": "browser"
+}
